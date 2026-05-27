@@ -1,7 +1,8 @@
 import { createServer } from "node:http";
-import { mkdirSync, appendFileSync } from "node:fs";
+import { mkdirSync, appendFileSync, createReadStream } from "node:fs";
 import { join } from "node:path";
 import { html } from "../ui/app.js";
+import { katexFontPath } from "../ui/katex-assets.js";
 import { loadTextbooks, resolveWorkspace } from "../compile/discover.js";
 import { summarizeChapter, summarizeTextbook } from "../core/validation.js";
 export async function startDevServer(options) {
@@ -29,6 +30,11 @@ export async function startDevServer(options) {
 }
 async function handleRequest(cwd, request, response) {
     const url = new URL(request.url ?? "/", "http://localhost");
+    const katexFontMatch = url.pathname.match(/^\/__tutor-assets\/katex\/fonts\/([^/]+)$/);
+    if (request.method === "GET" && katexFontMatch) {
+        sendFile(response, katexFontPath(decodeURIComponent(katexFontMatch[1] ?? "")));
+        return;
+    }
     if (request.method === "GET" && url.pathname === "/") {
         const workspace = await resolveWorkspace(cwd);
         send(response, 200, "text/html; charset=utf-8", html(workspace.title));
@@ -50,7 +56,7 @@ async function handleRequest(cwd, request, response) {
                 chapterCount: summary.chapters,
                 sectionCount: summary.sections,
                 subsectionCount: summary.subsections,
-                widgetCount: summary.widgets
+                blockCount: summary.blocks
             };
         }));
         return;
@@ -92,7 +98,7 @@ async function handleRequest(cwd, request, response) {
             textbookTitle: found.textbookTitle,
             sectionCount: summary.sections,
             subsectionCount: summary.subsections,
-            widgetCount: summary.widgets
+            blockCount: summary.blocks
         });
         return;
     }
@@ -118,6 +124,28 @@ function send(response, status, contentType, body) {
 }
 function sendJson(response, status, body) {
     send(response, status, "application/json; charset=utf-8", JSON.stringify(body, null, 2));
+}
+function sendFile(response, path) {
+    response.statusCode = 200;
+    response.setHeader("content-type", contentType(path));
+    createReadStream(path)
+        .on("error", () => {
+        if (!response.headersSent) {
+            response.statusCode = 404;
+            response.setHeader("content-type", "text/plain; charset=utf-8");
+        }
+        response.end("Not found");
+    })
+        .pipe(response);
+}
+function contentType(path) {
+    if (path.endsWith(".woff2"))
+        return "font/woff2";
+    if (path.endsWith(".woff"))
+        return "font/woff";
+    if (path.endsWith(".ttf"))
+        return "font/ttf";
+    return "application/octet-stream";
 }
 async function readJson(request) {
     const chunks = [];

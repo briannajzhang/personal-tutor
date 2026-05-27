@@ -1,0 +1,34 @@
+import { callout, codeBlock, heading, list, mathBlock, p } from "../../core/builders.js";
+export const coreBlockDefinitions = {
+    p: {
+        kind: "p",
+        title: "Paragraph",
+        create: p
+    },
+    heading: {
+        kind: "heading",
+        title: "Heading",
+        create: heading
+    },
+    list: {
+        kind: "list",
+        title: "List",
+        create: list
+    },
+    codeBlock: {
+        kind: "codeBlock",
+        title: "Code Block",
+        create: codeBlock
+    },
+    mathBlock: {
+        kind: "mathBlock",
+        title: "Math Block",
+        create: mathBlock
+    },
+    callout: {
+        kind: "callout",
+        title: "Callout",
+        create: callout
+    }
+};
+//# sourceMappingURL=index.js.map

@@ -21,6 +21,7 @@
     "build": "rm -rf dist && tsc -b --force && chmod +x dist/cli/index.js"
   },
   "dependencies": {
+    "katex": "^0.16.47",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   },

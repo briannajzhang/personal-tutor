@@ -1,4 +1,4 @@
-export { blurb, chapter, section, subsection, textbook } from "./core/builders.js";
+export { blurb, callout, chapter, codeBlock, explanation, heading, list, mathBlock, p, section, subsection, textbook } from "./core/builders.js";
 export { validateChapter, validateSection, validateSubsection, validateTextbook, summarizeChapter, summarizeSection, summarizeSubsection, summarizeTextbook } from "./core/validation.js";
-export { builtInWidgetRegistry } from "./registry/index.js";
-export type { BaseWidget, BlurbProps, BlurbWidget, Chapter, LoadedChapter, LoadedTextbook, Section, Subsection, Textbook, TextbookModule, TutorConfig, TutorWidget, ValidationIssue, WidgetKind } from "./core/types.js";
+export { builtInBlockRegistry, builtInWidgetRegistry } from "./registry/index.js";
+export type { BaseBlock, BlockKind, BlurbBlock, CalloutBlock, CalloutProps, CalloutTone, Chapter, CodeBlock, CodeBlockProps, ExplanationBlock, HeadingBlock, HeadingProps, ListBlock, ListProps, LoadedChapter, LoadedTextbook, MathBlock, MathBlockProps, ParagraphBlock, ParagraphProps, Section, Subsection, Textbook, TextbookModule, TutorBlock, TutorConfig, ValidationIssue, } from "./core/types.js";

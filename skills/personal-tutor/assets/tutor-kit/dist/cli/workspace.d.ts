@@ -8,5 +8,6 @@ export interface InitWorkspaceOptions {
 export declare function initWorkspace(cwd: string, options?: InitWorkspaceOptions): WriteResult;
 export declare function addTextbook(cwd: string, id: string, title: string): WriteResult;
 export declare function addChapter(cwd: string, textbookId: string, id: string, title: string): WriteResult;
+export declare function addBlock(cwd: string, kind: string): WriteResult;
 export declare function addWidget(cwd: string, kind: string): WriteResult;
 export declare function printWriteResult(action: string, result: WriteResult): string;

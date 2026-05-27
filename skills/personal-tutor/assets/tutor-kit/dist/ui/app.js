@@ -1,3 +1,4 @@
+import { katexCss, katexJs } from "./katex-assets.js";
 export function html(title) {
     return `<!doctype html>
 <html lang="en">
@@ -6,11 +7,13 @@ export function html(title) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(title)}</title>
     <style>${css()}</style>
+    <style>${katexCss()}</style>
   </head>
   <body>
     <div id="app">
       <main id="main"></main>
     </div>
+    <script>${katexJs()}</script>
     <script>${clientJs()}</script>
   </body>
 </html>`;
@@ -191,9 +194,8 @@ h1 {
   line-height: 1.2;
 }
 .subsection-block {
-  border-top: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
-  margin-top: 26px;
-  padding-top: 24px;
+  margin-top: 34px;
+  padding-top: 0;
 }
 .subsection-title {
   margin: 0 0 14px;
@@ -203,19 +205,75 @@ h1 {
   letter-spacing: 0;
   line-height: 1.3;
 }
-.widgets {
+.blocks {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
-.widget {
-  padding: 0 0 8px;
+.block {
+  min-width: 0;
 }
-.widget h3 {
-  margin: 0 0 10px;
+.local-heading {
+  margin: 10px 0 0;
   color: var(--accent-2);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 650;
-  letter-spacing: .02em;
+  letter-spacing: 0;
+}
+.local-heading.level-5 {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+.markdown ul,
+.markdown ol {
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+.code-block {
+  overflow: auto;
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  background: var(--panel-soft);
+  border: 1px solid color-mix(in srgb, var(--line) 58%, transparent);
+  border-radius: 6px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.math-block {
+  margin: 2px 0 14px;
+  color: var(--accent-2);
+  font-size: 23px;
+  line-height: 1.4;
+}
+.math-block .katex-display {
+  margin: 0;
+  text-align: left;
+}
+.math .katex {
+  font-size: 1.02em;
+}
+.callout {
+  margin: 4px 0 14px;
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--panel) 68%, transparent);
+  border-left: 3px solid var(--accent);
+}
+.callout.caution {
+  border-left-color: var(--accent-2);
+}
+.callout.key-idea {
+  border-left-color: var(--ink-soft);
+}
+.callout-title {
+  color: var(--accent-2);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin: 0 0 7px;
 }
 .markdown p {
   color: var(--ink-soft);
@@ -387,12 +445,12 @@ function renderSection(section) {
     <section class="chapter-section" id="\${escapeAttr(anchorId(section.id))}">
       <h2 class="section-title">\${escapeHtml(section.title)}</h2>
       \${section.description ? \`<div class="markdown"><p>\${escapeHtml(section.description)}</p></div>\` : ""}
-      <div class="widgets">\${section.widgets.map((widget) => renderWidget(widget)).join("")}</div>
+      <div class="blocks">\${section.blocks.map((block) => renderBlock(block)).join("")}</div>
       \${section.subsections.map((subsection) => \`
         <section class="subsection-block" id="\${escapeAttr(anchorId(subsection.id))}">
           <h3 class="subsection-title">\${escapeHtml(subsection.title)}</h3>
           \${subsection.description ? \`<div class="markdown"><p>\${escapeHtml(subsection.description)}</p></div>\` : ""}
-          <div class="widgets">\${subsection.widgets.map((widget) => renderWidget(widget)).join("")}</div>
+          <div class="blocks">\${subsection.blocks.map((block) => renderBlock(block)).join("")}</div>
         </section>
       \`).join("")}
     </section>
@@ -438,11 +496,30 @@ function navigateChapter(textbookId, chapterId) {
   renderChapter(textbookId, chapterId);
 }
 
-function renderWidget(widget) {
-  if (widget.kind === "blurb") {
-    return \`<article class="widget"><h3>\${escapeHtml(widget.title)}</h3><div class="markdown">\${renderMarkdown(widget.props.body)}</div></article>\`;
+function renderBlock(block) {
+  if (block.kind === "p" || block.kind === "explanation" || block.kind === "blurb") {
+    const title = block.props.title ? \`<h4 class="local-heading">\${escapeHtml(block.props.title)}</h4>\` : "";
+    return \`<article class="block">\${title}<div class="markdown">\${renderMarkdown(block.props.body)}</div></article>\`;
   }
-  return \`<article class="widget"><h3>\${escapeHtml(widget.title)}</h3><p>Unsupported widget: \${escapeHtml(widget.kind)}</p></article>\`;
+  if (block.kind === "heading") {
+    return \`<h\${block.props.level} class="local-heading level-\${block.props.level}">\${escapeHtml(block.props.text)}</h\${block.props.level}>\`;
+  }
+  if (block.kind === "list") {
+    const tag = block.props.style === "number" ? "ol" : "ul";
+    return \`<div class="block markdown"><\${tag}>\${block.props.items.map((item) => \`<li>\${renderInlineMarkdown(item)}</li>\`).join("")}</\${tag}></div>\`;
+  }
+  if (block.kind === "codeBlock") {
+    const language = block.props.language ? \` data-language="\${escapeAttr(block.props.language)}"\` : "";
+    return \`<pre class="code-block"\${language}><code>\${escapeHtml(block.props.code)}</code></pre>\`;
+  }
+  if (block.kind === "mathBlock") {
+    return \`<div class="math-block">\${renderMath(block.props.body, true)}</div>\`;
+  }
+  if (block.kind === "callout") {
+    const title = block.props.title ? block.props.title : block.props.tone.replace("-", " ");
+    return \`<aside class="callout \${escapeAttr(block.props.tone)}"><div class="callout-title">\${escapeHtml(title)}</div><div class="markdown">\${renderMarkdown(block.props.body)}</div></aside>\`;
+  }
+  return \`<article class="block"><div class="markdown"><p>Unsupported block: \${escapeHtml(block.kind)}</p></div></article>\`;
 }
 
 function renderCrumbs(items) {
@@ -477,12 +554,49 @@ function bindCrumbs() {
 }
 
 function renderMarkdown(value) {
-  return escapeHtml(value)
-    .replace(/\\\`([^\\\`]+)\\\`/g, "<code>$1</code>")
-    .replace(/\\$([^$]+)\\$/g, "<span class=\\"math\\">$1</span>")
+  return String(value ?? "")
     .split(/\\n{2,}/)
-    .map((paragraph) => "<p>" + paragraph.replace(/\\n/g, "<br>") + "</p>")
+    .map((paragraph) => "<p>" + renderInlineMarkdown(paragraph).replace(/\\n/g, "<br>") + "</p>")
     .join("");
+}
+
+function renderInlineMarkdown(value) {
+  const source = String(value ?? "");
+  let html = "";
+  let cursor = 0;
+  const pattern = /(\`[^\`]*\`|\\$[^$\\n]+\\$)/g;
+  for (const match of source.matchAll(pattern)) {
+    html += escapeHtml(source.slice(cursor, match.index));
+    const token = match[0];
+    if (token.startsWith("\`")) {
+      html += \`<code>\${escapeHtml(token.slice(1, -1))}</code>\`;
+    } else {
+      html += \`<span class="math">\${renderMath(token.slice(1, -1), false)}</span>\`;
+    }
+    cursor = match.index + token.length;
+  }
+  html += escapeHtml(source.slice(cursor));
+  return html;
+}
+
+function renderMath(value, displayMode) {
+  const source = normalizeLatex(value);
+  if (window.katex && typeof window.katex.renderToString === "function") {
+    return window.katex.renderToString(source, {
+      displayMode,
+      throwOnError: false,
+      strict: "ignore"
+    });
+  }
+  return escapeHtml(source);
+}
+
+function normalizeLatex(value) {
+  const slash = String.fromCharCode(92);
+  return String(value ?? "")
+    .replaceAll(slash + slash, slash)
+    .replaceAll(slash + "left", "")
+    .replaceAll(slash + "right", "");
 }
 
 function anchorId(value) {

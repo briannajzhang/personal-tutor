@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { compileWorkspace } from "../compile/compile.js";
 import { loadTextbooks } from "../compile/discover.js";
 import { startDevServer } from "../server/server.js";
-import { addChapter, addTextbook, addWidget, initWorkspace, printWriteResult } from "./workspace.js";
+import { addBlock, addChapter, addTextbook, initWorkspace, printWriteResult } from "./workspace.js";
 async function main() {
     const args = parseArgs(process.argv.slice(2));
     const [command, subcommand, ...rest] = args.command;
@@ -57,11 +57,11 @@ async function main() {
         console.log(JSON.stringify(found.textbook, null, 2));
         return;
     }
-    if (command === "add" && subcommand === "widget") {
+    if (command === "add" && (subcommand === "block" || subcommand === "widget")) {
         const kind = rest[0];
         if (!kind)
-            throw new Error("Usage: tutor add widget <blurb>");
-        console.log(printWriteResult(`Added widget ${kind}`, addWidget(args.cwd, kind)));
+            throw new Error("Usage: tutor add block <p|heading|list|codeBlock|mathBlock|callout>");
+        console.log(printWriteResult(`Added block ${kind}`, addBlock(args.cwd, kind)));
         return;
     }
     if (command === "compile") {
@@ -127,7 +127,7 @@ Usage:
   tutor [--cwd path] --package-spec file:/path/to/tutor-kit init
   tutor [--cwd path] add textbook <id> [title]
   tutor [--cwd path] add chapter <textbook-id> <id> [title]
-  tutor [--cwd path] add widget <blurb>
+  tutor [--cwd path] add block <p|heading|list|codeBlock|mathBlock|callout>
   tutor [--cwd path] list textbooks
   tutor [--cwd path] inspect textbook <id>
   tutor [--cwd path] compile
