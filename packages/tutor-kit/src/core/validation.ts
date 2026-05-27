@@ -6,6 +6,10 @@ import type {
   ValidationIssue
 } from "./types.js";
 
+const calloutTones = new Set(["note", "caution", "key-idea"]);
+const listStyles = new Set(["bullet", "number"]);
+const headingLevels = new Set([4, 5]);
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -89,7 +93,7 @@ export function validateSection(value: unknown, file?: string): ValidationIssue[
 
   if (!hasText(value.id)) issues.push(issue("Section id is required.", "id", file));
   if (!hasText(value.title)) issues.push(issue("Section title is required.", "title", file));
-  validateWidgetList(value.widgets, "widgets", file, issues);
+  validateBlockList(value.blocks, "blocks", file, issues);
 
   if (!Array.isArray(value.subsections)) {
     issues.push(issue("Section subsections must be an array.", "subsections", file));
@@ -122,57 +126,112 @@ export function validateSubsection(value: unknown, file?: string): ValidationIss
 
   if (!hasText(value.id)) issues.push(issue("Subsection id is required.", "id", file));
   if (!hasText(value.title)) issues.push(issue("Subsection title is required.", "title", file));
-  validateWidgetList(value.widgets, "widgets", file, issues);
+  validateBlockList(value.blocks, "blocks", file, issues);
 
   return issues;
 }
 
-function validateWidgetList(
-  widgets: unknown,
+function validateBlockList(
+  blocks: unknown,
   path: string,
   file: string | undefined,
   issues: ValidationIssue[]
 ): void {
-  if (!Array.isArray(widgets)) {
-    issues.push(issue("Widgets must be an array.", path, file));
+  if (!Array.isArray(blocks)) {
+    issues.push(issue("Blocks must be an array.", path, file));
     return;
   }
 
-  const widgetIds = new Set<string>();
-  for (const [index, widget] of widgets.entries()) {
-    validateWidget(widget, `${path}[${index}]`, file, issues);
-    if (isRecord(widget) && hasText(widget.id)) {
-      if (widgetIds.has(widget.id)) {
-        issues.push(issue(`Duplicate widget id: ${widget.id}`, `${path}[${index}].id`, file));
+  const blockIds = new Set<string>();
+  for (const [index, block] of blocks.entries()) {
+    validateBlock(block, `${path}[${index}]`, file, issues);
+    if (isRecord(block) && hasText(block.id)) {
+      if (blockIds.has(block.id)) {
+        issues.push(issue(`Duplicate block id: ${block.id}`, `${path}[${index}].id`, file));
       }
-      widgetIds.add(widget.id);
+      blockIds.add(block.id);
     }
   }
 }
 
-export function validateWidget(
-  widget: unknown,
+export function validateBlock(
+  block: unknown,
   path: string,
   file: string | undefined,
   issues: ValidationIssue[]
 ): void {
-  if (!isRecord(widget)) {
-    issues.push(issue("Widget must be an object.", path, file));
+  if (!isRecord(block)) {
+    issues.push(issue("Block must be an object.", path, file));
     return;
   }
 
-  if (!hasText(widget.id)) issues.push(issue("Widget id is required.", `${path}.id`, file));
-  if (!hasText(widget.title)) issues.push(issue("Widget title is required.", `${path}.title`, file));
-  if (!hasText(widget.kind)) issues.push(issue("Widget kind is required.", `${path}.kind`, file));
-  if (!isRecord(widget.props)) issues.push(issue("Widget props must be an object.", `${path}.props`, file));
-
-  if (widget.kind === "blurb") {
-    if (!isRecord(widget.props) || !hasText(widget.props.body)) {
-      issues.push(issue("Blurb body is required.", `${path}.props.body`, file));
-    } else {
-      validateMarkupText(widget.props.body, `${path}.props.body`, file, issues);
-    }
+  if (!hasText(block.id)) issues.push(issue("Block id is required.", `${path}.id`, file));
+  if (!hasText(block.kind)) issues.push(issue("Block kind is required.", `${path}.kind`, file));
+  if (!isRecord(block.props)) {
+    issues.push(issue("Block props must be an object.", `${path}.props`, file));
+    return;
   }
+
+  if (block.kind === "p" || block.kind === "explanation" || block.kind === "blurb") {
+    validateTextProp(block.props.body, `${path}.props.body`, file, issues);
+    return;
+  }
+
+  if (block.kind === "heading") {
+    validateTextProp(block.props.text, `${path}.props.text`, file, issues);
+    if (!headingLevels.has(block.props.level as number)) {
+      issues.push(issue("Heading level must be 4 or 5.", `${path}.props.level`, file));
+    }
+    return;
+  }
+
+  if (block.kind === "list") {
+    if (!listStyles.has(block.props.style as string)) {
+      issues.push(issue("List style must be bullet or number.", `${path}.props.style`, file));
+    }
+    if (!Array.isArray(block.props.items) || block.props.items.length === 0) {
+      issues.push(issue("List items must be a non-empty array.", `${path}.props.items`, file));
+    } else {
+      block.props.items.forEach((item, index) => validateTextProp(item, `${path}.props.items[${index}]`, file, issues));
+    }
+    return;
+  }
+
+  if (block.kind === "codeBlock") {
+    if (!hasText(block.props.code)) issues.push(issue("Code block code is required.", `${path}.props.code`, file));
+    if (block.props.language !== undefined && typeof block.props.language !== "string") {
+      issues.push(issue("Code block language must be a string.", `${path}.props.language`, file));
+    }
+    return;
+  }
+
+  if (block.kind === "mathBlock") {
+    if (!hasText(block.props.body)) issues.push(issue("Math block body is required.", `${path}.props.body`, file));
+    return;
+  }
+
+  if (block.kind === "callout") {
+    if (!calloutTones.has(block.props.tone as string)) {
+      issues.push(issue("Callout tone must be note, caution, or key-idea.", `${path}.props.tone`, file));
+    }
+    if (block.props.title !== undefined && typeof block.props.title !== "string") {
+      issues.push(issue("Callout title must be a string.", `${path}.props.title`, file));
+    }
+    validateTextProp(block.props.body, `${path}.props.body`, file, issues);
+  }
+}
+
+function validateTextProp(
+  value: unknown,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  if (!hasText(value)) {
+    issues.push(issue("Text is required.", path, file));
+    return;
+  }
+  validateMarkupText(value, path, file, issues);
 }
 
 function validateMarkupText(
@@ -192,43 +251,43 @@ function validateMarkupText(
   }
 }
 
-export function summarizeSubsection(subsection: Subsection): { widgets: number } {
-  return { widgets: subsection.widgets.length };
+export function summarizeSubsection(subsection: Subsection): { blocks: number } {
+  return { blocks: subsection.blocks.length };
 }
 
-export function summarizeSection(section: Section): { subsections: number; widgets: number } {
-  let widgets = section.widgets.length;
+export function summarizeSection(section: Section): { subsections: number; blocks: number } {
+  let blocks = section.blocks.length;
   for (const subsection of section.subsections) {
-    widgets += summarizeSubsection(subsection).widgets;
+    blocks += summarizeSubsection(subsection).blocks;
   }
-  return { subsections: section.subsections.length, widgets };
+  return { subsections: section.subsections.length, blocks };
 }
 
-export function summarizeChapter(chapter: Chapter): { sections: number; subsections: number; widgets: number } {
+export function summarizeChapter(chapter: Chapter): { sections: number; subsections: number; blocks: number } {
   let subsections = 0;
-  let widgets = 0;
+  let blocks = 0;
   for (const section of chapter.sections) {
     const summary = summarizeSection(section);
     subsections += summary.subsections;
-    widgets += summary.widgets;
+    blocks += summary.blocks;
   }
-  return { sections: chapter.sections.length, subsections, widgets };
+  return { sections: chapter.sections.length, subsections, blocks };
 }
 
 export function summarizeTextbook(textbook: Textbook): {
   chapters: number;
   sections: number;
   subsections: number;
-  widgets: number;
+  blocks: number;
 } {
   let sections = 0;
   let subsections = 0;
-  let widgets = 0;
+  let blocks = 0;
   for (const chapter of textbook.chapters) {
     const summary = summarizeChapter(chapter);
     sections += summary.sections;
     subsections += summary.subsections;
-    widgets += summary.widgets;
+    blocks += summary.blocks;
   }
-  return { chapters: textbook.chapters.length, sections, subsections, widgets };
+  return { chapters: textbook.chapters.length, sections, subsections, blocks };
 }

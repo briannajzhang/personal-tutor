@@ -1,7 +1,6 @@
-import { blurbDefinition } from "../widgets/blurb/index.js";
+import { coreBlockDefinitions } from "../blocks/core/index.js";
 
-export const builtInWidgetRegistry = {
-  blurb: blurbDefinition
-};
+export const builtInBlockRegistry = coreBlockDefinitions;
+export const builtInWidgetRegistry = builtInBlockRegistry;
 
-export type BuiltInWidgetKind = keyof typeof builtInWidgetRegistry;
+export type BuiltInBlockKind = keyof typeof builtInBlockRegistry;

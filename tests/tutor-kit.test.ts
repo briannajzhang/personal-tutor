@@ -3,9 +3,9 @@ import { mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
-import { blurb, chapter, section, subsection, textbook, validateTextbook } from "../packages/tutor-kit/src/index.js";
+import { callout, chapter, codeBlock, heading, list, mathBlock, p, section, subsection, textbook, validateTextbook } from "../packages/tutor-kit/src/index.js";
 import { compileWorkspace } from "../packages/tutor-kit/src/compile/compile.js";
-import { addChapter, addTextbook, addWidget, initWorkspace } from "../packages/tutor-kit/src/cli/workspace.js";
+import { addBlock, addChapter, addTextbook, initWorkspace } from "../packages/tutor-kit/src/cli/workspace.js";
 import { startDevServer } from "../packages/tutor-kit/src/server/server.js";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -23,14 +23,19 @@ test("builders create valid textbooks", () => {
           section({
             id: "elements",
             title: "1.1 Elements",
-            widgets: [
-              blurb({ id: "intro", title: "Intro", body: "Hello $x$." })
+            blocks: [
+              p({ id: "intro", body: "Hello $x$." }),
+              heading({ id: "what-next", text: "What comes next" }),
+              list({ id: "checks", items: ["Read the expression.", "Evaluate it."] }),
+              codeBlock({ id: "code", language: "js", code: "const x = 1;" }),
+              mathBlock({ id: "math", body: "x^2 + y^2 = z^2" }),
+              callout({ id: "note", tone: "key-idea", body: "Blocks are semantic." })
             ],
             subsections: [
               subsection({
                 id: "calls",
                 title: "1.1.1 Calls",
-                widgets: []
+                blocks: []
               })
             ]
           })
@@ -49,14 +54,14 @@ test("compile passes for the example workspace", async () => {
   assert.equal(result.chapterCount, 1);
   assert.equal(result.sectionCount, 1);
   assert.equal(result.subsectionCount, 1);
-  assert.equal(result.widgetCount, 2);
+  assert.equal(result.blockCount, 6);
 });
 
-test("compile reports duplicate widget ids", async () => {
+test("compile reports duplicate block ids", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
   initWorkspace(dir);
   linkTutorKit(dir);
-  writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "broken.chapter.ts"), `import { blurb, chapter, section } from "tutor-kit";
+  writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "broken.chapter.ts"), `import { chapter, p, section } from "tutor-kit";
 
 export default chapter({
   id: "broken",
@@ -65,9 +70,9 @@ export default chapter({
     section({
       id: "broken-section",
       title: "1.1 Broken",
-      widgets: [
-        blurb({ id: "same", title: "One", body: "A" }),
-        blurb({ id: "same", title: "Two", body: "B" })
+      blocks: [
+        p({ id: "same", body: "A" }),
+        p({ id: "same", body: "B" })
       ]
     })
   ]
@@ -85,7 +90,7 @@ export default textbook({
 
   const result = await compileWorkspace(dir);
   assert.equal(result.ok, false);
-  assert.match(result.output, /Duplicate widget id: same/);
+  assert.match(result.output, /Duplicate block id: same/);
 });
 
 test("init and add commands create expected workspace files", () => {
@@ -93,12 +98,12 @@ test("init and add commands create expected workspace files", () => {
   initWorkspace(dir, { packageSpec: "file:/tmp/tutor-kit" });
   addTextbook(dir, "mlx", "MLX");
   addChapter(dir, "mlx", "arrays", "Arrays");
-  addWidget(dir, "blurb");
+  addBlock(dir, "p");
 
   assert.match(readFileSync(join(dir, "package.json"), "utf8"), /file:\/tmp\/tutor-kit/);
   assert.match(readFileSync(join(dir, "textbooks", "mlx", "textbook.ts"), "utf8"), /id: "mlx"/);
   assert.match(readFileSync(join(dir, "textbooks", "mlx", "chapters", "arrays.chapter.ts"), "utf8"), /id: "arrays"/);
-  assert.match(readFileSync(join(dir, "tutor", "widgets", "blurb.tsx"), "utf8"), /blurbWidget/);
+  assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /coreBlocks/);
 });
 
 test("dev server exposes textbooks, chapters, and appends events", async () => {
@@ -111,6 +116,13 @@ test("dev server exposes textbooks, chapters, and appends events", async () => {
     const textbooks = await fetchJson(`${server.url}/api/textbooks`);
     assert.equal(Array.isArray(textbooks), true);
     assert.equal(textbooks[0].id, "getting-started");
+
+    const page = await fetchText(`${server.url}/textbooks/getting-started/chapters/welcome`);
+    assert.match(page, /katex/);
+
+    const fontResponse = await fetch(`${server.url}/__tutor-assets/katex/fonts/KaTeX_Main-Regular.woff2`);
+    assert.equal(fontResponse.status, 200);
+    assert.equal(fontResponse.headers.get("content-type"), "font/woff2");
 
     const textbookResponse = await fetchJson(`${server.url}/api/textbooks/getting-started`);
     assert.equal(textbookResponse.title, "Getting Started");
@@ -136,6 +148,14 @@ async function fetchJson(url: string, options?: RequestInit): Promise<any> {
     assert.fail(await response.text());
   }
   return response.json();
+}
+
+async function fetchText(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    assert.fail(await response.text());
+  }
+  return response.text();
 }
 
 function linkTutorKit(workspace: string): void {

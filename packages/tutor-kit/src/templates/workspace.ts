@@ -64,7 +64,7 @@ export default textbook({
 }
 
 export function welcomeChapterTemplate(): string {
-  return `import { blurb, chapter, section, subsection } from "tutor-kit";
+  return `import { callout, chapter, heading, list, p, section, subsection } from "tutor-kit";
 
 export default chapter({
   id: "welcome",
@@ -75,22 +75,38 @@ export default chapter({
     section({
       id: "workspace-source",
       title: "1.1 Workspace Source",
-      widgets: [
-        blurb({
+      blocks: [
+        p({
           id: "source-files",
-          title: "Visible Files",
-          body: "Textbooks are TypeScript modules. Sections and subsections hold Markdown and inline $LaTeX$ blurbs."
+          body: "Tutor Kit keeps learning material in visible TypeScript files so the agent and the learner can both inspect the same source of truth. A textbook owns ordered chapters; each chapter is divided into sections and subsections; semantic blocks inside those units contain the actual teaching prose, examples, formulas, and callouts. This structure is intentionally close to a real textbook, because it gives the agent a durable place to add material without turning the workspace into a pile of disconnected notes."
+        }),
+        heading({
+          id: "workspace-parts-heading",
+          text: "The moving parts"
+        }),
+        list({
+          id: "workspace-parts",
+          items: [
+            "Textbook files define the durable curriculum.",
+            "Chapter files hold sections, subsections, and semantic content blocks.",
+            "Event logs record learner activity without pretending to be source material."
+          ]
         })
       ],
       subsections: [
         subsection({
           id: "authoring-loop",
           title: "1.1.1 Authoring Loop",
-          widgets: [
-            blurb({
+          blocks: [
+            p({
               id: "compile-loop",
-              title: "Compile Often",
-              body: "After editing content, run \`tutor compile\` before opening the study UI."
+              body: "After editing content, run \`tutor compile\` before opening the study UI. The compile step is deliberately boring: it checks that the TypeScript imports resolve, that IDs are stable and unique, and that block text has balanced Markdown and LaTeX delimiters. Treat it like a spellcheck for the learning environment, not as an optional finishing step."
+            }),
+            callout({
+              id: "authoring-rule",
+              tone: "key-idea",
+              title: "Authoring rule",
+              body: "Use blocks the way you would use HTML: paragraphs for prose, headings for local structure, lists for scanability, code blocks for exact syntax, math blocks for displayed formulas, and callouts for emphasis."
             })
           ]
         })
@@ -102,10 +118,10 @@ export default chapter({
 }
 
 export function registryTemplate(): string {
-  return `import { blurbWidget } from "./widgets/blurb.js";
+  return `import { coreBlocks } from "./blocks/core.js";
 
-export const widgetRegistry = {
-  blurb: blurbWidget
+export const blockRegistry = {
+  ...coreBlocks
 };
 `;
 }

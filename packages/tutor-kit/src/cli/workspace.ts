@@ -9,10 +9,10 @@ import {
   welcomeChapterTemplate
 } from "../templates/workspace.js";
 import {
-  blurbWidgetTemplate,
+  coreBlocksTemplate,
   chapterTemplate,
   textbookTemplate
-} from "../templates/widgets.js";
+} from "../templates/blocks.js";
 
 export interface WriteResult {
   created: string[];
@@ -27,7 +27,7 @@ export function initWorkspace(cwd: string, options: InitWorkspaceOptions = {}): 
   const result: WriteResult = { created: [], skipped: [] };
   ensureDir(cwd);
   ensureDir(join(cwd, "textbooks", "getting-started", "chapters"));
-  ensureDir(join(cwd, "tutor", "widgets"));
+  ensureDir(join(cwd, "tutor", "blocks"));
   ensureDir(join(cwd, "tutor-data"));
 
   writeIfMissing(join(cwd, "package.json"), packageJsonTemplate(options.packageSpec), result);
@@ -36,7 +36,7 @@ export function initWorkspace(cwd: string, options: InitWorkspaceOptions = {}): 
   writeIfMissing(join(cwd, "textbooks", "getting-started", "textbook.ts"), welcomeTextbookTemplate(), result);
   writeIfMissing(join(cwd, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), welcomeChapterTemplate(), result);
   writeIfMissing(join(cwd, "tutor", "registry.ts"), registryTemplate(), result);
-  writeIfMissing(join(cwd, "tutor", "widgets", "blurb.tsx"), blurbWidgetTemplate(), result);
+  writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);
   writeIfMissing(join(cwd, "tutor-data", "events.jsonl"), "", result);
 
   return result;
@@ -56,16 +56,20 @@ export function addChapter(cwd: string, textbookId: string, id: string, title: s
   return result;
 }
 
-export function addWidget(cwd: string, kind: string): WriteResult {
+export function addBlock(cwd: string, kind: string): WriteResult {
   const result: WriteResult = { created: [], skipped: [] };
-  ensureDir(join(cwd, "tutor", "widgets"));
+  ensureDir(join(cwd, "tutor", "blocks"));
 
-  if (kind === "blurb") {
-    writeIfMissing(join(cwd, "tutor", "widgets", "blurb.tsx"), blurbWidgetTemplate(), result);
+  if (["p", "heading", "list", "codeBlock", "mathBlock", "callout", "core"].includes(kind)) {
+    writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);
     return result;
   }
 
-  throw new Error(`Unknown widget "${kind}". Available widgets: blurb.`);
+  throw new Error(`Unknown block "${kind}". Available blocks: p, heading, list, codeBlock, mathBlock, callout.`);
+}
+
+export function addWidget(cwd: string, kind: string): WriteResult {
+  return addBlock(cwd, kind);
 }
 
 function ensureDir(path: string): void {

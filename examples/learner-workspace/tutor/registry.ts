@@ -1,5 +1,5 @@
-import { blurbWidget } from "./widgets/blurb.js";
+import { coreBlocks } from "./blocks/core.js";
 
-export const widgetRegistry = {
-  blurb: blurbWidget
+export const blockRegistry = {
+  ...coreBlocks
 };

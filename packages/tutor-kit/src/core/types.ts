@@ -1,4 +1,13 @@
-export type WidgetKind = "blurb" | (string & {});
+export type BlockKind =
+  | "p"
+  | "heading"
+  | "list"
+  | "codeBlock"
+  | "mathBlock"
+  | "callout"
+  | "explanation"
+  | "blurb"
+  | (string & {});
 
 export interface TutorConfig {
   title?: string;
@@ -6,27 +15,69 @@ export interface TutorConfig {
   dataDir?: string;
 }
 
-export interface BaseWidget<K extends WidgetKind = WidgetKind, Props = unknown> {
+export interface BaseBlock<K extends BlockKind = BlockKind, Props = unknown> {
   kind: K;
   id: string;
-  title: string;
   props: Props;
 }
 
-export interface BlurbProps {
+export interface ParagraphProps {
   body: string;
 }
 
-export type BlurbWidget = BaseWidget<"blurb", BlurbProps>;
+export interface HeadingProps {
+  text: string;
+  level: 4 | 5;
+}
 
-export type TutorWidget = BlurbWidget | BaseWidget;
+export interface ListProps {
+  style: "bullet" | "number";
+  items: string[];
+}
+
+export interface CodeBlockProps {
+  code: string;
+  language?: string;
+}
+
+export interface MathBlockProps {
+  body: string;
+}
+
+export type CalloutTone = "note" | "caution" | "key-idea";
+
+export interface CalloutProps {
+  tone: CalloutTone;
+  body: string;
+  title?: string;
+}
+
+export type ParagraphBlock = BaseBlock<"p", ParagraphProps>;
+export type HeadingBlock = BaseBlock<"heading", HeadingProps>;
+export type ListBlock = BaseBlock<"list", ListProps>;
+export type CodeBlock = BaseBlock<"codeBlock", CodeBlockProps>;
+export type MathBlock = BaseBlock<"mathBlock", MathBlockProps>;
+export type CalloutBlock = BaseBlock<"callout", CalloutProps>;
+
+export type ExplanationBlock = BaseBlock<"explanation", ParagraphProps & { title?: string }>;
+export type BlurbBlock = ExplanationBlock;
+
+export type TutorBlock =
+  | ParagraphBlock
+  | HeadingBlock
+  | ListBlock
+  | CodeBlock
+  | MathBlock
+  | CalloutBlock
+  | ExplanationBlock
+  | BaseBlock;
 
 export interface Subsection {
   id: string;
   title: string;
   description?: string;
   tags?: string[];
-  widgets: TutorWidget[];
+  blocks: TutorBlock[];
 }
 
 export interface Section {
@@ -34,7 +85,7 @@ export interface Section {
   title: string;
   description?: string;
   tags?: string[];
-  widgets: TutorWidget[];
+  blocks: TutorBlock[];
   subsections: Subsection[];
 }
 

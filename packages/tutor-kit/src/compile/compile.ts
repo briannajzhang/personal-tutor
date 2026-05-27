@@ -10,6 +10,7 @@ export interface CompileResult {
   chapterCount: number;
   sectionCount: number;
   subsectionCount: number;
+  blockCount: number;
   widgetCount: number;
 }
 
@@ -24,6 +25,7 @@ export async function compileWorkspace(cwd: string): Promise<CompileResult> {
       chapterCount: 0,
       sectionCount: 0,
       subsectionCount: 0,
+      blockCount: 0,
       widgetCount: 0
     };
   }
@@ -42,18 +44,19 @@ export async function compileWorkspace(cwd: string): Promise<CompileResult> {
       chapterCount: 0,
       sectionCount: 0,
       subsectionCount: 0,
+      blockCount: 0,
       widgetCount: 0
     };
   }
 
   let sectionCount = 0;
   let subsectionCount = 0;
-  let widgetCount = 0;
+  let blockCount = 0;
   for (const loadedTextbook of loaded.textbooks) {
     const summary = summarizeTextbook(loadedTextbook.textbook);
     sectionCount += summary.sections;
     subsectionCount += summary.subsections;
-    widgetCount += summary.widgets;
+    blockCount += summary.blocks;
   }
 
   return {
@@ -64,13 +67,14 @@ export async function compileWorkspace(cwd: string): Promise<CompileResult> {
       `- ${loaded.chapters.length} chapters`,
       `- ${sectionCount} sections`,
       `- ${subsectionCount} subsections`,
-      `- ${widgetCount} widgets`
+      `- ${blockCount} blocks`
     ].join("\n"),
     textbookCount: loaded.textbooks.length,
     chapterCount: loaded.chapters.length,
     sectionCount,
     subsectionCount,
-    widgetCount
+    blockCount,
+    widgetCount: blockCount
   };
 }
 
