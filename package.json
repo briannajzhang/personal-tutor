@@ -1,0 +1,22 @@
+{
+  "name": "personal-tutor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "examples/learner-workspace"
+  ],
+  "scripts": {
+    "build": "rm -rf packages/tutor-kit/dist && tsc -b packages/tutor-kit --force && chmod +x packages/tutor-kit/dist/cli/index.js",
+    "build:skill": "npm run build && node scripts/build-skill.mjs",
+    "test": "npm run build && tsx --test tests/*.test.ts",
+    "tutor": "tsx packages/tutor-kit/src/cli/index.ts",
+    "compile:example": "npm run tutor -- --cwd examples/learner-workspace compile",
+    "dev:example": "npm run tutor -- --cwd examples/learner-workspace dev"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}

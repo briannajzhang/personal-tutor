@@ -1,0 +1,84 @@
+import { relative } from "node:path";
+import { loadTextbooks, resolveWorkspace } from "./discover.js";
+import { typecheckWorkspace } from "./typecheck.js";
+import { summarizeTextbook } from "../core/validation.js";
+
+export interface CompileResult {
+  ok: boolean;
+  output: string;
+  textbookCount: number;
+  chapterCount: number;
+  sectionCount: number;
+  subsectionCount: number;
+  widgetCount: number;
+}
+
+export async function compileWorkspace(cwd: string): Promise<CompileResult> {
+  const workspace = await resolveWorkspace(cwd);
+  const typecheck = typecheckWorkspace(workspace.cwd);
+  if (!typecheck.ok) {
+    return {
+      ok: false,
+      output: formatFailure("TypeScript failed", typecheck.messages),
+      textbookCount: 0,
+      chapterCount: 0,
+      sectionCount: 0,
+      subsectionCount: 0,
+      widgetCount: 0
+    };
+  }
+
+  const loaded = await loadTextbooks(workspace.cwd);
+  if (loaded.issues.length > 0) {
+    const messages = loaded.issues.map((issue) => {
+      const file = issue.file ? relative(workspace.cwd, issue.file) : "workspace";
+      const path = issue.path ? ` ${issue.path}` : "";
+      return `${file}${path} - ${issue.message}`;
+    });
+    return {
+      ok: false,
+      output: formatFailure("Tutor validation failed", messages),
+      textbookCount: 0,
+      chapterCount: 0,
+      sectionCount: 0,
+      subsectionCount: 0,
+      widgetCount: 0
+    };
+  }
+
+  let sectionCount = 0;
+  let subsectionCount = 0;
+  let widgetCount = 0;
+  for (const loadedTextbook of loaded.textbooks) {
+    const summary = summarizeTextbook(loadedTextbook.textbook);
+    sectionCount += summary.sections;
+    subsectionCount += summary.subsections;
+    widgetCount += summary.widgets;
+  }
+
+  return {
+    ok: true,
+    output: [
+      "Tutor compile passed",
+      `- ${loaded.textbooks.length} textbooks`,
+      `- ${loaded.chapters.length} chapters`,
+      `- ${sectionCount} sections`,
+      `- ${subsectionCount} subsections`,
+      `- ${widgetCount} widgets`
+    ].join("\n"),
+    textbookCount: loaded.textbooks.length,
+    chapterCount: loaded.chapters.length,
+    sectionCount,
+    subsectionCount,
+    widgetCount
+  };
+}
+
+function formatFailure(title: string, messages: string[]): string {
+  return [
+    "Tutor compile failed",
+    "",
+    title,
+    ...messages.map((message) => `- ${message}`)
+  ].join("\n");
+}
