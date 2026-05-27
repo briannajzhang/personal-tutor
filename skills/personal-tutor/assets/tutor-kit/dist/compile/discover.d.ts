@@ -1,0 +1,17 @@
+import type { LoadedChapter, LoadedTextbook, ValidationIssue } from "../core/types.js";
+export interface WorkspacePaths {
+    cwd: string;
+    configPath: string | null;
+    textbooksDir: string;
+    dataDir: string;
+    title: string;
+}
+export interface TextbookLoadResult {
+    textbooks: LoadedTextbook[];
+    chapters: LoadedChapter[];
+    issues: ValidationIssue[];
+}
+export declare function resolveWorkspace(cwd: string): Promise<WorkspacePaths>;
+export declare function findTsconfig(cwd: string): string | null;
+export declare function discoverTextbookFiles(textbooksDir: string): string[];
+export declare function loadTextbooks(cwd: string): Promise<TextbookLoadResult>;
