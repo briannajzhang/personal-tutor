@@ -1,6 +1,6 @@
 ---
 name: personal-tutor
-description: Provides adaptive personal tutoring workflows, textbook authoring, Tutor Kit UI tooling, and progress-aware study materials. Use when the user wants to learn a subject, create study material, manage tutoring progress, run Tutor Kit, or build markdown/LaTeX blurbs.
+description: Provides adaptive personal tutoring workflows, textbook authoring, Tutor Kit UI tooling, and progress-aware study materials. Use when the user wants to learn a subject, create study material, manage tutoring progress, run Tutor Kit, or build markdown/LaTeX textbook blocks.
 ---
 
 # Personal Tutor
@@ -14,9 +14,10 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace.
 - Author learning content with Tutor Kit TypeScript modules, not hand-edited JSON.
 - Organize material as textbooks containing chapters, sections, and subsections.
 - Keep runtime learning history in `tutor-data/events.jsonl`.
-- After changing content or widgets, run `tutor compile`.
+- After changing content or blocks, run `tutor compile`.
 - Start the local learning UI with `tutor dev` when the user wants to study in the interface.
-- Teach for durable learning: diagnose, explain briefly, practice, assess, and adapt.
+- Teach for durable learning: diagnose, explain clearly, practice, assess, and adapt.
+- For durable written material, follow `references/writing-style.md`: problem first, mechanism next, then example, misconception, and self-check.
 
 ## Default Workflow
 
@@ -24,14 +25,15 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace.
 2. Check existing textbooks and chapters before creating new material.
 3. Add or edit `textbooks/<textbook>/textbook.ts` and `textbooks/<textbook>/chapters/*.chapter.ts`.
 4. Keep each textbook's `chapters` array in the intended order.
-5. Use `section`, `subsection`, and `blurb` for Markdown/LaTeX explanations.
+5. Use semantic blocks: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, and `callout`. Treat blocks as teaching moves, not decoration.
 6. Run `tutor compile` and fix all issues before presenting the material.
 7. Run `tutor dev` to serve the UI when useful.
 
 ## References
 
 - Teaching style: `references/tutoring-behavior.md`
+- Writing style example: `references/writing-style.md`
 - Tutor Kit commands: `references/tutor-kit-workflow.md`
 - Textbook files: `references/lesson-authoring.md`
-- Widget APIs and extension pattern: `references/widget-authoring.md`
+- Block APIs and extension pattern: `references/block-authoring.md`
 - UI server and event logging: `references/ui-server.md`

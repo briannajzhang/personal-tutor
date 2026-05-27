@@ -7,7 +7,7 @@ Use `tutor dev` to start the local Tutor UI.
 - Loads `tutor.config.ts`.
 - Discovers `textbooks/<textbook>/textbook.ts` and ordered chapter arrays.
 - Serves a textbook dashboard and chapter reader.
-- Renders blurbs.
+- Renders semantic blocks.
 - Appends learner activity to `tutor-data/events.jsonl`.
 
 ## API

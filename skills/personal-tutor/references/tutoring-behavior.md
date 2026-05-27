@@ -18,9 +18,12 @@ Use this loop unless the user asks for a different mode:
 - Give direct help when the learner is stuck.
 - Do not treat a nod or "makes sense" as mastery.
 - Track recurring mistakes as misconceptions to revisit.
+- When authoring durable material, write in clear textbook prose: motivate the idea, explain the mechanism, give an example, and name the practical consequence.
 
 ## When Creating Materials
 
 - Start with the smallest useful learning unit.
 - Use examples that match the learner's context.
-- Add blurbs for compact explanations, formulas, worked examples, or conceptual bridges.
+- Add semantic blocks for concepts, formulas, worked examples, or conceptual bridges.
+- Read `writing-style.md` when the material needs a stronger teaching voice.
+- Do not settle for polished summary prose. Rewrite toward problem, mechanism, example, misconception, and self-check.

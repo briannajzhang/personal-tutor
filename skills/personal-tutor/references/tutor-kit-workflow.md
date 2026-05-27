@@ -9,7 +9,7 @@ tutor init
 tutor --package-spec file:/path/to/tutor-kit init
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
-tutor add widget blurb
+tutor add block <p|heading|list|codeBlock|mathBlock|callout>
 tutor list textbooks
 tutor inspect textbook <id>
 tutor compile
@@ -26,7 +26,7 @@ Use `--package-spec` during local dogfooding when Tutor Kit is installed from a 
 3. Add a textbook with `tutor add textbook <id> [title]` if no existing textbook fits.
 4. Add chapter files under `textbooks/<textbook-id>/chapters/`.
 5. Import each new chapter in `textbooks/<textbook-id>/textbook.ts` and add it to the ordered `chapters` array.
-6. Put content in chapter `sections` and `subsections`.
+6. Put content in chapter `sections` and `subsections` using semantic `blocks`.
 7. Run `tutor compile`.
 8. Fix TypeScript or Tutor Kit validation errors.
 9. Run `tutor dev` when the user wants the local UI.
@@ -42,7 +42,7 @@ textbooks/
     chapters/
 tutor/
   registry.ts
-  widgets/
+  blocks/
 tutor-data/
   events.jsonl
 ```
