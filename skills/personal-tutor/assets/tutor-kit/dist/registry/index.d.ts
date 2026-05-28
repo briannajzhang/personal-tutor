@@ -29,6 +29,11 @@ export declare const builtInBlockRegistry: {
         title: string;
         create: typeof import("../index.js").callout;
     };
+    codingProblem: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").codingProblem;
+    };
 };
 export declare const builtInWidgetRegistry: {
     p: {
@@ -60,6 +65,11 @@ export declare const builtInWidgetRegistry: {
         kind: string;
         title: string;
         create: typeof import("../index.js").callout;
+    };
+    codingProblem: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").codingProblem;
     };
 };
 export type BuiltInBlockKind = keyof typeof builtInBlockRegistry;

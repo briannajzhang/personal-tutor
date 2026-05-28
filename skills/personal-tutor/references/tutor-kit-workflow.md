@@ -9,7 +9,7 @@ tutor init
 tutor --package-spec file:/path/to/tutor-kit init
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
-tutor add block <p|heading|list|codeBlock|mathBlock|callout>
+tutor add block <p|heading|list|codeBlock|mathBlock|callout|codingProblem>
 tutor list textbooks
 tutor inspect textbook <id>
 tutor compile
@@ -45,8 +45,10 @@ tutor/
   blocks/
 tutor-data/
   events.jsonl
+  drafts/
+  feedback/
 ```
 
-The authored source of truth is `textbooks/<textbook-id>/textbook.ts` plus its chapter modules. Runtime history belongs in `tutor-data/events.jsonl`.
+The authored source of truth is `textbooks/<textbook-id>/textbook.ts` plus its chapter modules. Runtime history belongs in `tutor-data/events.jsonl`. Coding drafts and review feedback belong in `tutor-data/drafts/` and `tutor-data/feedback/`.
 
 Set `title` in `tutor.config.ts` to a learner-facing name for the current workspace, such as `MLX Study` or `Linear Algebra`.

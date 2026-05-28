@@ -1,4 +1,4 @@
-import { callout, codeBlock, heading, list, mathBlock, p } from "../../core/builders.js";
+import { callout, codeBlock, codingProblem, heading, list, mathBlock, p } from "../../core/builders.js";
 
 export const coreBlockDefinitions = {
   p: {
@@ -30,5 +30,10 @@ export const coreBlockDefinitions = {
     kind: "callout",
     title: "Callout",
     create: callout
+  },
+  codingProblem: {
+    kind: "codingProblem",
+    title: "Coding Problem",
+    create: codingProblem
   }
 };

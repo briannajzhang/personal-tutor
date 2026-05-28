@@ -41,6 +41,21 @@ callout({
   title: "Key idea",
   body: "Ask what change is being compared before applying symbolic rules."
 });
+
+const project = projectFiles(import.meta.url, "./problems/normalize-vector");
+
+codingProblem({
+  id: "normalize-vector",
+  title: "Normalize A Vector",
+  prompt: "Implement `normalize(xs)` so the returned values sum to 1.",
+  language: "python",
+  files: [
+    project.file("main.py", { editable: true }),
+    project.file("tests.py")
+  ],
+  setup: "uv --version",
+  test: "$PYTHON tests.py"
+});
 ```
 
 ## Tones
@@ -59,6 +74,7 @@ callout({
 - Use `codeBlock` for exact code, never inline code longer than a phrase.
 - Use `mathBlock` for displayed equations; use inline `$LaTeX$` inside prose for small notation.
 - Use `callout` sparingly for misconceptions, warnings, or high-value takeaways.
+- Use `codingProblem` for runnable practice. See `coding-problems.md`.
 - Prefer several semantic blocks over one giant Markdown string.
 - Keep block IDs stable and unique within their section or subsection.
 

@@ -33,11 +33,11 @@ export function addChapter(cwd, textbookId, id, title) {
 export function addBlock(cwd, kind) {
     const result = { created: [], skipped: [] };
     ensureDir(join(cwd, "tutor", "blocks"));
-    if (["p", "heading", "list", "codeBlock", "mathBlock", "callout", "core"].includes(kind)) {
+    if (["p", "heading", "list", "codeBlock", "mathBlock", "callout", "codingProblem", "core"].includes(kind)) {
         writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);
         return result;
     }
-    throw new Error(`Unknown block "${kind}". Available blocks: p, heading, list, codeBlock, mathBlock, callout.`);
+    throw new Error(`Unknown block "${kind}". Available blocks: p, heading, list, codeBlock, mathBlock, callout, codingProblem.`);
 }
 export function addWidget(cwd, kind) {
     return addBlock(cwd, kind);

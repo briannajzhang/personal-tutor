@@ -3,8 +3,10 @@ import { mkdirSync, appendFileSync, createReadStream } from "node:fs";
 import { join } from "node:path";
 import { html } from "../ui/app.js";
 import { katexFontPath } from "../ui/katex-assets.js";
+import { monacoAssetPath } from "../ui/monaco-assets.js";
 import { loadTextbooks, resolveWorkspace } from "../compile/discover.js";
 import { summarizeChapter, summarizeTextbook } from "../core/validation.js";
+import { loadCodingDraft, loadCodingFeedback, runCodingProblem, saveCodingDraft } from "./coding.js";
 export async function startDevServer(options) {
     const workspace = await resolveWorkspace(options.cwd);
     mkdirSync(workspace.dataDir, { recursive: true });
@@ -33,6 +35,11 @@ async function handleRequest(cwd, request, response) {
     const katexFontMatch = url.pathname.match(/^\/__tutor-assets\/katex\/fonts\/([^/]+)$/);
     if (request.method === "GET" && katexFontMatch) {
         sendFile(response, katexFontPath(decodeURIComponent(katexFontMatch[1] ?? "")));
+        return;
+    }
+    const monacoMatch = url.pathname.match(/^\/__tutor-assets\/monaco\/vs\/(.+)$/);
+    if (request.method === "GET" && monacoMatch) {
+        sendFile(response, monacoAssetPath(decodeURIComponent(monacoMatch[1] ?? "")));
         return;
     }
     if (request.method === "GET" && url.pathname === "/") {
@@ -110,6 +117,22 @@ async function handleRequest(cwd, request, response) {
         sendJson(response, 201, { ok: true });
         return;
     }
+    if (request.method === "POST" && url.pathname === "/api/coding/run") {
+        sendJson(response, 200, await runCodingProblem(cwd, await readJson(request)));
+        return;
+    }
+    if (request.method === "GET" && url.pathname === "/api/coding/draft") {
+        sendJson(response, 200, await loadCodingDraft(cwd, url.searchParams));
+        return;
+    }
+    if (request.method === "GET" && url.pathname === "/api/coding/feedback") {
+        sendJson(response, 200, await loadCodingFeedback(cwd, url.searchParams));
+        return;
+    }
+    if (request.method === "PUT" && url.pathname === "/api/coding/draft") {
+        sendJson(response, 200, await saveCodingDraft(cwd, await readJson(request)));
+        return;
+    }
     if (request.method === "GET" && !url.pathname.startsWith("/api/")) {
         const workspace = await resolveWorkspace(cwd);
         send(response, 200, "text/html; charset=utf-8", html(workspace.title));
@@ -139,6 +162,12 @@ function sendFile(response, path) {
         .pipe(response);
 }
 function contentType(path) {
+    if (path.endsWith(".js"))
+        return "text/javascript; charset=utf-8";
+    if (path.endsWith(".css"))
+        return "text/css; charset=utf-8";
+    if (path.endsWith(".json"))
+        return "application/json; charset=utf-8";
     if (path.endsWith(".woff2"))
         return "font/woff2";
     if (path.endsWith(".woff"))

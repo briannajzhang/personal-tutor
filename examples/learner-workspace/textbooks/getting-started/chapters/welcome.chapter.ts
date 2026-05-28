@@ -1,4 +1,6 @@
-import { callout, chapter, codeBlock, heading, list, p, section, subsection } from "tutor-kit";
+import { callout, chapter, codeBlock, codingProblem, heading, list, p, projectFiles, section, subsection } from "tutor-kit";
+
+const addOneProject = projectFiles(import.meta.url, "./problems/add-one");
 
 export default chapter({
   id: "welcome",
@@ -40,6 +42,19 @@ export default chapter({
               id: "chapter-file-example",
               language: "ts",
               code: "section({ id: \"arrays\", title: \"1.1 Arrays\", blocks: [p({ id: \"intro\", body: \"...\" })] })"
+            }),
+            codingProblem({
+              id: "add-one-practice",
+              title: "Add One",
+              prompt: "Fix `add_one(x)` so it returns the next integer. This is intentionally small: the point is to show how Tutor Kit can keep real source files clean while presenting them as an inline practice project.",
+              language: "python",
+              files: [
+                addOneProject.file("main.py", { editable: true }),
+                addOneProject.file("tests.py")
+              ],
+              run: "$PYTHON main.py",
+              test: "$PYTHON tests.py",
+              review: "Check whether the learner changed the function itself, preserved the simple command-line behavior, and can explain why the test passes."
             }),
             callout({
               id: "compile-reminder",

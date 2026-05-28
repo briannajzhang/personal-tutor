@@ -2,7 +2,7 @@ import { existsSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { tsImport } from "tsx/esm/api";
-import type { LoadedChapter, LoadedTextbook, TutorConfig, ValidationIssue } from "../core/types.js";
+import type { CodeRunnerConfig, LoadedChapter, LoadedTextbook, TutorConfig, ValidationIssue } from "../core/types.js";
 import { validateTextbook } from "../core/validation.js";
 
 export interface WorkspacePaths {
@@ -11,6 +11,7 @@ export interface WorkspacePaths {
   textbooksDir: string;
   dataDir: string;
   title: string;
+  codeRunner: CodeRunnerConfig;
 }
 
 export interface TextbookLoadResult {
@@ -39,7 +40,8 @@ export async function resolveWorkspace(cwd: string): Promise<WorkspacePaths> {
     configPath,
     textbooksDir: resolve(root, config.textbooksDir ?? "textbooks"),
     dataDir: resolve(root, config.dataDir ?? "tutor-data"),
-    title: config.title ?? "Study"
+    title: config.title ?? "Study",
+    codeRunner: config.codeRunner ?? {}
   };
 }
 

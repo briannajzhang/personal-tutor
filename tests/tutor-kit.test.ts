@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
-import { callout, chapter, codeBlock, heading, list, mathBlock, p, section, subsection, textbook, validateTextbook } from "../packages/tutor-kit/src/index.js";
+import { callout, chapter, codeBlock, codingProblem, heading, list, mathBlock, p, projectFiles, section, subsection, textbook, validateTextbook } from "../packages/tutor-kit/src/index.js";
 import { compileWorkspace } from "../packages/tutor-kit/src/compile/compile.js";
 import { addBlock, addChapter, addTextbook, initWorkspace } from "../packages/tutor-kit/src/cli/workspace.js";
 import { startDevServer } from "../packages/tutor-kit/src/server/server.js";
@@ -29,7 +29,19 @@ test("builders create valid textbooks", () => {
               list({ id: "checks", items: ["Read the expression.", "Evaluate it."] }),
               codeBlock({ id: "code", language: "js", code: "const x = 1;" }),
               mathBlock({ id: "math", body: "x^2 + y^2 = z^2" }),
-              callout({ id: "note", tone: "key-idea", body: "Blocks are semantic." })
+              callout({ id: "note", tone: "key-idea", body: "Blocks are semantic." }),
+              codingProblem({
+                id: "double",
+                title: "Double",
+                prompt: "Implement `double`.",
+                language: "python",
+                files: [
+                  { path: "main.py", content: "def double(x):\n    return x\n", editable: true },
+                  { path: "tests.py", content: "from main import double\nassert double(2) == 4\n", editable: false }
+                ],
+                setup: "$PYTHON -c \"print('ready')\"",
+                test: "$PYTHON tests.py"
+              })
             ],
             subsections: [
               subsection({
@@ -54,7 +66,7 @@ test("compile passes for the example workspace", async () => {
   assert.equal(result.chapterCount, 1);
   assert.equal(result.sectionCount, 1);
   assert.equal(result.subsectionCount, 1);
-  assert.equal(result.blockCount, 6);
+  assert.equal(result.blockCount, 7);
 });
 
 test("compile reports duplicate block ids", async () => {
@@ -124,6 +136,10 @@ test("dev server exposes textbooks, chapters, and appends events", async () => {
     assert.equal(fontResponse.status, 200);
     assert.equal(fontResponse.headers.get("content-type"), "font/woff2");
 
+    const monacoResponse = await fetch(`${server.url}/__tutor-assets/monaco/vs/loader.js`);
+    assert.equal(monacoResponse.status, 200);
+    assert.match(monacoResponse.headers.get("content-type") ?? "", /javascript/);
+
     const textbookResponse = await fetchJson(`${server.url}/api/textbooks/getting-started`);
     assert.equal(textbookResponse.title, "Getting Started");
 
@@ -137,6 +153,94 @@ test("dev server exposes textbooks, chapters, and appends events", async () => {
       body: JSON.stringify({ type: "test_event" })
     });
     assert.equal(eventResponse.ok, true);
+  } finally {
+    await server.close();
+  }
+});
+
+test("coding problems run commands and persist drafts", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
+  initWorkspace(dir);
+  linkTutorKit(dir);
+
+  const problemDir = join(dir, "textbooks", "getting-started", "chapters", "problems", "add-one");
+  mkdirSync(problemDir, { recursive: true });
+  writeFileSync(join(problemDir, "main.py"), "def add_one(x):\n    return x\n\nif __name__ == \"__main__\":\n    print(add_one(1))\n");
+  writeFileSync(join(problemDir, "tests.py"), "from main import add_one\nassert add_one(2) == 3\nprint(\"ok\")\n");
+  writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), `import { chapter, codingProblem, projectFiles, section } from "tutor-kit";
+
+const project = projectFiles(import.meta.url, "./problems/add-one");
+
+export default chapter({
+  id: "welcome",
+  title: "Welcome",
+  sections: [
+    section({
+      id: "practice",
+      title: "1.1 Practice",
+      blocks: [
+        codingProblem({
+          id: "add-one",
+          title: "Add One",
+          prompt: "Fix the function.",
+          language: "python",
+          files: [
+            project.file("main.py", { editable: true }),
+            project.file("tests.py")
+          ],
+          setup: "$PYTHON -c \\"print('setup ok')\\"",
+          run: "$PYTHON main.py",
+          test: "$PYTHON tests.py",
+          review: "Check the implementation."
+        })
+      ]
+    })
+  ]
+});
+`);
+
+  const server = await startDevServer({ cwd: dir, port: 0 });
+  try {
+    const fixedMain = "def add_one(x):\n    return x + 1\n\nif __name__ == \"__main__\":\n    print(add_one(1))\n";
+    const draft = await fetchJson(`${server.url}/api/coding/draft`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        textbookId: "getting-started",
+        chapterId: "welcome",
+        blockId: "add-one",
+        files: { "main.py": fixedMain, "tests.py": "ignored" }
+      })
+    });
+    assert.equal(draft.ok, true);
+
+    const loadedDraft = await fetchJson(`${server.url}/api/coding/draft?textbookId=getting-started&chapterId=welcome&blockId=add-one`);
+    assert.deepEqual(loadedDraft.files, { "main.py": fixedMain });
+    assert.equal(loadedDraft.draftPath, "tutor-data/drafts/getting-started/welcome/add-one.json");
+    assert.equal(loadedDraft.feedbackPath, "tutor-data/feedback/getting-started/welcome/add-one.md");
+    assert.equal(loadedDraft.draftAbsolutePath, join(dir, "tutor-data", "drafts", "getting-started", "welcome", "add-one.json"));
+    assert.equal(loadedDraft.feedbackAbsolutePath, join(dir, "tutor-data", "feedback", "getting-started", "welcome", "add-one.md"));
+
+    const result = await fetchJson(`${server.url}/api/coding/run`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        textbookId: "getting-started",
+        chapterId: "welcome",
+        blockId: "add-one",
+        actionId: "test",
+        files: { "main.py": fixedMain }
+      })
+    });
+    assert.equal(result.ok, true);
+    assert.match(result.setup.stdout, /setup ok/);
+    assert.match(result.stdout, /ok/);
+
+    mkdirSync(join(dir, "tutor-data", "feedback", "getting-started", "welcome"), { recursive: true });
+    writeFileSync(join(dir, "tutor-data", "feedback", "getting-started", "welcome", "add-one.md"), "Nice fix.\n");
+    const feedback = await fetchJson(`${server.url}/api/coding/feedback?textbookId=getting-started&chapterId=welcome&blockId=add-one`);
+    assert.equal(feedback.feedback, "Nice fix.\n");
+    assert.equal(feedback.feedbackPath, "tutor-data/feedback/getting-started/welcome/add-one.md");
   } finally {
     await server.close();
   }

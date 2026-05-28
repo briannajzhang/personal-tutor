@@ -42,7 +42,12 @@ export function configTemplate(): string {
 const config: TutorConfig = {
   title: "Study",
   textbooksDir: "textbooks",
-  dataDir: "tutor-data"
+  dataDir: "tutor-data",
+  codeRunner: {
+    runtimes: {
+      python: { command: "python3" }
+    }
+  }
 };
 
 export default config;

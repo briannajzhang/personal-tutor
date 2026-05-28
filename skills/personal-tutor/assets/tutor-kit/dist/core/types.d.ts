@@ -1,8 +1,19 @@
-export type BlockKind = "p" | "heading" | "list" | "codeBlock" | "mathBlock" | "callout" | "explanation" | "blurb" | (string & {});
+export type BlockKind = "p" | "heading" | "list" | "codeBlock" | "mathBlock" | "callout" | "codingProblem" | "explanation" | "blurb" | (string & {});
+export interface CodeRuntimeConfig {
+    command?: string;
+    env?: Record<string, string>;
+    monacoLanguage?: string;
+}
+export interface CodeRunnerConfig {
+    timeoutMs?: number;
+    maxOutputBytes?: number;
+    runtimes?: Record<string, CodeRuntimeConfig>;
+}
 export interface TutorConfig {
     title?: string;
     textbooksDir?: string;
     dataDir?: string;
+    codeRunner?: CodeRunnerConfig;
 }
 export interface BaseBlock<K extends BlockKind = BlockKind, Props = unknown> {
     kind: K;
@@ -33,17 +44,43 @@ export interface CalloutProps {
     body: string;
     title?: string;
 }
+export interface CodingProblemFile {
+    path: string;
+    content: string;
+    editable: boolean;
+    hidden: boolean;
+    language?: string;
+    source?: string;
+    sourcePath?: string;
+}
+export interface CodingProblemAction {
+    id: string;
+    label: string;
+    command: string;
+    kind: string;
+    hidden: boolean;
+}
+export interface CodingProblemProps {
+    title: string;
+    prompt: string;
+    language: string;
+    files: CodingProblemFile[];
+    setup?: CodingProblemAction;
+    actions: CodingProblemAction[];
+    review?: string;
+}
 export type ParagraphBlock = BaseBlock<"p", ParagraphProps>;
 export type HeadingBlock = BaseBlock<"heading", HeadingProps>;
 export type ListBlock = BaseBlock<"list", ListProps>;
 export type CodeBlock = BaseBlock<"codeBlock", CodeBlockProps>;
 export type MathBlock = BaseBlock<"mathBlock", MathBlockProps>;
 export type CalloutBlock = BaseBlock<"callout", CalloutProps>;
+export type CodingProblemBlock = BaseBlock<"codingProblem", CodingProblemProps>;
 export type ExplanationBlock = BaseBlock<"explanation", ParagraphProps & {
     title?: string;
 }>;
 export type BlurbBlock = ExplanationBlock;
-export type TutorBlock = ParagraphBlock | HeadingBlock | ListBlock | CodeBlock | MathBlock | CalloutBlock | ExplanationBlock | BaseBlock;
+export type TutorBlock = ParagraphBlock | HeadingBlock | ListBlock | CodeBlock | MathBlock | CalloutBlock | CodingProblemBlock | ExplanationBlock | BaseBlock;
 export interface Subsection {
     id: string;
     title: string;

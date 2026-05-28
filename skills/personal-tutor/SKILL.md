@@ -1,6 +1,6 @@
 ---
 name: personal-tutor
-description: Provides adaptive personal tutoring workflows, textbook authoring, Tutor Kit UI tooling, and progress-aware study materials. Use when the user wants to learn a subject, create study material, manage tutoring progress, run Tutor Kit, or build markdown/LaTeX textbook blocks.
+description: Provides adaptive personal tutoring workflows, textbook authoring, Tutor Kit UI tooling, coding problems, and progress-aware study materials. Use when the user wants to learn a subject, create study material, manage tutoring progress, run Tutor Kit, or build markdown/LaTeX/coding textbook blocks.
 ---
 
 # Personal Tutor
@@ -25,7 +25,7 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace.
 2. Check existing textbooks and chapters before creating new material.
 3. Add or edit `textbooks/<textbook>/textbook.ts` and `textbooks/<textbook>/chapters/*.chapter.ts`.
 4. Keep each textbook's `chapters` array in the intended order.
-5. Use semantic blocks: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, and `callout`. Treat blocks as teaching moves, not decoration.
+5. Use semantic blocks: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `callout`, and `codingProblem`. Treat blocks as teaching moves, not decoration.
 6. Run `tutor compile` and fix all issues before presenting the material.
 7. Run `tutor dev` to serve the UI when useful.
 
@@ -36,4 +36,5 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace.
 - Tutor Kit commands: `references/tutor-kit-workflow.md`
 - Textbook files: `references/lesson-authoring.md`
 - Block APIs and extension pattern: `references/block-authoring.md`
+- Coding practice: `references/coding-problems.md`
 - UI server and event logging: `references/ui-server.md`

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 function requireText(value, label) {
     if (typeof value !== "string" || value.trim().length === 0) {
         throw new Error(`${label} is required`);
@@ -106,6 +109,42 @@ export function callout(input) {
         }
     };
 }
+export function codingProblem(input) {
+    return {
+        kind: "codingProblem",
+        id: requireText(input.id, "codingProblem.id"),
+        props: {
+            title: requireText(input.title, "codingProblem.title"),
+            prompt: requireText(input.prompt, "codingProblem.prompt"),
+            language: input.language ?? "python",
+            files: input.files.map(normalizeProblemFile),
+            setup: input.setup === undefined ? undefined : normalizeCodingAction("setup", input.setup, "Setup", "setup"),
+            actions: normalizeCodingActions(input),
+            review: input.review ?? input.reviewPrompt
+        }
+    };
+}
+export function projectFiles(baseUrl, dir) {
+    const root = resolve(dirname(fileURLToPath(baseUrl)), dir);
+    return {
+        file(path, options = {}) {
+            const resolved = resolve(root, path);
+            if (resolved !== root && !resolved.startsWith(root + sep)) {
+                throw new Error(`Problem file escapes project directory: ${path}`);
+            }
+            return normalizeProblemFile({
+                path,
+                content: readFileSync(resolved, "utf8"),
+                source: relative(dirname(fileURLToPath(baseUrl)), resolved).replaceAll("\\", "/"),
+                sourcePath: resolved,
+                ...options
+            });
+        },
+        inline(path, content, options = {}) {
+            return normalizeProblemFile({ path, content, ...options });
+        }
+    };
+}
 export function explanation(input) {
     return {
         kind: "explanation",
@@ -118,5 +157,48 @@ export function explanation(input) {
 }
 export function blurb(input) {
     return explanation(input);
+}
+function normalizeProblemFile(input) {
+    return {
+        path: requireText(input.path, "codingProblem.files[].path"),
+        content: String(input.content ?? ""),
+        editable: input.editable ?? false,
+        hidden: input.hidden ?? false,
+        language: input.language,
+        source: input.source,
+        sourcePath: input.sourcePath
+    };
+}
+function normalizeCodingActions(input) {
+    const actions = new Map();
+    if (input.run !== undefined)
+        addAction(actions, "run", input.run, "Run", "run");
+    if (input.test !== undefined)
+        addAction(actions, "test", input.test, "Test", "test");
+    for (const [id, command] of Object.entries(input.commands ?? {})) {
+        addAction(actions, id, command, titleCase(id), id);
+    }
+    for (const action of input.actions ?? []) {
+        addAction(actions, action.id, action, action.label ?? titleCase(action.id), action.kind ?? action.id);
+    }
+    return [...actions.values()];
+}
+function addAction(actions, id, value, label, kind) {
+    actions.set(id, normalizeCodingAction(id, value, label, kind));
+}
+function normalizeCodingAction(id, value, label, kind) {
+    const input = typeof value === "string" ? { command: value } : value;
+    return {
+        id: requireText(id, "codingProblem.actions[].id"),
+        label: requireText(input.label ?? label, "codingProblem.actions[].label"),
+        command: requireText(input.command, "codingProblem.actions[].command"),
+        kind: input.kind ?? kind,
+        hidden: input.hidden ?? false
+    };
+}
+function titleCase(value) {
+    return value
+        .replace(/[-_]+/g, " ")
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 //# sourceMappingURL=builders.js.map

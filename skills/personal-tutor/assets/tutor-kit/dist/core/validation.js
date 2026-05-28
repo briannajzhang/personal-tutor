@@ -180,6 +180,103 @@ export function validateBlock(block, path, file, issues) {
             issues.push(issue("Callout title must be a string.", `${path}.props.title`, file));
         }
         validateTextProp(block.props.body, `${path}.props.body`, file, issues);
+        return;
+    }
+    if (block.kind === "codingProblem") {
+        validateCodingProblem(block.props, `${path}.props`, file, issues);
+    }
+}
+function validateCodingProblem(props, path, file, issues) {
+    validateTextProp(props.title, `${path}.title`, file, issues);
+    validateTextProp(props.prompt, `${path}.prompt`, file, issues);
+    if (props.language !== undefined && typeof props.language !== "string") {
+        issues.push(issue("Coding problem language must be a string.", `${path}.language`, file));
+    }
+    if (!Array.isArray(props.files) || props.files.length === 0) {
+        issues.push(issue("Coding problem files must be a non-empty array.", `${path}.files`, file));
+    }
+    else {
+        const filePaths = new Set();
+        let editableCount = 0;
+        props.files.forEach((problemFile, index) => {
+            const filePath = `${path}.files[${index}]`;
+            if (!isRecord(problemFile)) {
+                issues.push(issue("Coding problem file must be an object.", filePath, file));
+                return;
+            }
+            if (!hasText(problemFile.path)) {
+                issues.push(issue("Coding problem file path is required.", `${filePath}.path`, file));
+            }
+            else {
+                validateProblemPath(problemFile.path, `${filePath}.path`, file, issues);
+                if (filePaths.has(problemFile.path)) {
+                    issues.push(issue(`Duplicate coding problem file path: ${problemFile.path}`, `${filePath}.path`, file));
+                }
+                filePaths.add(problemFile.path);
+            }
+            if (typeof problemFile.content !== "string") {
+                issues.push(issue("Coding problem file content must be a string.", `${filePath}.content`, file));
+            }
+            if (problemFile.editable !== undefined && typeof problemFile.editable !== "boolean") {
+                issues.push(issue("Coding problem file editable must be a boolean.", `${filePath}.editable`, file));
+            }
+            if (problemFile.hidden !== undefined && typeof problemFile.hidden !== "boolean") {
+                issues.push(issue("Coding problem file hidden must be a boolean.", `${filePath}.hidden`, file));
+            }
+            if (problemFile.language !== undefined && typeof problemFile.language !== "string") {
+                issues.push(issue("Coding problem file language must be a string.", `${filePath}.language`, file));
+            }
+            if (problemFile.editable === true)
+                editableCount += 1;
+        });
+        if (editableCount === 0) {
+            issues.push(issue("Coding problem must contain at least one editable file.", `${path}.files`, file));
+        }
+    }
+    if (!Array.isArray(props.actions) || props.actions.length === 0) {
+        issues.push(issue("Coding problem actions must be a non-empty array.", `${path}.actions`, file));
+        return;
+    }
+    if (props.setup !== undefined) {
+        validateCodingAction(props.setup, `${path}.setup`, file, issues);
+    }
+    const actionIds = new Set();
+    props.actions.forEach((action, index) => {
+        const actionPath = `${path}.actions[${index}]`;
+        if (validateCodingAction(action, actionPath, file, issues)) {
+            if (actionIds.has(action.id)) {
+                issues.push(issue(`Duplicate coding problem action id: ${action.id}`, `${actionPath}.id`, file));
+            }
+            actionIds.add(action.id);
+        }
+    });
+}
+function validateCodingAction(action, path, file, issues) {
+    if (!isRecord(action)) {
+        issues.push(issue("Coding problem action must be an object.", path, file));
+        return false;
+    }
+    if (!hasText(action.id)) {
+        issues.push(issue("Coding problem action id is required.", `${path}.id`, file));
+    }
+    if (!hasText(action.label))
+        issues.push(issue("Coding problem action label is required.", `${path}.label`, file));
+    if (!hasText(action.command))
+        issues.push(issue("Coding problem action command is required.", `${path}.command`, file));
+    if (action.kind !== undefined && typeof action.kind !== "string") {
+        issues.push(issue("Coding problem action kind must be a string.", `${path}.kind`, file));
+    }
+    if (action.hidden !== undefined && typeof action.hidden !== "boolean") {
+        issues.push(issue("Coding problem action hidden must be a boolean.", `${path}.hidden`, file));
+    }
+    return hasText(action.id);
+}
+function validateProblemPath(value, path, file, issues) {
+    const parts = value.split("/");
+    if (value.startsWith("/") ||
+        value.includes("\\") ||
+        parts.some((part) => part === "" || part === "." || part === "..")) {
+        issues.push(issue("Coding problem file paths must be relative forward-slash paths without . or ..", path, file));
     }
 }
 function validateTextProp(value, path, file, issues) {

@@ -14,6 +14,7 @@ export function html(title) {
       <main id="main"></main>
     </div>
     <script>${katexJs()}</script>
+    <script src="/__tutor-assets/monaco/vs/loader.js"></script>
     <script>${clientJs()}</script>
   </body>
 </html>`;
@@ -275,6 +276,192 @@ h1 {
   text-transform: uppercase;
   margin: 0 0 7px;
 }
+.coding-problem {
+  margin: 10px 0 22px;
+  border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
+  background: color-mix(in srgb, var(--panel) 42%, transparent);
+}
+.coding-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+}
+.coding-title {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 560;
+  letter-spacing: 0;
+}
+.coding-language {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.coding-prompt {
+  padding: 16px 18px 0;
+}
+.coding-workspace {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  min-height: 610px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+}
+.coding-problem.files-collapsed .coding-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+.coding-problem.files-collapsed .coding-files {
+  display: none;
+}
+.coding-files {
+  border-right: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+  padding: 12px 0;
+  background: color-mix(in srgb, var(--paper) 56%, transparent);
+}
+.coding-file {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow: hidden;
+  padding: 7px 14px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.coding-file.active {
+  color: var(--ink);
+  background: var(--panel-soft);
+}
+.coding-editor-wrap {
+  min-width: 0;
+}
+.coding-editor-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+  color: var(--muted);
+  font-size: 12px;
+  padding: 0 12px;
+}
+.coding-editor-status {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
+}
+.coding-files-toggle {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+.coding-editor {
+  height: 574px;
+}
+.coding-fallback {
+  width: 100%;
+  height: 574px;
+  border: 0;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 12px;
+  resize: vertical;
+}
+.coding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 18px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+}
+.coding-action,
+.coding-review {
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 7px 11px;
+}
+.coding-action.primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.coding-output {
+  min-height: 80px;
+  margin: 0;
+  padding: 14px 18px 18px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+  background: #020202;
+  color: #f1eee6;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+.coding-feedback {
+  margin: 0;
+  padding: 14px 18px 18px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+  background: #020202;
+  color: #b5b3ad;
+}
+.coding-feedback-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.coding-feedback-title {
+  color: #f0eee6;
+  font-size: 13px;
+  font-weight: 620;
+}
+.coding-feedback-path,
+.coding-feedback-empty {
+  color: #7d7c77;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.coding-feedback-refresh {
+  border: 0;
+  background: transparent;
+  color: #b5b3ad;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  padding: 0;
+}
+.coding-feedback-body.markdown p,
+.coding-feedback-body.markdown ul,
+.coding-feedback-body.markdown ol {
+  color: #b5b3ad;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.coding-feedback-body.markdown code {
+  background: #403e3a;
+  border-color: #5e5d59;
+  color: #f1eee6;
+}
+.coding-feedback-body .math {
+  color: #f0eee6;
+}
 .markdown p {
   color: var(--ink-soft);
   font-size: 16px;
@@ -327,11 +514,21 @@ h1 {
   .chapter-index {
     position: static;
   }
+  .coding-workspace {
+    grid-template-columns: 1fr;
+  }
+  .coding-files {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+  }
 }`;
 }
 function clientJs() {
     return `
 let textbooks = [];
+let activeChapter = null;
+const codingStates = new Map();
+let monacoReady = null;
 
 async function load() {
   textbooks = await fetchJson("/api/textbooks");
@@ -408,6 +605,7 @@ async function renderTextbook(textbookId) {
 
 async function renderChapter(textbookId, chapterId) {
   const chapter = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
+  activeChapter = chapter;
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -438,6 +636,7 @@ async function renderChapter(textbookId, chapterId) {
     </section>
   \`;
   bindCrumbs();
+  bindCodingProblems(chapter);
 }
 
 function renderSection(section) {
@@ -519,7 +718,411 @@ function renderBlock(block) {
     const title = block.props.title ? block.props.title : block.props.tone.replace("-", " ");
     return \`<aside class="callout \${escapeAttr(block.props.tone)}"><div class="callout-title">\${escapeHtml(title)}</div><div class="markdown">\${renderMarkdown(block.props.body)}</div></aside>\`;
   }
+  if (block.kind === "codingProblem") {
+    return renderCodingProblem(block);
+  }
   return \`<article class="block"><div class="markdown"><p>Unsupported block: \${escapeHtml(block.kind)}</p></div></article>\`;
+}
+
+function renderCodingProblem(block) {
+  const visibleFiles = block.props.files.filter((file) => !file.hidden);
+  const visibleActions = block.props.actions.filter((action) => !action.hidden);
+  return \`
+    <article class="block coding-problem" data-coding-problem="\${escapeAttr(block.id)}">
+      <div class="coding-head">
+        <h4 class="coding-title">\${escapeHtml(block.props.title)}</h4>
+        <div class="coding-language">\${escapeHtml(block.props.language)}</div>
+      </div>
+      <div class="coding-prompt markdown">\${renderMarkdown(block.props.prompt)}</div>
+      <div class="coding-workspace">
+        <div class="coding-files">
+          \${visibleFiles.map((file) => \`<button class="coding-file" data-coding-file="\${escapeAttr(file.path)}">\${escapeHtml(file.path)}\${file.editable ? "" : " · read-only"}</button>\`).join("")}
+        </div>
+        <div class="coding-editor-wrap">
+          <div class="coding-editor-meta">
+            <span data-coding-active-file></span>
+            <span class="coding-editor-status">
+              <button class="coding-files-toggle" type="button" data-coding-toggle-files>Hide files</button>
+              <span data-coding-save-state>Saved</span>
+            </span>
+          </div>
+          <div class="coding-editor" data-coding-editor></div>
+        </div>
+      </div>
+      <div class="coding-actions">
+        \${visibleActions.map((action, index) => \`<button class="coding-action \${index === 0 ? "primary" : ""}" data-coding-action="\${escapeAttr(action.id)}">\${escapeHtml(action.label)}</button>\`).join("")}
+        \${block.props.review ? \`<button class="coding-review" data-coding-review>Copy review task</button>\` : ""}
+      </div>
+      <pre class="coding-output" data-coding-output>Ready.</pre>
+      <section class="coding-feedback" data-coding-feedback aria-readonly="true">
+        <div class="coding-feedback-head">
+          <div>
+            <div class="coding-feedback-title">Agent Feedback</div>
+          </div>
+          <button class="coding-feedback-refresh" type="button" data-coding-refresh-feedback>Refresh</button>
+        </div>
+        <div class="coding-feedback-body markdown" data-coding-feedback-body></div>
+        <div class="coding-feedback-empty" data-coding-feedback-empty>No feedback yet. Copy the review task, ask an agent to review the saved draft, then refresh.</div>
+      </section>
+    </article>
+  \`;
+}
+
+function bindCodingProblems(chapter) {
+  codingStates.clear();
+  collectChapterBlocks(chapter)
+    .filter((block) => block.kind === "codingProblem")
+    .forEach((block) => {
+      const element = document.querySelector(\`[data-coding-problem="\${cssEscape(block.id)}"]\`);
+      if (element) hydrateCodingProblem(element, block, chapter);
+    });
+}
+
+async function hydrateCodingProblem(element, block, chapter) {
+  const files = Object.fromEntries(block.props.files.map((file) => [file.path, file.content]));
+  const visibleFiles = block.props.files.filter((file) => !file.hidden);
+  const firstFile = visibleFiles.find((file) => file.editable) ?? visibleFiles[0] ?? block.props.files[0];
+  const state = {
+    element,
+    block,
+    chapter,
+    files,
+    activePath: firstFile?.path,
+    editor: null,
+    saveTimer: null,
+    latestResult: null,
+    draftPath: null,
+    feedbackPath: null,
+    draftAbsolutePath: null,
+    feedbackAbsolutePath: null,
+    loadingFile: false
+  };
+  codingStates.set(block.id, state);
+
+  try {
+    const draft = await fetchJson(\`/api/coding/draft?\${codingQuery(chapter, block)}\`);
+    state.draftPath = draft.draftPath;
+    state.feedbackPath = draft.feedbackPath;
+    state.draftAbsolutePath = draft.draftAbsolutePath;
+    state.feedbackAbsolutePath = draft.feedbackAbsolutePath;
+    for (const [path, content] of Object.entries(draft.files ?? {})) {
+      if (block.props.files.some((file) => file.path === path && file.editable)) {
+        state.files[path] = content;
+      }
+    }
+  } catch {
+    // Drafts are a convenience; the problem should still run without them.
+  }
+
+  element.querySelectorAll("[data-coding-file]").forEach((button) => {
+    button.addEventListener("click", () => setCodingFile(state, button.dataset.codingFile));
+  });
+
+  element.querySelectorAll("[data-coding-action]").forEach((button) => {
+    button.addEventListener("click", () => runCodingAction(state, button.dataset.codingAction));
+  });
+
+  const reviewButton = element.querySelector("[data-coding-review]");
+  if (reviewButton) {
+    reviewButton.addEventListener("click", () => copyReviewPrompt(state));
+  }
+
+  const toggleButton = element.querySelector("[data-coding-toggle-files]");
+  if (toggleButton) {
+    toggleButton.addEventListener("click", () => toggleCodingFiles(state));
+  }
+
+  const refreshButton = element.querySelector("[data-coding-refresh-feedback]");
+  if (refreshButton) {
+    refreshButton.addEventListener("click", () => refreshCodingFeedback(state));
+  }
+
+  await refreshCodingFeedback(state);
+  await mountCodingEditor(state);
+  setCodingFile(state, state.activePath);
+}
+
+async function mountCodingEditor(state) {
+  const container = state.element.querySelector("[data-coding-editor]");
+  try {
+    const monaco = await loadMonaco();
+    state.editor = monaco.editor.create(container, {
+      value: "",
+      language: "plaintext",
+      minimap: { enabled: false },
+      automaticLayout: true,
+      fontSize: 13,
+      lineHeight: 20,
+      scrollBeyondLastLine: false,
+      theme: "vs"
+    });
+    state.editor.onDidChangeModelContent(() => {
+      if (state.loadingFile) return;
+      const file = currentProblemFile(state);
+      if (!file?.editable) return;
+      state.files[state.activePath] = state.editor.getValue();
+      markDraftState(state, "Saving");
+      clearTimeout(state.saveTimer);
+      state.saveTimer = setTimeout(() => saveCodingDraft(state), 700);
+    });
+  } catch (error) {
+    container.innerHTML = \`<textarea class="coding-fallback" spellcheck="false"></textarea>\`;
+    const textarea = container.querySelector("textarea");
+    state.editor = {
+      getValue: () => textarea.value,
+      setValue: (value) => { textarea.value = value; },
+      updateOptions: (options) => { textarea.readOnly = Boolean(options.readOnly); }
+    };
+    textarea.addEventListener("input", () => {
+      if (state.loadingFile) return;
+      const file = currentProblemFile(state);
+      if (!file?.editable) return;
+      state.files[state.activePath] = textarea.value;
+      markDraftState(state, "Saving");
+      clearTimeout(state.saveTimer);
+      state.saveTimer = setTimeout(() => saveCodingDraft(state), 700);
+    });
+  }
+}
+
+function setCodingFile(state, path) {
+  if (!path) return;
+  const file = state.block.props.files.find((candidate) => candidate.path === path);
+  if (!file || file.hidden) return;
+  state.activePath = path;
+  state.element.querySelectorAll("[data-coding-file]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.codingFile === path);
+  });
+  state.element.querySelector("[data-coding-active-file]").textContent = path;
+  if (state.editor) {
+    state.loadingFile = true;
+    state.editor.setValue(state.files[path] ?? file.content);
+    state.loadingFile = false;
+    state.editor.updateOptions({ readOnly: !file.editable });
+    if (window.monaco?.editor && state.editor.getModel) {
+      window.monaco.editor.setModelLanguage(state.editor.getModel(), monacoLanguage(state.block, file));
+    }
+  }
+}
+
+function toggleCodingFiles(state) {
+  const collapsed = !state.element.classList.contains("files-collapsed");
+  state.element.classList.toggle("files-collapsed", collapsed);
+  const button = state.element.querySelector("[data-coding-toggle-files]");
+  if (button) button.textContent = collapsed ? "Show files" : "Hide files";
+  if (state.editor?.layout) requestAnimationFrame(() => state.editor.layout());
+}
+
+async function runCodingAction(state, actionId) {
+  syncActiveEditor(state);
+  await saveCodingDraft(state);
+  const output = state.element.querySelector("[data-coding-output]");
+  output.textContent = "Running...";
+  const result = await fetchJson("/api/coding/run", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      textbookId: state.chapter.textbookId,
+      chapterId: state.chapter.id,
+      blockId: state.block.id,
+      actionId,
+      files: editableFileContents(state)
+    })
+  });
+  state.latestResult = result;
+  output.textContent = formatRunResult(result);
+  await refreshCodingFeedback(state);
+}
+
+async function saveCodingDraft(state) {
+  syncActiveEditor(state);
+  const saved = await fetchJson("/api/coding/draft", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      textbookId: state.chapter.textbookId,
+      chapterId: state.chapter.id,
+      blockId: state.block.id,
+      files: editableFileContents(state)
+    })
+  });
+  state.draftPath = saved.draftPath ?? state.draftPath;
+  state.feedbackPath = saved.feedbackPath ?? state.feedbackPath;
+  state.draftAbsolutePath = saved.draftAbsolutePath ?? state.draftAbsolutePath;
+  state.feedbackAbsolutePath = saved.feedbackAbsolutePath ?? state.feedbackAbsolutePath;
+  markDraftState(state, "Saved");
+  return saved;
+}
+
+async function refreshCodingFeedback(state) {
+  try {
+    const result = await fetchJson(\`/api/coding/feedback?\${codingQuery(state.chapter, state.block)}\`);
+    state.feedbackPath = result.feedbackPath ?? state.feedbackPath;
+    const bodyTarget = state.element.querySelector("[data-coding-feedback-body]");
+    const emptyTarget = state.element.querySelector("[data-coding-feedback-empty]");
+    if (!bodyTarget || !emptyTarget) return;
+    if (result.feedback && result.feedback.trim()) {
+      bodyTarget.innerHTML = renderMarkdown(result.feedback);
+      emptyTarget.hidden = true;
+    } else {
+      bodyTarget.innerHTML = "";
+      emptyTarget.hidden = false;
+    }
+  } catch {
+    // Feedback files are optional.
+  }
+}
+
+async function copyReviewPrompt(state) {
+  syncActiveEditor(state);
+  await saveCodingDraft(state);
+  const draftPath = state.draftAbsolutePath ?? state.draftPath ?? \`tutor-data/drafts/\${state.chapter.textbookId}/\${state.chapter.id}/\${state.block.id}.json\`;
+  const feedbackPath = state.feedbackAbsolutePath ?? state.feedbackPath ?? \`tutor-data/feedback/\${state.chapter.textbookId}/\${state.chapter.id}/\${state.block.id}.md\`;
+  const visibleSourcePaths = [...new Set(
+    state.block.props.files
+      .map((file) => problemSourcePath(state, file))
+      .filter(Boolean)
+  )];
+  const prompt = [
+    "Review this Tutor Kit coding problem attempt.",
+    "",
+    "Goal:",
+    state.block.props.review ?? "Check correctness, explain the most important issue, and give one focused next step.",
+    "",
+    "Read:",
+    \`- Learner draft: \${draftPath}\`,
+    ...visibleSourcePaths.map((path) => \`- Problem file: \${path}\`),
+    "- Optional run history: tutor-data/events.jsonl",
+    "",
+    "Write:",
+    \`- Markdown feedback/hints: \${feedbackPath}\`,
+    "",
+    "Do not ask the learner to paste code. Read the draft JSON, then create or update the feedback file."
+  ].filter(Boolean).join("\\n");
+  await navigator.clipboard.writeText(prompt);
+  await fetchJson("/api/events", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      type: "coding_review_prompt_copied",
+      textbookId: state.chapter.textbookId,
+      chapterId: state.chapter.id,
+      blockId: state.block.id
+    })
+  });
+  state.element.querySelector("[data-coding-output]").textContent = \`Review task copied. Feedback target: \${feedbackPath}\`;
+}
+
+function problemSourcePath(state, file) {
+  if (file.sourcePath) return file.sourcePath;
+  if (!file.source) return file.path;
+  if (file.source.startsWith("textbooks/")) return file.source;
+  return \`textbooks/\${state.chapter.textbookId}/chapters/\${file.source}\`;
+}
+
+function syncActiveEditor(state) {
+  const file = currentProblemFile(state);
+  if (file?.editable && state.editor) {
+    state.files[state.activePath] = state.editor.getValue();
+  }
+}
+
+function editableFileContents(state) {
+  return Object.fromEntries(
+    state.block.props.files
+      .filter((file) => file.editable)
+      .map((file) => [file.path, state.files[file.path] ?? file.content])
+  );
+}
+
+function currentProblemFile(state) {
+  return state.block.props.files.find((file) => file.path === state.activePath);
+}
+
+function markDraftState(state, text) {
+  const target = state.element.querySelector("[data-coding-save-state]");
+  if (target) target.textContent = text;
+}
+
+function formatRunResult(result) {
+  const setupText = result.setup ? [
+    "setup:",
+    formatShellResult(result.setup)
+  ].join("\\n") : "";
+  const actionText = [
+    "action:",
+    formatShellResult(result)
+  ].join("\\n");
+  return [setupText, actionText].filter(Boolean).join("\\n\\n");
+}
+
+function formatShellResult(result) {
+  const status = result.timedOut
+    ? "Timed out"
+    : result.exitCode === 0
+      ? "Passed"
+      : result.exitCode === null
+        ? "Not run"
+      : \`Exited with code \${result.exitCode}\`;
+  return [
+    \`\${status} in \${result.durationMs}ms\${result.truncated ? " (output truncated)" : ""}\`,
+    result.stdout ? \`\\nstdout:\\n\${result.stdout}\` : "",
+    result.stderr ? \`\\nstderr:\\n\${result.stderr}\` : ""
+  ].join("");
+}
+
+function codingQuery(chapter, block) {
+  return new URLSearchParams({
+    textbookId: chapter.textbookId,
+    chapterId: chapter.id,
+    blockId: block.id
+  }).toString();
+}
+
+function collectChapterBlocks(chapter) {
+  const blocks = [];
+  for (const section of chapter.sections) {
+    blocks.push(...section.blocks);
+    for (const subsection of section.subsections) {
+      blocks.push(...subsection.blocks);
+    }
+  }
+  return blocks;
+}
+
+function loadMonaco() {
+  if (!monacoReady) {
+    monacoReady = new Promise((resolve, reject) => {
+      if (!window.require) {
+        reject(new Error("Monaco loader is unavailable"));
+        return;
+      }
+      window.require.config({ paths: { vs: "/__tutor-assets/monaco/vs" } });
+      window.require(["vs/editor/editor.main"], () => resolve(window.monaco), reject);
+    });
+  }
+  return monacoReady;
+}
+
+function monacoLanguage(block, file) {
+  if (file.language) return file.language;
+  const extension = file.path.split(".").pop();
+  const byExtension = {
+    py: "python",
+    js: "javascript",
+    jsx: "javascript",
+    ts: "typescript",
+    tsx: "typescript",
+    cpp: "cpp",
+    cc: "cpp",
+    cxx: "cpp",
+    h: "cpp",
+    hpp: "cpp",
+    json: "json",
+    md: "markdown",
+    sql: "sql"
+  };
+  return byExtension[extension] ?? block.props.language ?? "plaintext";
 }
 
 function renderCrumbs(items) {
@@ -613,6 +1216,11 @@ function escapeHtml(value) {
 
 function escapeAttr(value) {
   return escapeHtml(value).replace(/'/g, "&#39;");
+}
+
+function cssEscape(value) {
+  if (window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(String(value));
+  return String(value).replace(/["\\\\]/g, "\\\\$&");
 }
 
 load().catch((error) => {

@@ -1,4 +1,4 @@
-export { blurb, callout, chapter, codeBlock, explanation, heading, list, mathBlock, p, section, subsection, textbook } from "./core/builders.js";
+export { blurb, callout, chapter, codeBlock, codingProblem, explanation, heading, list, mathBlock, p, projectFiles, section, subsection, textbook } from "./core/builders.js";
 export {
   validateChapter,
   validateSection,
@@ -18,6 +18,12 @@ export type {
   CalloutProps,
   CalloutTone,
   Chapter,
+  CodingProblemAction,
+  CodingProblemBlock,
+  CodingProblemFile,
+  CodingProblemProps,
+  CodeRunnerConfig,
+  CodeRuntimeConfig,
   CodeBlock,
   CodeBlockProps,
   ExplanationBlock,

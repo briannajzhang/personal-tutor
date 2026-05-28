@@ -1,10 +1,11 @@
-import type { LoadedChapter, LoadedTextbook, ValidationIssue } from "../core/types.js";
+import type { CodeRunnerConfig, LoadedChapter, LoadedTextbook, ValidationIssue } from "../core/types.js";
 export interface WorkspacePaths {
     cwd: string;
     configPath: string | null;
     textbooksDir: string;
     dataDir: string;
     title: string;
+    codeRunner: CodeRunnerConfig;
 }
 export interface TextbookLoadResult {
     textbooks: LoadedTextbook[];

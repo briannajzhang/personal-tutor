@@ -1,4 +1,4 @@
-import type { BlurbBlock, CalloutBlock, CalloutProps, CodeBlock, HeadingBlock, HeadingProps, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, Section, Subsection, Textbook, Chapter, TutorBlock } from "./types.js";
+import type { BlurbBlock, CalloutBlock, CalloutProps, CodingProblemBlock, CodingProblemFile, CodeBlock, HeadingBlock, HeadingProps, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, Section, Subsection, Textbook, Chapter, TutorBlock } from "./types.js";
 interface SubsectionInput {
     id: string;
     title: string;
@@ -49,6 +49,39 @@ interface CalloutInput extends BlockInput {
     title?: string;
     body: string;
 }
+interface CodingProblemFileOptions {
+    editable?: boolean;
+    hidden?: boolean;
+    language?: string;
+}
+interface CodingProblemFileInput extends CodingProblemFileOptions {
+    path: string;
+    content: string;
+    source?: string;
+    sourcePath?: string;
+}
+interface CodingProblemCommandInput {
+    label?: string;
+    command: string;
+    kind?: string;
+    hidden?: boolean;
+}
+type CodingProblemCommandValue = string | CodingProblemCommandInput;
+interface CodingProblemInput extends BlockInput {
+    title: string;
+    prompt: string;
+    language?: string;
+    files: CodingProblemFileInput[];
+    setup?: CodingProblemCommandValue;
+    run?: CodingProblemCommandValue;
+    test?: CodingProblemCommandValue;
+    commands?: Record<string, CodingProblemCommandValue>;
+    actions?: Array<CodingProblemCommandInput & {
+        id: string;
+    }>;
+    review?: string;
+    reviewPrompt?: string;
+}
 interface LegacyExplanationInput extends ParagraphInput {
     title?: string;
 }
@@ -62,6 +95,11 @@ export declare function list(input: ListInput): ListBlock;
 export declare function codeBlock(input: CodeBlockInput): CodeBlock;
 export declare function mathBlock(input: MathBlockInput): MathBlock;
 export declare function callout(input: CalloutInput): CalloutBlock;
+export declare function codingProblem(input: CodingProblemInput): CodingProblemBlock;
+export declare function projectFiles(baseUrl: string, dir: string): {
+    file(path: string, options?: CodingProblemFileOptions): CodingProblemFile;
+    inline(path: string, content: string, options?: CodingProblemFileOptions): CodingProblemFile;
+};
 export declare function explanation(input: LegacyExplanationInput): BlurbBlock;
 export declare function blurb(input: LegacyExplanationInput): BlurbBlock;
 export {};

@@ -1,7 +1,14 @@
+import { readFileSync } from "node:fs";
+import { dirname, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import type {
   BlurbBlock,
   CalloutBlock,
   CalloutProps,
+  CodingProblemAction,
+  CodingProblemBlock,
+  CodingProblemFile,
+  CodingProblemProps,
   CodeBlock,
   HeadingBlock,
   HeadingProps,
@@ -75,6 +82,42 @@ interface CalloutInput extends BlockInput {
   tone?: CalloutProps["tone"];
   title?: string;
   body: string;
+}
+
+interface CodingProblemFileOptions {
+  editable?: boolean;
+  hidden?: boolean;
+  language?: string;
+}
+
+interface CodingProblemFileInput extends CodingProblemFileOptions {
+  path: string;
+  content: string;
+  source?: string;
+  sourcePath?: string;
+}
+
+interface CodingProblemCommandInput {
+  label?: string;
+  command: string;
+  kind?: string;
+  hidden?: boolean;
+}
+
+type CodingProblemCommandValue = string | CodingProblemCommandInput;
+
+interface CodingProblemInput extends BlockInput {
+  title: string;
+  prompt: string;
+  language?: string;
+  files: CodingProblemFileInput[];
+  setup?: CodingProblemCommandValue;
+  run?: CodingProblemCommandValue;
+  test?: CodingProblemCommandValue;
+  commands?: Record<string, CodingProblemCommandValue>;
+  actions?: Array<CodingProblemCommandInput & { id: string }>;
+  review?: string;
+  reviewPrompt?: string;
 }
 
 interface LegacyExplanationInput extends ParagraphInput {
@@ -201,6 +244,47 @@ export function callout(input: CalloutInput): CalloutBlock {
   };
 }
 
+export function codingProblem(input: CodingProblemInput): CodingProblemBlock {
+  return {
+    kind: "codingProblem",
+    id: requireText(input.id, "codingProblem.id"),
+    props: {
+      title: requireText(input.title, "codingProblem.title"),
+      prompt: requireText(input.prompt, "codingProblem.prompt"),
+      language: input.language ?? "python",
+      files: input.files.map(normalizeProblemFile),
+      setup: input.setup === undefined ? undefined : normalizeCodingAction("setup", input.setup, "Setup", "setup"),
+      actions: normalizeCodingActions(input),
+      review: input.review ?? input.reviewPrompt
+    }
+  };
+}
+
+export function projectFiles(baseUrl: string, dir: string): {
+  file(path: string, options?: CodingProblemFileOptions): CodingProblemFile;
+  inline(path: string, content: string, options?: CodingProblemFileOptions): CodingProblemFile;
+} {
+  const root = resolve(dirname(fileURLToPath(baseUrl)), dir);
+  return {
+    file(path: string, options: CodingProblemFileOptions = {}): CodingProblemFile {
+      const resolved = resolve(root, path);
+      if (resolved !== root && !resolved.startsWith(root + sep)) {
+        throw new Error(`Problem file escapes project directory: ${path}`);
+      }
+      return normalizeProblemFile({
+        path,
+        content: readFileSync(resolved, "utf8"),
+        source: relative(dirname(fileURLToPath(baseUrl)), resolved).replaceAll("\\", "/"),
+        sourcePath: resolved,
+        ...options
+      });
+    },
+    inline(path: string, content: string, options: CodingProblemFileOptions = {}): CodingProblemFile {
+      return normalizeProblemFile({ path, content, ...options });
+    }
+  };
+}
+
 export function explanation(input: LegacyExplanationInput): BlurbBlock {
   return {
     kind: "explanation",
@@ -214,4 +298,61 @@ export function explanation(input: LegacyExplanationInput): BlurbBlock {
 
 export function blurb(input: LegacyExplanationInput): BlurbBlock {
   return explanation(input);
+}
+
+function normalizeProblemFile(input: CodingProblemFileInput): CodingProblemFile {
+  return {
+    path: requireText(input.path, "codingProblem.files[].path"),
+    content: String(input.content ?? ""),
+    editable: input.editable ?? false,
+    hidden: input.hidden ?? false,
+    language: input.language,
+    source: input.source,
+    sourcePath: input.sourcePath
+  };
+}
+
+function normalizeCodingActions(input: CodingProblemInput): CodingProblemAction[] {
+  const actions = new Map<string, CodingProblemAction>();
+  if (input.run !== undefined) addAction(actions, "run", input.run, "Run", "run");
+  if (input.test !== undefined) addAction(actions, "test", input.test, "Test", "test");
+  for (const [id, command] of Object.entries(input.commands ?? {})) {
+    addAction(actions, id, command, titleCase(id), id);
+  }
+  for (const action of input.actions ?? []) {
+    addAction(actions, action.id, action, action.label ?? titleCase(action.id), action.kind ?? action.id);
+  }
+  return [...actions.values()];
+}
+
+function addAction(
+  actions: Map<string, CodingProblemAction>,
+  id: string,
+  value: CodingProblemCommandValue,
+  label: string,
+  kind: string
+): void {
+  actions.set(id, normalizeCodingAction(id, value, label, kind));
+}
+
+function normalizeCodingAction(
+  id: string,
+  value: CodingProblemCommandValue,
+  label: string,
+  kind: string
+): CodingProblemAction {
+  const input = typeof value === "string" ? { command: value } : value;
+  return {
+    id: requireText(id, "codingProblem.actions[].id"),
+    label: requireText(input.label ?? label, "codingProblem.actions[].label"),
+    command: requireText(input.command, "codingProblem.actions[].command"),
+    kind: input.kind ?? kind,
+    hidden: input.hidden ?? false
+  };
+}
+
+function titleCase(value: string): string {
+  return value
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

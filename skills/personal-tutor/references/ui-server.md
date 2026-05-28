@@ -8,6 +8,8 @@ Use `tutor dev` to start the local Tutor UI.
 - Discovers `textbooks/<textbook>/textbook.ts` and ordered chapter arrays.
 - Serves a textbook dashboard and chapter reader.
 - Renders semantic blocks.
+- Runs `codingProblem` actions in temporary local project directories.
+- Reads coding feedback from `tutor-data/feedback/...` when present.
 - Appends learner activity to `tutor-data/events.jsonl`.
 
 ## API
@@ -16,10 +18,15 @@ Use `tutor dev` to start the local Tutor UI.
 GET  /api/textbooks
 GET  /api/textbooks/:id
 GET  /api/textbooks/:textbookId/chapters/:chapterId
+POST /api/coding/run
+GET  /api/coding/draft
+PUT  /api/coding/draft
+GET  /api/coding/feedback
 POST /api/events
 ```
 
 `POST /api/events` accepts JSON and appends `createdAt` before writing the event.
+Coding APIs are for trusted local learner code, not adversarial sandboxing.
 
 ## Agent Rule
 
