@@ -1,5 +1,5 @@
-import { relative } from "node:path";
-import { loadTextbooks, resolveWorkspace } from "./discover.js";
+import { relative, resolve } from "node:path";
+import { loadTextbooks } from "./discover.js";
 import { typecheckWorkspace } from "./typecheck.js";
 import { summarizeTextbook } from "../core/validation.js";
 
@@ -15,8 +15,8 @@ export interface CompileResult {
 }
 
 export async function compileWorkspace(cwd: string): Promise<CompileResult> {
-  const workspace = await resolveWorkspace(cwd);
-  const typecheck = typecheckWorkspace(workspace.cwd);
+  const root = resolve(cwd);
+  const typecheck = typecheckWorkspace(root);
   if (!typecheck.ok) {
     return {
       ok: false,
@@ -30,10 +30,10 @@ export async function compileWorkspace(cwd: string): Promise<CompileResult> {
     };
   }
 
-  const loaded = await loadTextbooks(workspace.cwd);
+  const loaded = await loadTextbooks(root);
   if (loaded.issues.length > 0) {
     const messages = loaded.issues.map((issue) => {
-      const file = issue.file ? relative(workspace.cwd, issue.file) : "workspace";
+      const file = issue.file ? relative(root, issue.file) : "workspace";
       const path = issue.path ? ` ${issue.path}` : "";
       return `${file}${path} - ${issue.message}`;
     });
