@@ -3,10 +3,10 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { clearWorkspaceCaches } from "../packages/tutor-kit/dist/compile/discover.js";
-import { initWorkspace } from "../packages/tutor-kit/dist/cli/workspace.js";
-import { startDevServer } from "../packages/tutor-kit/dist/server/server.js";
-import { linkTutorKit } from "./helpers/tutor-kit.ts";
+import { clearWorkspaceCaches } from "../../packages/tutor-kit/dist/compile/discover.js";
+import { initWorkspace } from "../../packages/tutor-kit/dist/cli/workspace.js";
+import { startDevServer } from "../../packages/tutor-kit/dist/server/server.js";
+import { linkTutorKit } from "../helpers/tutor-kit.ts";
 
 test.afterEach(() => {
   clearWorkspaceCaches();
