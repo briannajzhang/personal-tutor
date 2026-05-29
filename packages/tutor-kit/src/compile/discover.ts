@@ -1,7 +1,7 @@
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, lstatSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { tsImport } from "tsx/esm/api";
+import { register } from "tsx/esm/api";
 import type { CodeRunnerConfig, LoadedChapter, LoadedTextbook, TutorConfig, ValidationIssue } from "../core/types.js";
 import { validateTextbook } from "../core/validation.js";
 
@@ -20,19 +20,56 @@ export interface TextbookLoadResult {
   issues: ValidationIssue[];
 }
 
+const workspaceLoadPromises = new Map<string, Promise<WorkspacePaths>>();
+const textbookLoadPromises = new Map<string, Promise<TextbookLoadResult>>();
+const workspaceCache = new Map<string, WorkspacePaths>();
+const textbookCache = new Map<string, TextbookLoadResult>();
+let importNamespaceCounter = 0;
+
 export async function resolveWorkspace(cwd: string): Promise<WorkspacePaths> {
   const root = resolve(cwd);
+  const cachedWorkspace = workspaceCache.get(root);
+  if (cachedWorkspace) return cachedWorkspace;
+
+  const cached = workspaceLoadPromises.get(root);
+  if (cached) return cached;
+
+  const loadPromise = loadWorkspace(root);
+  workspaceLoadPromises.set(root, loadPromise);
+  try {
+    const workspace = await loadPromise;
+    workspaceCache.set(root, workspace);
+    return workspace;
+  } finally {
+    workspaceLoadPromises.delete(root);
+  }
+}
+
+async function loadWorkspace(root: string): Promise<WorkspacePaths> {
+  const importer = createTsImporter(findTsconfig(root) ?? false);
+  try {
+    return await loadWorkspaceWithImporter(root, importer);
+  } finally {
+    await importer.unregister();
+  }
+}
+
+async function loadWorkspaceWithImporter(
+  root: string,
+  importer: ReturnType<typeof createTsImporter>
+): Promise<WorkspacePaths> {
   const configPath = existsSync(join(root, "tutor.config.ts"))
     ? join(root, "tutor.config.ts")
     : null;
 
   let config: TutorConfig = {};
   if (configPath) {
-    const loaded = await tsImport(pathToFileURL(configPath).href, {
-      parentURL: import.meta.url,
-      tsconfig: findTsconfig(root) ?? false
-    }) as { default?: TutorConfig };
-    config = loaded.default ?? {};
+    try {
+      const loaded = await importTsModule(importer, pathToFileURL(configPath).href, import.meta.url) as { default?: TutorConfig };
+      config = loaded.default ?? {};
+    } catch (error) {
+      throw new Error(`Failed to load tutor config ${configPath}: ${formatLoadError(error)}`);
+    }
   }
 
   return {
@@ -56,89 +93,164 @@ export function discoverTextbookFiles(textbooksDir: string): string[] {
 
 function discoverFiles(rootDir: string, pattern: RegExp): string[] {
   if (!existsSync(rootDir)) return [];
-  const files: string[] = [];
+  const files = new Set<string>();
+  const visitedDirs = new Set<string>();
 
   function walk(dir: string): void {
+    const canonicalDir = realpathSync(dir);
+    if (visitedDirs.has(canonicalDir)) return;
+    visitedDirs.add(canonicalDir);
+
     for (const entry of readdirSync(dir)) {
       const fullPath = join(dir, entry);
-      const stat = statSync(fullPath);
+      const stat = lstatSync(fullPath);
+      if (stat.isSymbolicLink()) {
+        const targetPath = realpathSync(fullPath);
+        const targetStat = statSync(targetPath);
+        if (targetStat.isDirectory()) {
+          walk(targetPath);
+          continue;
+        }
+        if (pattern.test(fullPath)) {
+          files.add(fullPath);
+        }
+        continue;
+      }
       if (stat.isDirectory()) {
         walk(fullPath);
         continue;
       }
       if (pattern.test(fullPath)) {
-        files.push(fullPath);
+        files.add(fullPath);
       }
     }
   }
 
   walk(rootDir);
-  return files.sort();
+  return [...files].sort();
 }
 
 export async function loadTextbooks(cwd: string): Promise<TextbookLoadResult> {
-  const workspace = await resolveWorkspace(cwd);
-  const tsconfig = findTsconfig(workspace.cwd) ?? false;
-  const textbooks: LoadedTextbook[] = [];
-  const chapters: LoadedChapter[] = [];
-  const issues: ValidationIssue[] = [];
+  const root = resolve(cwd);
+  const cachedTextbooks = textbookCache.get(root);
+  if (cachedTextbooks) return cachedTextbooks;
 
-  for (const file of discoverTextbookFiles(workspace.textbooksDir)) {
-    try {
-      const mod = await tsImport(pathToFileURL(file).href, {
-        parentURL: import.meta.url,
-        tsconfig
-      }) as { default?: unknown };
-      const textbook = mod.default;
-      const textbookIssues = validateTextbook(textbook, file);
-      if (textbookIssues.length > 0) {
-        issues.push(...textbookIssues);
-        continue;
-      }
-      const loadedTextbook = { file, textbook: textbook as LoadedTextbook["textbook"] };
-      textbooks.push(loadedTextbook);
-      for (const chapter of loadedTextbook.textbook.chapters) {
-        chapters.push({
+  const cached = textbookLoadPromises.get(root);
+  if (cached) return cached;
+
+  const loadPromise = loadTextbooksUncached(root);
+  textbookLoadPromises.set(root, loadPromise);
+  try {
+    const loaded = await loadPromise;
+    textbookCache.set(root, loaded);
+    return loaded;
+  } finally {
+    textbookLoadPromises.delete(root);
+  }
+}
+
+async function loadTextbooksUncached(cwd: string): Promise<TextbookLoadResult> {
+  const tsconfig = findTsconfig(cwd) ?? false;
+  const importer = createTsImporter(tsconfig);
+  try {
+    const workspace = await loadWorkspaceWithImporter(cwd, importer);
+    const textbooks: LoadedTextbook[] = [];
+    const chapters: LoadedChapter[] = [];
+    const issues: ValidationIssue[] = [];
+
+    for (const file of discoverTextbookFiles(workspace.textbooksDir)) {
+      try {
+        const mod = await importTsModule(importer, pathToFileURL(file).href, import.meta.url) as { default?: unknown };
+        const textbook = mod.default;
+        const textbookIssues = validateTextbook(textbook, file);
+        if (textbookIssues.length > 0) {
+          issues.push(...textbookIssues);
+          continue;
+        }
+        const loadedTextbook = { file, textbook: textbook as LoadedTextbook["textbook"] };
+        textbooks.push(loadedTextbook);
+        for (const chapter of loadedTextbook.textbook.chapters) {
+          chapters.push({
+            file,
+            chapter,
+            textbookId: loadedTextbook.textbook.id,
+            textbookTitle: loadedTextbook.textbook.title
+          });
+        }
+      } catch (error) {
+        issues.push({
           file,
-          chapter,
-          textbookId: loadedTextbook.textbook.id,
-          textbookTitle: loadedTextbook.textbook.title
+          message: formatLoadError(error)
         });
       }
-    } catch (error) {
-      issues.push({
-        file,
-        message: error instanceof Error ? error.message : String(error)
-      });
     }
-  }
 
-  const textbookIds = new Map<string, string>();
-  for (const loaded of textbooks) {
-    const previous = textbookIds.get(loaded.textbook.id);
-    if (previous) {
-      issues.push({
-        file: loaded.file,
-        path: "id",
-        message: `Duplicate textbook id: ${loaded.textbook.id} also used by ${previous}`
-      });
+    const textbookIds = new Map<string, string>();
+    for (const loaded of textbooks) {
+      const previous = textbookIds.get(loaded.textbook.id);
+      if (previous) {
+        issues.push({
+          file: loaded.file,
+          path: "id",
+          message: `Duplicate textbook id: ${loaded.textbook.id} also used by ${previous}`
+        });
+      }
+      textbookIds.set(loaded.textbook.id, loaded.file);
     }
-    textbookIds.set(loaded.textbook.id, loaded.file);
-  }
 
-  const chapterIds = new Map<string, string>();
-  for (const loaded of chapters) {
-    const key = `${loaded.textbookId}/${loaded.chapter.id}`;
-    const previous = chapterIds.get(key);
-    if (previous) {
-      issues.push({
-        file: loaded.file,
-        path: "chapters",
-        message: `Duplicate chapter id in textbook ${loaded.textbookId}: ${loaded.chapter.id} also used by ${previous}`
-      });
+    const chapterIds = new Map<string, string>();
+    for (const loaded of chapters) {
+      const key = `${loaded.textbookId}/${loaded.chapter.id}`;
+      const previous = chapterIds.get(key);
+      if (previous) {
+        issues.push({
+          file: loaded.file,
+          path: "chapters",
+          message: `Duplicate chapter id in textbook ${loaded.textbookId}: ${loaded.chapter.id} also used by ${previous}`
+        });
+      }
+      chapterIds.set(key, loaded.file);
     }
-    chapterIds.set(key, loaded.file);
-  }
 
-  return { textbooks, chapters, issues };
+    return { textbooks, chapters, issues };
+  } finally {
+    await importer.unregister();
+  }
+}
+
+function formatLoadError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.stack ?? error.message;
+  }
+  return String(error);
+}
+
+export function invalidateWorkspaceCaches(cwd: string): void {
+  const root = resolve(cwd);
+  workspaceLoadPromises.delete(root);
+  textbookLoadPromises.delete(root);
+  workspaceCache.delete(root);
+  textbookCache.delete(root);
+}
+
+export function clearWorkspaceCaches(): void {
+  workspaceLoadPromises.clear();
+  textbookLoadPromises.clear();
+  workspaceCache.clear();
+  textbookCache.clear();
+}
+
+function createTsImporter(tsconfig: false | string) {
+  return register({
+    namespace: `tutor-kit-${importNamespaceCounter += 1}`,
+    tsconfig
+  });
+}
+
+async function importTsModule(
+  importer: ReturnType<typeof createTsImporter>,
+  specifier: string,
+  parentURL: string
+): Promise<unknown> {
+  return importer.import(specifier, parentURL);
 }

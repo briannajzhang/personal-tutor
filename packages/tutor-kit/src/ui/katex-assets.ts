@@ -17,6 +17,14 @@ export function katexJs(): string {
     .replaceAll("</script", "<\\/script");
 }
 
+export function katexCssPath(): string {
+  return cssPath;
+}
+
+export function katexJsPath(): string {
+  return jsPath;
+}
+
 export function katexFontPath(fileName: string): string {
   if (!/^[A-Za-z0-9_.-]+$/.test(fileName)) {
     throw new Error(`Invalid KaTeX font path: ${fileName}`);

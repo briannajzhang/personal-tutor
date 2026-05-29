@@ -1,5 +1,3 @@
-import { katexCss, katexJs } from "./katex-assets.js";
-
 export function html(title: string): string {
   return `<!doctype html>
 <html lang="en">
@@ -8,13 +6,13 @@ export function html(title: string): string {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(title)}</title>
     <style>${css()}</style>
-    <style>${katexCss()}</style>
+    <link rel="stylesheet" href="/__tutor-assets/katex/katex.min.css" />
   </head>
   <body>
     <div id="app">
       <main id="main"></main>
     </div>
-    <script>${katexJs()}</script>
+    <script src="/__tutor-assets/katex/katex.min.js"></script>
     <script src="/__tutor-assets/monaco/vs/loader.js"></script>
     <script>${clientJs()}</script>
   </body>
@@ -482,6 +480,36 @@ h1 {
   font-family: "Times New Roman", serif;
   font-style: italic;
 }
+body.route-loading {
+  cursor: progress;
+}
+.loading-shell {
+  min-height: 240px;
+}
+.loading-stack {
+  display: grid;
+  gap: 12px;
+}
+.loading-bar {
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--panel) 0%, color-mix(in srgb, var(--paper) 82%, transparent) 45%, var(--panel) 100%);
+  background-size: 200% 100%;
+  animation: loading-bar 1.15s linear infinite;
+}
+.loading-bar.wide {
+  width: min(100%, 560px);
+}
+.loading-bar.mid {
+  width: min(100%, 420px);
+}
+.loading-bar.short {
+  width: min(100%, 260px);
+}
+@keyframes loading-bar {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
 @media (max-width: 860px) {
   main {
     width: min(100vw - 40px, 1180px);
@@ -532,11 +560,12 @@ let textbooks = [];
 let activeChapter = null;
 const codingStates = new Map();
 let monacoReady = null;
+let routeToken = 0;
 
 async function load() {
   textbooks = await fetchJson("/api/textbooks");
-  window.addEventListener("popstate", () => renderRoute());
-  renderRoute();
+  window.addEventListener("popstate", () => { void renderRoute(); });
+  await renderRoute();
 }
 
 async function fetchJson(url, options) {
@@ -572,7 +601,9 @@ function renderHome() {
 }
 
 async function renderTextbook(textbookId) {
+  const token = beginRouteLoad("Loading textbook...");
   const textbook = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}\`);
+  if (token !== routeToken) return;
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -604,10 +635,13 @@ async function renderTextbook(textbookId) {
     button.addEventListener("click", () => navigateChapter(textbook.id, button.dataset.chapter));
   });
   bindCrumbs();
+  finishRouteLoad(token);
 }
 
 async function renderChapter(textbookId, chapterId) {
+  const token = beginRouteLoad("Loading chapter...");
   const chapter = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
+  if (token !== routeToken) return;
   activeChapter = chapter;
   document.querySelector("#main").innerHTML = \`
     <section>
@@ -640,6 +674,7 @@ async function renderChapter(textbookId, chapterId) {
   \`;
   bindCrumbs();
   bindCodingProblems(chapter);
+  finishRouteLoad(token);
 }
 
 function renderSection(section) {
@@ -659,17 +694,24 @@ function renderSection(section) {
   \`;
 }
 
-function renderRoute() {
+async function renderRoute() {
   const route = parseRoute(window.location.pathname);
-  if (route.kind === "chapter") {
-    renderChapter(route.textbookId, route.chapterId);
-    return;
+  try {
+    if (route.kind === "chapter") {
+      await renderChapter(route.textbookId, route.chapterId);
+      return;
+    }
+    if (route.kind === "textbook") {
+      await renderTextbook(route.textbookId);
+      return;
+    }
+    routeToken += 1;
+    finishRouteLoad(routeToken);
+    renderHome();
+  } catch (error) {
+    finishRouteLoad();
+    renderRouteError(error);
   }
-  if (route.kind === "textbook") {
-    renderTextbook(route.textbookId);
-    return;
-  }
-  renderHome();
 }
 
 function parseRoute(pathname) {
@@ -685,17 +727,17 @@ function parseRoute(pathname) {
 
 function navigateHome() {
   history.pushState({}, "", "/");
-  renderHome();
+  void renderRoute();
 }
 
 function navigateTextbook(textbookId) {
   history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}\`);
-  renderTextbook(textbookId);
+  void renderRoute();
 }
 
 function navigateChapter(textbookId, chapterId) {
   history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
-  renderChapter(textbookId, chapterId);
+  void renderRoute();
 }
 
 function renderBlock(block) {
@@ -1157,6 +1199,42 @@ function bindCrumbs() {
       }
     });
   });
+}
+
+function beginRouteLoad(message) {
+  const token = ++routeToken;
+  document.body.classList.add("route-loading");
+  document.querySelector("#main").innerHTML = \`
+    <section class="loading-shell" aria-busy="true">
+      <div class="page-head">
+        <h1>\${escapeHtml(message)}</h1>
+        <div class="meta">Fetching content</div>
+      </div>
+      <div class="loading-stack" aria-hidden="true">
+        <div class="loading-bar wide"></div>
+        <div class="loading-bar mid"></div>
+        <div class="loading-bar wide"></div>
+        <div class="loading-bar short"></div>
+      </div>
+    </section>
+  \`;
+  return token;
+}
+
+function finishRouteLoad(token) {
+  if (token && token !== routeToken) return;
+  document.body.classList.remove("route-loading");
+}
+
+function renderRouteError(error) {
+  document.querySelector("#main").innerHTML = \`
+    <section>
+      <div class="page-head">
+        <h1>Unable to load</h1>
+      </div>
+      <pre>\${escapeHtml(error?.stack || error?.message || String(error))}</pre>
+    </section>
+  \`;
 }
 
 function renderMarkdown(value) {
