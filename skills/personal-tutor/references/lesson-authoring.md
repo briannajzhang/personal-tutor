@@ -98,3 +98,89 @@ export default chapter({
 - Before adding content, inspect existing textbooks and chapters.
 - Prefer semantic blocks over giant Markdown strings.
 - Run `tutor compile` after every content edit.
+
+## Chapter Structure
+
+Use sections and subsections to reflect the teaching plan, not just the schema.
+
+- Treat a chapter as non-trivial unless it is intentionally tiny.
+- For non-trivial chapters, use at least 2 sections.
+- Most non-trivial chapters should also include at least 1 subsection, while intentionally small chapters may use none.
+- Do not collapse concept introduction, worked example, practice, and recap into one flat section unless the lesson is intentionally very small.
+- If every chapter in a textbook ends up with the same exact shape, stop and ask whether the structure matches the content or just your template.
+
+### When To Start A New Section
+
+Create a new section when the learner is changing tasks in a meaningful way, for example:
+
+- moving from concept introduction to worked example
+- moving from one major subtopic to another
+- moving from explanation to practice
+- moving from one kind of practice to cumulative review
+
+Sections should feel like major teaching moves, not just visual wrappers.
+
+### When To Add A Subsection
+
+Add a subsection when a section needs one narrower unit inside it, for example:
+
+- a misconception or boundary case that deserves focused treatment
+- a worked example that should not be buried in a larger section
+- a practice cluster around one specific skill
+- a comparison between two closely related ideas
+
+Subsections are useful when the learner benefits from one more level of structure, not when they merely rename the same content.
+
+## Recommended Shapes
+
+### Small Chapter
+
+Use this only when the topic is intentionally narrow.
+
+- 2 sections
+- 0-1 subsections
+
+Example:
+
+- Section 1: core idea and small example
+- Section 2: focused practice and recap
+
+### Standard Chapter
+
+This should be the default shape for most beginner lessons.
+
+- 2-3 sections
+- 1-3 subsections total
+
+Example:
+
+- Section 1: learner problem and concept introduction
+- Section 2: worked example
+  Add a subsection for the misconception, edge case, or a second example
+- Section 3: practice and self-check
+
+### Larger Chapter
+
+Use this when the learner must connect several related ideas.
+
+- 3-4 sections
+- multiple subsections where they clarify distinct skills or traps
+
+Example:
+
+- Section 1: central concept
+- Section 2: mechanism and example
+- Section 3: second related concept or comparison
+- Section 4: cumulative practice and recap
+
+## Anti-Patterns
+
+Avoid these common weak structures:
+
+- one giant section with headings doing all the real structural work
+- zero subsections across an entire textbook
+- every chapter repeating the exact same flat template without regard to the topic
+- practice appearing only as one list at the very end of a long explanation section
+- worked examples embedded as one small block inside a section that is really doing three jobs at once
+
+If the structure looks clean but does not help the learner navigate the lesson, rewrite it.

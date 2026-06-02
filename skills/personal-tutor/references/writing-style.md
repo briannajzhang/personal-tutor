@@ -34,6 +34,49 @@ Prose blocks should feel like careful textbook paragraphs guided by a human tuto
 
 Avoid vague encouragement, marketing language, and abstract summaries that do not change what the learner can do next.
 
+## Required Prose Moves
+
+When authoring durable written material, keep these requirements visible:
+
+- Start each substantial teaching unit from a real learner confusion, practical question, or failure mode instead of opening with abstract terminology.
+- Define the central term in plain language before adding nuance, edge cases, or formalism.
+- Explain the mechanism that makes the idea work, not just the label or a polished summary.
+- Include at least one realistic mistake, misconception, or boundary case for each substantial section or subsection.
+- End each substantial teaching unit with a concrete self-check, recall target, or application task when the material is meant to stand alone.
+
+These are not optional style flourishes. They are the minimum moves that keep the prose teaching instead of merely sounding polished.
+
+## Avoid Template Prose
+
+A textbook can satisfy the block schema and still feel flat if every chapter uses the same rhetorical rhythm. Do not mechanically repeat the same sequence of problem, definition, example, and self-check with only the nouns swapped.
+
+Vary the teaching shape when the idea calls for it:
+
+- Some lessons should begin with a tempting wrong model and then correct it.
+- Some lessons should begin with a tiny example and introduce the term afterward.
+- Some lessons should compare two nearby ideas before defining either one formally.
+- Some lessons should center a practical failure mode and then explain the mechanism that prevents it.
+
+Consistency is useful, but sameness is not. Reuse a pattern when it clarifies the material, not because it is the easiest template to continue.
+
+## Bad vs Better
+
+Weak:
+
+Joins combine data from multiple tables. A primary key uniquely identifies a row. A foreign key refers to a primary key in another table. Joins are important in relational databases.
+
+Better:
+
+A join helps you answer questions that need data from more than one table. Suppose one table lists students and another lists enrollments. If you want to know which classes Maya is taking, SQL has to connect Maya's row to the matching enrollment rows. It usually makes that connection with IDs. The primary key is the ID that uniquely identifies a row, such as `students.student_id`. The foreign key stores that ID in another table, such as `enrollments.student_id`. If you match the wrong columns, the query may still run, but the answer will be wrong.
+
+Use the better pattern as the default:
+
+1. Name the learner's problem.
+2. Define the term plainly.
+3. Explain the mechanism.
+4. Show the realistic mistake.
+5. Leave the learner with an actionable check.
+
 ## Quality Bar
 
 Durable material should teach, not summarize. Do not write a subsection that merely says "X is Y, and it has properties A, B, and C." A strong subsection gives the learner a way to recognize the idea in code, predict what will happen, and avoid a realistic mistake.
@@ -96,6 +139,10 @@ Before finalizing a chapter or subsection, check:
 
 - Does the opening paragraph start from a real learner confusion?
 - Are terms attached to code, notation, or action?
+- Does the prose explain the mechanism, not just the terminology?
 - Is there at least one concrete example or mechanism?
 - Does every callout protect the learner from a mistake?
+- Is there a realistic mistake or misconception the learner is now less likely to make?
+- Does this section sound distinct from the last one, or does it feel like the same template reused?
 - Could the learner test themselves after reading?
+- After reading, could the learner notice, predict, explain, or do something they could not do before?
