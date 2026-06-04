@@ -19,7 +19,7 @@ test("compile passes for the example workspace", async () => {
   assert.equal(result.chapterCount, 1);
   assert.equal(result.sectionCount, 1);
   assert.equal(result.subsectionCount, 1);
-  assert.equal(result.blockCount, 7);
+  assert.equal(result.blockCount, 9);
 });
 
 test("compile reports duplicate block ids", async () => {

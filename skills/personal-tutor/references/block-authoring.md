@@ -75,22 +75,65 @@ codingProblem({
 - Use `mathBlock` for displayed equations; use inline `$LaTeX$` inside prose for small notation.
 - Use `callout` sparingly for misconceptions, warnings, or high-value takeaways.
 - Use `codingProblem` for runnable practice. See `coding-problems.md`.
+- For programming lessons, prefer `codingProblem` over prose-only exercise descriptions when the target skill requires writing, running, debugging, or refactoring code.
 - Prefer several semantic blocks over one giant Markdown string.
 - Keep block IDs stable and unique within their section or subsection.
 
 `explanation` and `blurb` are legacy aliases. Do not use them in new material.
 
+## Block Coherence
+
+A block should not appear as a standalone fragment. It should connect to the block before it and prepare the block after it.
+
+Before adding a block, know its teaching job:
+
+- introduce a problem
+- define a term
+- explain a mechanism
+- show a concrete example
+- name a misconception or boundary
+- ask the learner to predict, explain, debug, compare, apply, or create
+
+Before a `codeBlock`, `mathBlock`, table, or example, tell the learner what to inspect.
+
+After a `codeBlock`, `mathBlock`, table, or example, explain what it showed.
+
+Weak:
+
+1. `p`: joins combine tables
+2. `codeBlock`: SQL join query
+3. `callout`: joins can duplicate rows
+4. `list`: questions
+
+Better:
+
+1. `p`: a join creates row pairs using a match condition
+2. `p`: tell the learner to inspect the `ON` line
+3. `codeBlock`: SQL join query
+4. `p`: walk through why one customer with three orders appears three times
+5. `callout`: repeated rows can be correct in one-to-many joins
+6. `list`: prediction and debugging checks
+
 ## Teaching Sequence
 
-Blocks are semantic teaching moves, not layout decoration. For durable material, prefer this sequence unless the topic suggests a better one:
+Blocks are semantic teaching moves, not layout decoration. For durable material, prefer a learning loop rather than an explanation-only stack. The sequence does not need to be rigid, but each block should make the next block easier to understand or use:
 
 1. `p`: state the learner-facing problem or confusion.
 2. `p`: define the concept and explain the mechanism.
 3. `codeBlock` or `mathBlock`: show the mechanism in a small concrete form.
 4. `callout`: name the misconception, warning, or key idea.
-5. `list`: give recall checks, comparison points, or operating rules.
+5. `list` or another concrete task block: give guided practice, retrieval, comparison, or prediction tasks.
+6. `codingProblem` or another subject-appropriate independent-practice move when the learner should perform the skill with less support.
 
-Avoid thin prose blocks that only label a term. A good `p` should move the learner from "I have seen this" toward "I can recognize when this matters."
+For programming lessons, a common pattern is:
+
+1. `p`: name the coding task or bug pattern.
+2. `codeBlock`: show a small worked example.
+3. `callout`: isolate the trap.
+4. `list`: give short guided tasks or predictions.
+5. `codingProblem`: require runnable independent practice.
+
+Avoid isolated blocks that are individually valid but weak together. A technically correct `codeBlock`, `callout`, and `list` can still produce a poor lesson if the learner is not told why each block appears or how they connect.
 
 ## Extension Pattern
 
