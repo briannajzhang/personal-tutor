@@ -1,6 +1,6 @@
 import { callout, chapter, codeBlock, codingProblem, heading, list, p, projectFiles, section, subsection } from "tutor-kit";
 
-const addOneProject = projectFiles(import.meta.url, "./problems/add-one");
+const pathProject = projectFiles(import.meta.url, "./problems/classify-workspace-paths");
 
 export default chapter({
   id: "welcome",
@@ -10,29 +10,29 @@ export default chapter({
   sections: [
     section({
       id: "what-this-is",
-      title: "1.1 What This Is",
+      title: "Why Tutor Kit Uses Source Files",
       blocks: [
         p({
           id: "what-this-is",
           body: "Tutor Kit treats learning material as code because agents are already good at reading and editing code. A textbook is a TypeScript module, a chapter is a structured object, and blocks are semantic pieces of teaching material: paragraphs, headings, lists, code, math, and callouts. That gives the agent enough structure to add material carefully, while keeping the result easy for a human to inspect."
         }),
         heading({
-          id: "semantic-blocks-heading",
-          text: "Semantic blocks"
+          id: "source-truth-heading",
+          text: "What belongs where"
         }),
         list({
-          id: "semantic-blocks",
+          id: "workspace-guided-practice",
           items: [
-            "`p(...)` holds ordinary teaching prose.",
-            "`heading(...)` adds local structure inside a section or subsection.",
-            "`codeBlock(...)`, `mathBlock(...)`, and `callout(...)` make examples and emphasis explicit."
+            "Point to the part of this chapter file that defines durable curriculum rather than runtime activity.",
+            "Name which path pattern stores authored chapter source and which path stores learner history.",
+            "Explain why an agent should edit chapter files instead of `tutor-data/events.jsonl` when changing the lesson itself."
           ]
         })
       ],
       subsections: [
         subsection({
-          id: "workspace-source",
-          title: "1.1.1 Workspace Source",
+          id: "curriculum-and-runtime",
+          title: "Curriculum Files and Runtime History",
           blocks: [
             p({
               id: "workspace-source",
@@ -41,27 +41,50 @@ export default chapter({
             codeBlock({
               id: "chapter-file-example",
               language: "ts",
-              code: "section({ id: \"arrays\", title: \"1.1 Arrays\", blocks: [p({ id: \"intro\", body: \"...\" })] })"
+              code: "section({ id: \"arrays\", title: \"Arrays\", blocks: [p({ id: \"intro\", body: \"...\" })] })"
             }),
-            codingProblem({
-              id: "add-one-practice",
-              title: "Add One",
-              prompt: "Fix `add_one(x)` so it returns the next integer. This is intentionally small: the point is to show how Tutor Kit can keep real source files clean while presenting them as an inline practice project.",
-              language: "python",
-              files: [
-                addOneProject.file("main.py", { editable: true }),
-                addOneProject.file("tests.py")
-              ],
-              run: "$PYTHON main.py",
-              test: "$PYTHON tests.py",
-              review: "Check whether the learner changed the function itself, preserved the simple command-line behavior, and can explain why the test passes."
-            }),
-            callout({
-              id: "compile-reminder",
-              tone: "key-idea",
-              title: "Authoring habit",
-              body: "Run `tutor compile` after changing curriculum files. It catches structural problems before the learner opens the UI."
+            list({
+              id: "compile-guided-practice",
+              items: [
+                "Predict which file should change if you want to rewrite a chapter explanation.",
+                "Predict which file should change when a learner submits work in the UI.",
+                "Describe one mistake `tutor compile` could catch before the learner opens the chapter."
+              ]
             })
+          ]
+        })
+      ]
+    }),
+    section({
+      id: "practice-and-review",
+      title: "Practice And Review",
+      blocks: [
+        codingProblem({
+          id: "classify-workspace-paths",
+          title: "Classify Tutor Kit Paths",
+          prompt: "Implement `classify_path(path)` so it returns `\"curriculum\"` for authored textbook source paths and `\"runtime\"` for Tutor Kit runtime-history paths. Then implement `should_edit(path)` so it returns `True` only for files an agent should edit when changing lesson content.",
+          language: "python",
+          files: [
+            pathProject.file("main.py", { editable: true }),
+            pathProject.file("tests.py")
+          ],
+          run: "$PYTHON main.py",
+          test: "$PYTHON tests.py",
+          review: "Check whether the learner understands the difference between authored curriculum files and runtime-history files, not just whether the tests pass."
+        }),
+        callout({
+          id: "compile-reminder",
+          tone: "key-idea",
+          title: "Authoring habit",
+          body: "Run `tutor compile` after changing curriculum files. It catches structural problems before the learner opens the UI."
+        }),
+        list({
+          id: "starter-mastery-check",
+          items: [
+            "Without looking back, name the file path pattern where chapter source lives.",
+            "Explain why runtime history belongs in `tutor-data/events.jsonl` instead of chapter files.",
+            "Describe what `tutor compile` should catch before the learner opens the UI.",
+            "Explain why the coding problem in this chapter is really a test of source-of-truth reasoning, not just Python syntax."
           ]
         })
       ]

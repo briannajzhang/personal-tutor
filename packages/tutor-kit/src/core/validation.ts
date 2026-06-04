@@ -3,12 +3,15 @@ import type {
   Section,
   Subsection,
   Textbook,
+  TutorBlock,
   ValidationIssue
 } from "./types.js";
 
 const calloutTones = new Set(["note", "caution", "key-idea"]);
 const listStyles = new Set(["bullet", "number"]);
 const headingLevels = new Set([4, 5]);
+const taskVerbPattern = /^(write|predict|explain|compare|classify|debug|fix|implement|solve|justify|design|create|trace|identify|rewrite|describe|test|name|build|apply|refactor|interpret|spot)\b/i;
+const reviewHintPattern = /\b(check|self-check|review|recall|retrieval|mastery|quiz|practice|try|exercise|explain|predict|compare|debug|apply|test)\b/i;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -79,6 +82,80 @@ export function validateChapter(value: unknown, file?: string): ValidationIssue[
       }
       sectionIds.add(section.id);
     }
+  }
+
+  issues.push(...validateChapterLearningHeuristics(value as unknown as Chapter, file));
+
+  return issues;
+}
+
+function validateChapterLearningHeuristics(chapter: Chapter, file?: string): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const blocks = collectChapterBlocks(chapter);
+
+  if (blocks.length < 4) return issues;
+
+  if (chapter.sections.length < 2) {
+    issues.push(issue(
+      "Non-trivial chapter has fewer than 2 sections. Split concept introduction, examples, practice, and review into clearer teaching moves.",
+      "sections",
+      file
+    ));
+  }
+
+  const subsectionCount = chapter.sections.reduce(
+    (count, section) => count + section.subsections.length,
+    0
+  );
+
+  if (blocks.length >= 8 && subsectionCount === 0) {
+    issues.push(issue(
+      "Substantial chapter has no subsections. Add a focused worked example, misconception, boundary case, or practice cluster when useful.",
+      "sections",
+      file
+    ));
+  }
+
+  const hasPracticeMove = blocks.some((block) => (
+    block.kind === "codingProblem" ||
+    looksLikeTaskList(block) ||
+    blockText(block).some((text) => reviewHintPattern.test(text))
+  ));
+
+  if (!hasPracticeMove) {
+    issues.push(issue(
+      "Chapter appears exposition-heavy. Add guided or independent practice with concrete learner tasks.",
+      "sections",
+      file
+    ));
+  }
+
+  const hasReviewMove = blocks.some((block) => (
+    looksLikeTaskList(block) || blockText(block).some((text) => reviewHintPattern.test(text))
+  ));
+
+  if (!hasReviewMove) {
+    issues.push(issue(
+      "Chapter is missing a retrieval, review, or mastery-check move.",
+      "sections",
+      file
+    ));
+  }
+
+  const hasCodeExample = blocks.some((block) => (
+    block.kind === "codeBlock" &&
+    isRecord(block.props) &&
+    typeof block.props.language === "string" &&
+    block.props.language.trim().length > 0
+  ));
+  const hasCodingProblem = blocks.some((block) => block.kind === "codingProblem");
+
+  if (hasCodeExample && !hasCodingProblem) {
+    issues.push(issue(
+      "Programming-oriented chapter has code examples but no codingProblem for runnable independent practice.",
+      "sections",
+      file
+    ));
   }
 
   return issues;
@@ -234,6 +311,21 @@ function validateCodingProblem(
 ): void {
   validateTextProp(props.title, `${path}.title`, file, issues);
   validateTextProp(props.prompt, `${path}.prompt`, file, issues);
+
+  if (typeof props.prompt === "string") {
+    const prompt = props.prompt.trim();
+    const hasConcreteSignal =
+      /function|return|implement|write|fill in|query|string|input|output|expected|ordered|where|filter|debug|fix|test/i.test(prompt);
+
+    if (prompt.length < 80 || !hasConcreteSignal) {
+      issues.push(issue(
+        "Coding problem prompt may be too vague. State the concrete behavior, expected output or query shape, and any important constraints before relying on tests.",
+        `${path}.prompt`,
+        file
+      ));
+    }
+  }
+
   if (props.language !== undefined && typeof props.language !== "string") {
     issues.push(issue("Coding problem language must be a string.", `${path}.language`, file));
   }
@@ -366,6 +458,44 @@ function validateMarkupText(
   if (fenceCount % 2 !== 0) {
     issues.push(issue("Markdown has an unmatched code fence.", path, file));
   }
+}
+
+function collectChapterBlocks(chapter: Chapter): TutorBlock[] {
+  const blocks: TutorBlock[] = [];
+  for (const section of chapter.sections) {
+    blocks.push(...section.blocks);
+    for (const subsection of section.subsections) {
+      blocks.push(...subsection.blocks);
+    }
+  }
+  return blocks;
+}
+
+function blockText(block: TutorBlock): string[] {
+  const texts = [block.id];
+  if (!isRecord(block.props)) return texts;
+
+  if (typeof block.props.title === "string") texts.push(block.props.title);
+  if (typeof block.props.text === "string") texts.push(block.props.text);
+  if (typeof block.props.body === "string") texts.push(block.props.body);
+  if (typeof block.props.prompt === "string") texts.push(block.props.prompt);
+  if (Array.isArray(block.props.items)) {
+    for (const item of block.props.items) {
+      if (typeof item === "string") texts.push(item);
+    }
+  }
+  return texts;
+}
+
+function looksLikeTaskList(block: TutorBlock): boolean {
+  if (block.kind !== "list" || !isRecord(block.props) || !Array.isArray(block.props.items)) {
+    return false;
+  }
+
+  return block.props.items.some((item) => (
+    typeof item === "string" &&
+    (item.includes("?") || taskVerbPattern.test(item.trim()))
+  ));
 }
 
 export function summarizeSubsection(subsection: Subsection): { blocks: number } {

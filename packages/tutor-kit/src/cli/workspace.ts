@@ -6,7 +6,9 @@ import {
   registryTemplate,
   tsconfigTemplate,
   welcomeTextbookTemplate,
-  welcomeChapterTemplate
+  welcomeChapterTemplate,
+  welcomeProblemMainTemplate,
+  welcomeProblemTestsTemplate
 } from "../templates/workspace.js";
 import {
   coreBlocksTemplate,
@@ -27,6 +29,7 @@ export function initWorkspace(cwd: string, options: InitWorkspaceOptions = {}): 
   const result: WriteResult = { created: [], skipped: [] };
   ensureDir(cwd);
   ensureDir(join(cwd, "textbooks", "getting-started", "chapters"));
+  ensureDir(join(cwd, "textbooks", "getting-started", "chapters", "problems", "classify-workspace-paths"));
   ensureDir(join(cwd, "tutor", "blocks"));
   ensureDir(join(cwd, "tutor-data"));
 
@@ -35,6 +38,8 @@ export function initWorkspace(cwd: string, options: InitWorkspaceOptions = {}): 
   writeIfMissing(join(cwd, "tutor.config.ts"), configTemplate(), result);
   writeIfMissing(join(cwd, "textbooks", "getting-started", "textbook.ts"), welcomeTextbookTemplate(), result);
   writeIfMissing(join(cwd, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), welcomeChapterTemplate(), result);
+  writeIfMissing(join(cwd, "textbooks", "getting-started", "chapters", "problems", "classify-workspace-paths", "main.py"), welcomeProblemMainTemplate(), result);
+  writeIfMissing(join(cwd, "textbooks", "getting-started", "chapters", "problems", "classify-workspace-paths", "tests.py"), welcomeProblemTestsTemplate(), result);
   writeIfMissing(join(cwd, "tutor", "registry.ts"), registryTemplate(), result);
   writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);
   writeIfMissing(join(cwd, "tutor-data", "events.jsonl"), "", result);
@@ -46,6 +51,11 @@ export function addTextbook(cwd: string, id: string, title: string): WriteResult
   const result: WriteResult = { created: [], skipped: [] };
   ensureDir(join(cwd, "textbooks", id, "chapters"));
   writeIfMissing(join(cwd, "textbooks", id, "textbook.ts"), textbookTemplate(id, title), result);
+  writeIfMissing(join(cwd, "textbooks", id, "prompt.md"), "# Prompt\n\n", result);
+  writeIfMissing(join(cwd, "textbooks", id, "curriculum-map.md"), `# Curriculum Map: ${title}\n\n`, result);
+  writeIfMissing(join(cwd, "textbooks", id, "chapter-specs.md"), "# Chapter Specs\n\n", result);
+  writeIfMissing(join(cwd, "textbooks", id, "review-notes.md"), "# Review Notes\n\n", result);
+  writeIfMissing(join(cwd, "textbooks", id, "compile-result.md"), "# Compile Result\n\n", result);
   return result;
 }
 

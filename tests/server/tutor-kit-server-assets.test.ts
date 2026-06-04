@@ -50,7 +50,7 @@ test("dev server exposes textbooks, chapters, and appends events", async () => {
     assert.equal(textbookResponse.title, "Getting Started");
 
     const chapterResponse = await fetchJson(`${server.url}/api/textbooks/getting-started/chapters/welcome`);
-    assert.equal(chapterResponse.title, "Welcome");
+    assert.equal(chapterResponse.title, "Chapter 1: Welcome");
     assert.equal(chapterResponse.textbookId, "getting-started");
 
     const eventResponse = await fetchJson(`${server.url}/api/events`, {

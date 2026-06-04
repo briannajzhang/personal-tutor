@@ -25,14 +25,21 @@ test("builders create valid textbooks", () => {
             blocks: [
               p({ id: "intro", body: "Hello $x$." }),
               heading({ id: "what-next", text: "What comes next" }),
-              list({ id: "checks", items: ["Read the expression.", "Evaluate it."] }),
+              list({
+                id: "self-check",
+                items: [
+                  "Read the expression.",
+                  "Evaluate it.",
+                  "Without looking back, explain what this block is trying to teach."
+                ]
+              }),
               codeBlock({ id: "code", language: "js", code: "const x = 1;" }),
               mathBlock({ id: "math", body: "x^2 + y^2 = z^2" }),
               callout({ id: "note", tone: "key-idea", body: "Blocks are semantic." }),
               codingProblem({
                 id: "double",
                 title: "Double",
-                prompt: "Implement `double`.",
+                prompt: "Implement `double(x)` so it returns a value that is exactly twice the numeric input. For example, `double(2)` should return `4`, and the implementation should work for the additional integer cases covered by the tests.",
                 language: "python",
                 files: [
                   { path: "main.py", content: "def double(x):\n    return x\n", editable: true },
@@ -49,6 +56,19 @@ test("builders create valid textbooks", () => {
                 blocks: []
               })
             ]
+          }),
+          section({
+            id: "review",
+            title: "1.2 Review",
+            blocks: [
+              list({
+                id: "mastery-check",
+                items: [
+                  "Explain how the code example and math expression represent the same idea.",
+                  "Predict what `double(5)` should return before running the tests."
+                ]
+              })
+            ]
           })
         ]
       })
@@ -56,6 +76,73 @@ test("builders create valid textbooks", () => {
   });
 
   assert.deepEqual(validateTextbook(built), []);
+});
+
+test("validation flags exposition-heavy chapters without practice moves", () => {
+  const built = textbook({
+    id: "history",
+    title: "History",
+    chapters: [
+      chapter({
+        id: "causes",
+        title: "Causes",
+        sections: [
+          section({
+            id: "overview",
+            title: "Overview",
+            blocks: [
+              p({ id: "intro", body: "This chapter explains a major historical cause." }),
+              p({ id: "detail", body: "It adds more explanatory detail." }),
+              callout({ id: "trap", tone: "caution", body: "Do not confuse trigger and cause." }),
+              p({ id: "more-detail", body: "It still never asks the learner to do anything." })
+            ]
+          })
+        ]
+      })
+    ]
+  });
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /exposition-heavy/
+  );
+});
+
+test("validation flags code-heavy chapters without coding problems", () => {
+  const built = textbook({
+    id: "pandas",
+    title: "Pandas",
+    chapters: [
+      chapter({
+        id: "filtering",
+        title: "Filtering",
+        sections: [
+          section({
+            id: "masks",
+            title: "Boolean Masks",
+            blocks: [
+              p({ id: "intro", body: "Boolean masks help choose rows." }),
+              codeBlock({ id: "example", language: "python", code: "recent = df[df['year'] >= 2020]" }),
+              callout({ id: "trap", tone: "caution", body: "Use `&` instead of `and` with pandas conditions." }),
+              list({
+                id: "guided-practice",
+                items: [
+                  "Write a mask that keeps rows where `score >= 80`.",
+                  "Explain why `and` does not work here.",
+                  "Predict what changes if `|` is used instead."
+                ]
+              })
+            ]
+          })
+        ]
+      })
+    ]
+  });
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /no codingProblem/
+  );
 });
 
 test("discoverTextbookFiles skips symlink directory cycles", () => {
