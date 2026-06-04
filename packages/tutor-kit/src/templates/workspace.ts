@@ -113,34 +113,40 @@ export default chapter({
               id: "chapter-file-example",
               language: "ts",
               code: "section({ id: \\\"arrays\\\", title: \\\"Arrays\\\", blocks: [p({ id: \\\"intro\\\", body: \\\"...\\\" })] })"
-            }),
-            codingProblem({
-              id: "classify-workspace-paths",
-              title: "Classify Tutor Kit Paths",
-              prompt: "Implement \`classify_path(path)\` so it returns \`\\\"curriculum\\\"\` for authored textbook source paths and \`\\\"runtime\\\"\` for Tutor Kit runtime-history paths. Then implement \`should_edit(path)\` so it returns \`true\` only for files an agent should edit when changing lesson content.",
-              language: "python",
-              files: [
-                project.file("main.py", { editable: true }),
-                project.file("tests.py")
-              ],
-              run: "$PYTHON main.py",
-              test: "$PYTHON tests.py",
-              review: "Check whether the learner understands the difference between authored curriculum files and runtime-history files, not just whether the tests pass."
-            }),
-            callout({
-              id: "authoring-rule",
-              tone: "key-idea",
-              title: "Authoring rule",
-              body: "Use blocks the way you would use HTML: paragraphs for prose, headings for local structure, lists for scanability, code blocks for exact syntax, math blocks for displayed formulas, and callouts for emphasis."
-            }),
-            list({
-              id: "authoring-mastery-check",
-              items: [
-                "Without looking back, name the command you should run after editing content.",
-                "Describe one validation error that compile can catch before the UI opens.",
-                "Explain which file should change if the lesson content changes but learner history should stay untouched."
-              ]
             })
+          ]
+        })
+      ]
+    }),
+    section({
+      id: "practice-and-review",
+      title: "Practice And Review",
+      blocks: [
+        codingProblem({
+          id: "classify-workspace-paths",
+          title: "Classify Tutor Kit Paths",
+          prompt: "Implement \`classify_path(path)\` so it returns \`\\\"curriculum\\\"\` for authored textbook source paths and \`\\\"runtime\\\"\` for Tutor Kit runtime-history paths. Then implement \`should_edit(path)\` so it returns \`true\` only for files an agent should edit when changing lesson content.",
+          language: "python",
+          files: [
+            project.file("main.py", { editable: true }),
+            project.file("tests.py")
+          ],
+          run: "$PYTHON main.py",
+          test: "$PYTHON tests.py",
+          review: "Check whether the learner understands the difference between authored curriculum files and runtime-history files, not just whether the tests pass."
+        }),
+        callout({
+          id: "authoring-rule",
+          tone: "key-idea",
+          title: "Authoring rule",
+          body: "Use blocks the way you would use HTML: paragraphs for prose, headings for local structure, lists for scanability, code blocks for exact syntax, math blocks for displayed formulas, and callouts for emphasis."
+        }),
+        list({
+          id: "authoring-mastery-check",
+          items: [
+            "Without looking back, name the command you should run after editing content.",
+            "Describe one validation error that compile can catch before the UI opens.",
+            "Explain which file should change if the lesson content changes but learner history should stay untouched."
           ]
         })
       ]

@@ -39,7 +39,7 @@ test("builders create valid textbooks", () => {
               codingProblem({
                 id: "double",
                 title: "Double",
-                prompt: "Implement `double`.",
+                prompt: "Implement `double(x)` so it returns a value that is exactly twice the numeric input. For example, `double(2)` should return `4`, and the implementation should work for the additional integer cases covered by the tests.",
                 language: "python",
                 files: [
                   { path: "main.py", content: "def double(x):\n    return x\n", editable: true },
@@ -54,6 +54,19 @@ test("builders create valid textbooks", () => {
                 id: "calls",
                 title: "1.1.1 Calls",
                 blocks: []
+              })
+            ]
+          }),
+          section({
+            id: "review",
+            title: "1.2 Review",
+            blocks: [
+              list({
+                id: "mastery-check",
+                items: [
+                  "Explain how the code example and math expression represent the same idea.",
+                  "Predict what `double(5)` should return before running the tests."
+                ]
               })
             ]
           })

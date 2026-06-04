@@ -17,7 +17,7 @@ test("compile passes for the example workspace", async () => {
   assert.equal(result.ok, true, result.output);
   assert.equal(result.textbookCount, 1);
   assert.equal(result.chapterCount, 1);
-  assert.equal(result.sectionCount, 1);
+  assert.equal(result.sectionCount, 2);
   assert.equal(result.subsectionCount, 1);
   assert.equal(result.blockCount, 9);
 });

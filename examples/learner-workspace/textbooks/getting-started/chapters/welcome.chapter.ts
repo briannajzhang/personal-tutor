@@ -50,35 +50,41 @@ export default chapter({
                 "Predict which file should change when a learner submits work in the UI.",
                 "Describe one mistake `tutor compile` could catch before the learner opens the chapter."
               ]
-            }),
-            codingProblem({
-              id: "classify-workspace-paths",
-              title: "Classify Tutor Kit Paths",
-              prompt: "Implement `classify_path(path)` so it returns `\"curriculum\"` for authored textbook source paths and `\"runtime\"` for Tutor Kit runtime-history paths. Then implement `should_edit(path)` so it returns `True` only for files an agent should edit when changing lesson content.",
-              language: "python",
-              files: [
-                pathProject.file("main.py", { editable: true }),
-                pathProject.file("tests.py")
-              ],
-              run: "$PYTHON main.py",
-              test: "$PYTHON tests.py",
-              review: "Check whether the learner understands the difference between authored curriculum files and runtime-history files, not just whether the tests pass."
-            }),
-            callout({
-              id: "compile-reminder",
-              tone: "key-idea",
-              title: "Authoring habit",
-              body: "Run `tutor compile` after changing curriculum files. It catches structural problems before the learner opens the UI."
-            }),
-            list({
-              id: "starter-mastery-check",
-              items: [
-                "Without looking back, name the file path pattern where chapter source lives.",
-                "Explain why runtime history belongs in `tutor-data/events.jsonl` instead of chapter files.",
-                "Describe what `tutor compile` should catch before the learner opens the UI.",
-                "Explain why the coding problem in this chapter is really a test of source-of-truth reasoning, not just Python syntax."
-              ]
             })
+          ]
+        })
+      ]
+    }),
+    section({
+      id: "practice-and-review",
+      title: "Practice And Review",
+      blocks: [
+        codingProblem({
+          id: "classify-workspace-paths",
+          title: "Classify Tutor Kit Paths",
+          prompt: "Implement `classify_path(path)` so it returns `\"curriculum\"` for authored textbook source paths and `\"runtime\"` for Tutor Kit runtime-history paths. Then implement `should_edit(path)` so it returns `True` only for files an agent should edit when changing lesson content.",
+          language: "python",
+          files: [
+            pathProject.file("main.py", { editable: true }),
+            pathProject.file("tests.py")
+          ],
+          run: "$PYTHON main.py",
+          test: "$PYTHON tests.py",
+          review: "Check whether the learner understands the difference between authored curriculum files and runtime-history files, not just whether the tests pass."
+        }),
+        callout({
+          id: "compile-reminder",
+          tone: "key-idea",
+          title: "Authoring habit",
+          body: "Run `tutor compile` after changing curriculum files. It catches structural problems before the learner opens the UI."
+        }),
+        list({
+          id: "starter-mastery-check",
+          items: [
+            "Without looking back, name the file path pattern where chapter source lives.",
+            "Explain why runtime history belongs in `tutor-data/events.jsonl` instead of chapter files.",
+            "Describe what `tutor compile` should catch before the learner opens the UI.",
+            "Explain why the coding problem in this chapter is really a test of source-of-truth reasoning, not just Python syntax."
           ]
         })
       ]

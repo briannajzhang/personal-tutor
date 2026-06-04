@@ -36,7 +36,7 @@ export default chapter({
         codingProblem({
           id: "add-one",
           title: "Add One",
-          prompt: "Fix the function.",
+          prompt: "Fix the implementation of \`add_one(x)\` so it returns the input plus one. For example, \`add_one(2)\` should return \`3\`, and the tests will check that the function returns the expected numeric output for additional inputs.",
           language: "python",
           files: [
             project.file("main.py", { editable: true }),
