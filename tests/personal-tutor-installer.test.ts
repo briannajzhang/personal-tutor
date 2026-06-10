@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -19,7 +19,7 @@ test("package metadata exposes an npx-friendly installer", () => {
 test("personal-tutor installer copies the skill into a skills directory", () => {
   const skillsDir = mkdtempSync(join(tmpdir(), "personal-tutor-skills-"));
 
-  const output = execFileSync(process.execPath, [cli, "--skills-dir", skillsDir], {
+  const output = execFileSync(process.execPath, [cli, "--skills-dir", skillsDir, "--skip-deps"], {
     encoding: "utf8"
   });
 
@@ -28,6 +28,31 @@ test("personal-tutor installer copies the skill into a skills directory", () => 
   assert.ok(existsSync(join(installedSkill, "SKILL.md")));
   assert.ok(existsSync(join(installedSkill, "agents", "openai.yaml")));
   assert.ok(existsSync(join(installedSkill, "assets", "tutor-kit", "dist", "cli", "index.js")));
+});
+
+test("personal-tutor installer installs bundled Tutor Kit dependencies", () => {
+  const dir = mkdtempSync(join(tmpdir(), "personal-tutor-install-"));
+  const skillsDir = join(dir, "skills");
+  const fakeNpm = join(dir, "fake-npm.js");
+  const npmArgsPath = join(dir, "npm-args.txt");
+
+  writeFakeNpm(fakeNpm);
+  const output = execFileSync(process.execPath, [cli, "--skills-dir", skillsDir], {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      PERSONAL_TUTOR_NPM_BIN: fakeNpm,
+      PERSONAL_TUTOR_FAKE_NPM_ARGS: npmArgsPath
+    }
+  });
+
+  const installedSkill = join(skillsDir, "personal-tutor");
+  const args = readFileSync(npmArgsPath, "utf8");
+  assert.match(output, /Tutor Kit dependencies installed/);
+  assert.match(output, /bundled Tutor Kit CLI: verified/);
+  assert.match(args, /--prefix/);
+  assert.match(args, /--omit=dev/);
+  assert.ok(existsSync(join(installedSkill, "assets", "tutor-kit", "node_modules", "tsx", "package.json")));
 });
 
 test("personal-tutor installer supports top-level version flag", () => {
@@ -42,17 +67,17 @@ test("personal-tutor installer refuses overwrite unless forced", () => {
   const skillsDir = mkdtempSync(join(tmpdir(), "personal-tutor-skills-"));
   const installedSkill = join(skillsDir, "personal-tutor");
 
-  execFileSync(process.execPath, [cli, "--skills-dir", skillsDir]);
+  execFileSync(process.execPath, [cli, "--skills-dir", skillsDir, "--skip-deps"]);
   writeFileSync(join(installedSkill, "LOCAL_EDIT"), "keep me");
 
-  const blocked = spawnSync(process.execPath, [cli, "--skills-dir", skillsDir], {
+  const blocked = spawnSync(process.execPath, [cli, "--skills-dir", skillsDir, "--skip-deps"], {
     encoding: "utf8"
   });
   assert.notEqual(blocked.status, 0);
   assert.match(blocked.stderr, /already exists/);
   assert.equal(readFileSync(join(installedSkill, "LOCAL_EDIT"), "utf8"), "keep me");
 
-  execFileSync(process.execPath, [cli, "--skills-dir", skillsDir, "--force"]);
+  execFileSync(process.execPath, [cli, "--skills-dir", skillsDir, "--force", "--skip-deps"]);
   assert.equal(existsSync(join(installedSkill, "LOCAL_EDIT")), false);
   assert.ok(existsSync(join(installedSkill, "SKILL.md")));
 });
@@ -64,5 +89,39 @@ test("personal-tutor installer supports dry runs", () => {
   });
 
   assert.match(output, /Would install personal-tutor skill/);
+  assert.match(output, /install Tutor Kit dependencies: yes/);
   assert.equal(existsSync(join(skillsDir, "personal-tutor")), false);
 });
+
+function writeFakeNpm(path: string): void {
+  writeFileSync(path, `#!/usr/bin/env node
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
+const args = process.argv.slice(2);
+writeFileSync(process.env.PERSONAL_TUTOR_FAKE_NPM_ARGS, args.join("\\n"));
+const prefix = args[args.indexOf("--prefix") + 1];
+if (!prefix) process.exit(2);
+
+function write(path, contents) {
+  mkdirSync(path.split("/").slice(0, -1).join("/"), { recursive: true });
+  writeFileSync(path, contents);
+}
+
+const nodeModules = join(prefix, "node_modules");
+write(join(nodeModules, "tsx", "package.json"), JSON.stringify({
+  type: "module",
+  exports: { "./esm/api": "./esm/api.js" }
+}, null, 2));
+write(join(nodeModules, "tsx", "esm", "api.js"), "export function register() { return { unregister: async () => {} }; }\\n");
+write(join(nodeModules, "typescript", "package.json"), JSON.stringify({ main: "index.js" }, null, 2));
+write(join(nodeModules, "typescript", "index.js"), "module.exports = {};\\n");
+write(join(nodeModules, "katex", "package.json"), JSON.stringify({ main: "dist/katex.min.js" }, null, 2));
+write(join(nodeModules, "katex", "dist", "katex.min.css"), "/* fake katex */\\n");
+write(join(nodeModules, "katex", "dist", "katex.min.js"), "window.katex = {};\\n");
+write(join(nodeModules, "katex", "dist", "fonts", ".keep"), "");
+write(join(nodeModules, "monaco-editor", "package.json"), JSON.stringify({ name: "monaco-editor" }, null, 2));
+write(join(nodeModules, "monaco-editor", "min", "vs", ".keep"), "");
+`);
+  chmodSync(path, 0o755);
+}

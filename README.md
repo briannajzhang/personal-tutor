@@ -31,6 +31,14 @@ npx personal-tutor@latest --skills-dir ~/.codex/skills
 Use `--force` to replace an existing installed copy. Without `--force`, the
 installer refuses to overwrite local changes.
 
+The installer also installs and verifies the bundled Tutor Kit runtime
+dependencies so the skill works without a separate setup step. Use `--skip-deps`
+only when you intentionally want to copy the skill without preparing Tutor Kit:
+
+```bash
+npx personal-tutor@latest --skip-deps
+```
+
 From a local checkout, test the same installer with:
 
 ```bash

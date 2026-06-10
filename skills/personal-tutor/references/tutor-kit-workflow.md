@@ -6,13 +6,19 @@ Tutor Kit is the TypeScript SDK, CLI, and local UI used by this skill.
 
 Prefer `tutor <command>` when the binary is already available in the learner workspace.
 
-If `tutor` is not on PATH, use the bundled package from this skill:
+If `tutor` is not on PATH, use the bundled CLI from this skill:
 
 ```bash
-npm exec --package file:<skill-dir>/assets/tutor-kit -- tutor <command>
+node <skill-dir>/assets/tutor-kit/dist/cli/index.js <command>
 ```
 
 Replace `<skill-dir>` with the absolute path to the `personal-tutor` skill folder.
+
+The `npx personal-tutor@latest` installer installs the bundled Tutor Kit runtime dependencies automatically. If the direct `node` command reports missing packages, repair the install with:
+
+```bash
+npm install --prefix <skill-dir>/assets/tutor-kit --omit=dev --ignore-scripts --no-audit --fund=false
+```
 
 During local Tutor Kit development in this source repo, `npm run tutor -- <command>` is also valid.
 
