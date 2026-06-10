@@ -2,4 +2,4 @@ export interface TypecheckResult {
     ok: boolean;
     messages: string[];
 }
-export declare function typecheckWorkspace(cwd: string): TypecheckResult;
+export declare function typecheckWorkspace(cwd: string, rootFiles?: string[]): TypecheckResult;

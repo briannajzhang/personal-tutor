@@ -4,6 +4,16 @@ Use this when authoring explanation-heavy Tutor Kit prose blocks.
 
 This file governs explanation quality: how to teach an idea clearly in prose. It does not govern full curriculum sequencing, chapter anatomy, or practice volume. For those requirements, follow the canonical learning contract in `lesson-authoring.md`.
 
+## Contents
+
+- Reference model and core principle
+- Default teaching pattern
+- Define-before-use and mechanism guidance
+- Wrong-model contrast and local coherence
+- Code, notation, quiz, and check style
+- Template-prose avoidance
+- Voice, number style, examples, and final check
+
 ## Reference Model
 
 Use John Ousterhout's *A Philosophy of Software Design* as a loose style model for clear technical explanation: plain definitions, concrete mechanisms, purposeful headings, and examples that make the idea visible.

@@ -1,4 +1,3 @@
-import { katexCss, katexJs } from "./katex-assets.js";
 export function html(title) {
     return `<!doctype html>
 <html lang="en">
@@ -7,13 +6,13 @@ export function html(title) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(title)}</title>
     <style>${css()}</style>
-    <style>${katexCss()}</style>
+    <link rel="stylesheet" href="/__tutor-assets/katex/katex.min.css" />
   </head>
   <body>
     <div id="app">
       <main id="main"></main>
     </div>
-    <script>${katexJs()}</script>
+    <script src="/__tutor-assets/katex/katex.min.js"></script>
     <script src="/__tutor-assets/monaco/vs/loader.js"></script>
     <script>${clientJs()}</script>
   </body>
@@ -276,6 +275,111 @@ h1 {
   text-transform: uppercase;
   margin: 0 0 7px;
 }
+.quiz {
+  margin: 10px 0 22px;
+  border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
+  background: color-mix(in srgb, var(--panel) 34%, transparent);
+}
+.quiz-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+}
+.quiz-title {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 560;
+  letter-spacing: 0;
+}
+.quiz-meta {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.quiz-form {
+  margin: 0;
+  padding: 0;
+}
+.quiz-question {
+  margin: 0;
+  padding: 16px 18px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+}
+.quiz-question-title {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 15px;
+  font-weight: 560;
+  line-height: 1.5;
+}
+.quiz-choices {
+  display: grid;
+  gap: 8px;
+}
+.quiz-choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 58%, transparent);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.quiz-choice input {
+  margin-top: 3px;
+}
+.quiz-choice.correct {
+  border-color: color-mix(in srgb, #2f7d46 68%, var(--line));
+  background: color-mix(in srgb, #2f7d46 12%, var(--paper));
+}
+.quiz-choice.incorrect {
+  border-color: color-mix(in srgb, #a33b2f 62%, var(--line));
+  background: color-mix(in srgb, #a33b2f 10%, var(--paper));
+}
+.quiz-explanation {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--paper) 78%, transparent);
+  border-left: 3px solid var(--accent);
+}
+.quiz-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.quiz-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.quiz-check,
+.quiz-reset {
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 7px 11px;
+}
+.quiz-check {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.quiz-score {
+  color: var(--muted);
+  font-size: 13px;
+}
 .coding-problem {
   margin: 10px 0 22px;
   border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
@@ -480,6 +584,36 @@ h1 {
   font-family: "Times New Roman", serif;
   font-style: italic;
 }
+body.route-loading {
+  cursor: progress;
+}
+.loading-shell {
+  min-height: 240px;
+}
+.loading-stack {
+  display: grid;
+  gap: 12px;
+}
+.loading-bar {
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--panel) 0%, color-mix(in srgb, var(--paper) 82%, transparent) 45%, var(--panel) 100%);
+  background-size: 200% 100%;
+  animation: loading-bar 1.15s linear infinite;
+}
+.loading-bar.wide {
+  width: min(100%, 560px);
+}
+.loading-bar.mid {
+  width: min(100%, 420px);
+}
+.loading-bar.short {
+  width: min(100%, 260px);
+}
+@keyframes loading-bar {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
 @media (max-width: 860px) {
   main {
     width: min(100vw - 40px, 1180px);
@@ -528,12 +662,14 @@ function clientJs() {
 let textbooks = [];
 let activeChapter = null;
 const codingStates = new Map();
+const quizStates = new Map();
 let monacoReady = null;
+let routeToken = 0;
 
 async function load() {
   textbooks = await fetchJson("/api/textbooks");
-  window.addEventListener("popstate", () => renderRoute());
-  renderRoute();
+  window.addEventListener("popstate", () => { void renderRoute(); });
+  await renderRoute();
 }
 
 async function fetchJson(url, options) {
@@ -569,7 +705,9 @@ function renderHome() {
 }
 
 async function renderTextbook(textbookId) {
+  const token = beginRouteLoad("Loading textbook...");
   const textbook = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}\`);
+  if (token !== routeToken) return;
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -601,10 +739,13 @@ async function renderTextbook(textbookId) {
     button.addEventListener("click", () => navigateChapter(textbook.id, button.dataset.chapter));
   });
   bindCrumbs();
+  finishRouteLoad(token);
 }
 
 async function renderChapter(textbookId, chapterId) {
+  const token = beginRouteLoad("Loading chapter...");
   const chapter = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
+  if (token !== routeToken) return;
   activeChapter = chapter;
   document.querySelector("#main").innerHTML = \`
     <section>
@@ -636,7 +777,9 @@ async function renderChapter(textbookId, chapterId) {
     </section>
   \`;
   bindCrumbs();
+  bindQuizzes(chapter);
   bindCodingProblems(chapter);
+  finishRouteLoad(token);
 }
 
 function renderSection(section) {
@@ -656,17 +799,24 @@ function renderSection(section) {
   \`;
 }
 
-function renderRoute() {
+async function renderRoute() {
   const route = parseRoute(window.location.pathname);
-  if (route.kind === "chapter") {
-    renderChapter(route.textbookId, route.chapterId);
-    return;
+  try {
+    if (route.kind === "chapter") {
+      await renderChapter(route.textbookId, route.chapterId);
+      return;
+    }
+    if (route.kind === "textbook") {
+      await renderTextbook(route.textbookId);
+      return;
+    }
+    routeToken += 1;
+    finishRouteLoad(routeToken);
+    renderHome();
+  } catch (error) {
+    finishRouteLoad();
+    renderRouteError(error);
   }
-  if (route.kind === "textbook") {
-    renderTextbook(route.textbookId);
-    return;
-  }
-  renderHome();
 }
 
 function parseRoute(pathname) {
@@ -682,17 +832,17 @@ function parseRoute(pathname) {
 
 function navigateHome() {
   history.pushState({}, "", "/");
-  renderHome();
+  void renderRoute();
 }
 
 function navigateTextbook(textbookId) {
   history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}\`);
-  renderTextbook(textbookId);
+  void renderRoute();
 }
 
 function navigateChapter(textbookId, chapterId) {
   history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
-  renderChapter(textbookId, chapterId);
+  void renderRoute();
 }
 
 function renderBlock(block) {
@@ -721,7 +871,210 @@ function renderBlock(block) {
   if (block.kind === "codingProblem") {
     return renderCodingProblem(block);
   }
+  if (block.kind === "quiz") {
+    return renderQuiz(block);
+  }
   return \`<article class="block"><div class="markdown"><p>Unsupported block: \${escapeHtml(block.kind)}</p></div></article>\`;
+}
+
+function renderQuiz(block) {
+  return \`
+    <article class="block quiz" data-quiz="\${escapeAttr(block.id)}">
+      <div class="quiz-head">
+        <h4 class="quiz-title">\${escapeHtml(block.props.title)}</h4>
+        <div class="quiz-meta">\${escapeHtml(formatQuizMode(block.props.mode))} / \${block.props.questions.length} questions</div>
+      </div>
+      <form class="quiz-form">
+        \${block.props.questions.map((question, index) => \`
+          <fieldset class="quiz-question" data-quiz-question="\${escapeAttr(question.id)}" data-quiz-answer="\${escapeAttr(question.answer)}">
+            <div class="quiz-question-title">\${index + 1}. \${renderInlineMarkdown(question.prompt)}</div>
+            <div class="quiz-choices">
+              \${question.choices.map((choice) => \`
+                <label class="quiz-choice" data-quiz-choice="\${escapeAttr(choice.id)}">
+                  <input type="radio" name="\${escapeAttr(block.id)}-\${escapeAttr(question.id)}" value="\${escapeAttr(choice.id)}" />
+                  <span>\${renderInlineMarkdown(choice.body)}</span>
+                </label>
+              \`).join("")}
+            </div>
+            <div class="quiz-explanation markdown" data-quiz-explanation hidden>\${renderMarkdown(question.explanation)}</div>
+          </fieldset>
+        \`).join("")}
+        <div class="quiz-footer">
+          <div class="quiz-actions">
+            <button class="quiz-check" type="button" data-quiz-check>Check answers</button>
+            <button class="quiz-reset" type="button" data-quiz-reset>Try again</button>
+          </div>
+          <div class="quiz-score" data-quiz-score hidden></div>
+        </div>
+      </form>
+    </article>
+  \`;
+}
+
+function formatQuizMode(mode) {
+  return String(mode ?? "check").replace("-", " ");
+}
+
+function bindQuizzes(chapter) {
+  quizStates.clear();
+  collectChapterBlocks(chapter)
+    .filter((block) => block.kind === "quiz")
+    .forEach((block) => {
+      const element = document.querySelector(\`[data-quiz="\${cssEscape(block.id)}"]\`);
+      if (element) void hydrateQuiz(element, block, chapter);
+    });
+}
+
+async function hydrateQuiz(element, block, chapter) {
+  const state = { element, block, chapter, selectedAnswers: {}, submitted: false };
+  quizStates.set(block.id, state);
+  try {
+    const persisted = await fetchJson(\`/api/quiz/state?\${quizQuery(chapter, block)}\`);
+    state.selectedAnswers = persisted.selectedAnswers ?? {};
+    state.submitted = persisted.submitted === true;
+    restoreQuizState(state, persisted);
+  } catch {
+    // Quiz persistence is a convenience; the quiz remains usable without it.
+  }
+  element.querySelectorAll("input[type=radio]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const questionId = input.closest("[data-quiz-question]")?.dataset.quizQuestion;
+      if (!questionId) return;
+      state.selectedAnswers[questionId] = input.value;
+      void saveQuizSelections(state);
+    });
+  });
+  const checkButton = element.querySelector("[data-quiz-check]");
+  const resetButton = element.querySelector("[data-quiz-reset]");
+  if (checkButton) {
+    checkButton.addEventListener("click", () => checkQuizAnswers(state));
+  }
+  if (resetButton) {
+    resetButton.addEventListener("click", () => resetQuiz(state));
+  }
+}
+
+async function checkQuizAnswers(state) {
+  const { element, block, chapter } = state;
+  let correct = 0;
+  const responses = [];
+  for (const question of block.props.questions) {
+    const questionElement = element.querySelector(\`[data-quiz-question="\${cssEscape(question.id)}"]\`);
+    if (!questionElement) continue;
+    const selected = questionElement.querySelector("input:checked")?.value;
+    if (selected === question.answer) correct += 1;
+    if (selected) {
+      state.selectedAnswers[question.id] = selected;
+      responses.push({ questionId: question.id, selectedAnswer: selected, correct: selected === question.answer });
+    }
+
+    questionElement.querySelectorAll("[data-quiz-choice]").forEach((choiceElement) => {
+      const choiceId = choiceElement.dataset.quizChoice;
+      choiceElement.classList.toggle("correct", choiceId === question.answer);
+      choiceElement.classList.toggle("incorrect", Boolean(selected) && choiceId === selected && selected !== question.answer);
+    });
+
+    questionElement.querySelectorAll("input").forEach((input) => {
+      input.disabled = true;
+    });
+    const explanation = questionElement.querySelector("[data-quiz-explanation]");
+    if (explanation) explanation.hidden = false;
+  }
+
+  const score = element.querySelector("[data-quiz-score]");
+  if (score) {
+    score.textContent = \`\${correct} / \${block.props.questions.length} correct\`;
+    score.hidden = false;
+  }
+  state.submitted = true;
+  await fetchJson("/api/quiz/attempt", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      textbookId: chapter.textbookId,
+      chapterId: chapter.id,
+      quizId: block.id,
+      selectedAnswers: state.selectedAnswers,
+      responses,
+      score: correct,
+      total: block.props.questions.length
+    })
+  });
+}
+
+function resetQuiz(state) {
+  const { element } = state;
+  state.selectedAnswers = {};
+  state.submitted = false;
+  element.querySelectorAll("input").forEach((input) => {
+    input.checked = false;
+    input.disabled = false;
+  });
+  element.querySelectorAll("[data-quiz-choice]").forEach((choiceElement) => {
+    choiceElement.classList.remove("correct", "incorrect");
+  });
+  element.querySelectorAll("[data-quiz-explanation]").forEach((explanation) => {
+    explanation.hidden = true;
+  });
+  const score = element.querySelector("[data-quiz-score]");
+  if (score) {
+    score.textContent = "";
+    score.hidden = true;
+  }
+  void saveQuizSelections(state);
+}
+
+function restoreQuizState(state, persisted) {
+  for (const [questionId, answer] of Object.entries(state.selectedAnswers)) {
+    const input = state.element.querySelector(\`[data-quiz-question="\${cssEscape(questionId)}"] input[value="\${cssEscape(answer)}"]\`);
+    if (input) input.checked = true;
+  }
+  if (persisted.submitted) {
+    void checkQuizAnswersLocally(state, persisted.score, persisted.total);
+  }
+}
+
+function checkQuizAnswersLocally(state, persistedScore, persistedTotal) {
+  const { element, block } = state;
+  for (const question of block.props.questions) {
+    const questionElement = element.querySelector(\`[data-quiz-question="\${cssEscape(question.id)}"]\`);
+    const selected = state.selectedAnswers[question.id];
+    if (!questionElement) continue;
+    questionElement.querySelectorAll("[data-quiz-choice]").forEach((choiceElement) => {
+      const choiceId = choiceElement.dataset.quizChoice;
+      choiceElement.classList.toggle("correct", choiceId === question.answer);
+      choiceElement.classList.toggle("incorrect", Boolean(selected) && choiceId === selected && selected !== question.answer);
+    });
+    questionElement.querySelectorAll("input").forEach((input) => { input.disabled = true; });
+    const explanation = questionElement.querySelector("[data-quiz-explanation]");
+    if (explanation) explanation.hidden = false;
+  }
+  const score = element.querySelector("[data-quiz-score]");
+  if (score) {
+    score.textContent = \`\${persistedScore ?? 0} / \${persistedTotal ?? block.props.questions.length} correct\`;
+    score.hidden = false;
+  }
+}
+
+async function saveQuizSelections(state) {
+  await fetchJson("/api/quiz/state", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      textbookId: state.chapter.textbookId,
+      chapterId: state.chapter.id,
+      quizId: state.block.id,
+      selectedAnswers: state.selectedAnswers
+    })
+  });
+}
+
+function quizQuery(chapter, block) {
+  return new URLSearchParams({
+    textbookId: chapter.textbookId,
+    chapterId: chapter.id,
+    quizId: block.id
+  }).toString();
 }
 
 function renderCodingProblem(block) {
@@ -1154,6 +1507,42 @@ function bindCrumbs() {
       }
     });
   });
+}
+
+function beginRouteLoad(message) {
+  const token = ++routeToken;
+  document.body.classList.add("route-loading");
+  document.querySelector("#main").innerHTML = \`
+    <section class="loading-shell" aria-busy="true">
+      <div class="page-head">
+        <h1>\${escapeHtml(message)}</h1>
+        <div class="meta">Fetching content</div>
+      </div>
+      <div class="loading-stack" aria-hidden="true">
+        <div class="loading-bar wide"></div>
+        <div class="loading-bar mid"></div>
+        <div class="loading-bar wide"></div>
+        <div class="loading-bar short"></div>
+      </div>
+    </section>
+  \`;
+  return token;
+}
+
+function finishRouteLoad(token) {
+  if (token && token !== routeToken) return;
+  document.body.classList.remove("route-loading");
+}
+
+function renderRouteError(error) {
+  document.querySelector("#main").innerHTML = \`
+    <section>
+      <div class="page-head">
+        <h1>Unable to load</h1>
+      </div>
+      <pre>\${escapeHtml(error?.stack || error?.message || String(error))}</pre>
+    </section>
+  \`;
 }
 
 function renderMarkdown(value) {

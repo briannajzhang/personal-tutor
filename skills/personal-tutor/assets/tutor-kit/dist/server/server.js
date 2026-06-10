@@ -1,15 +1,17 @@
 import { createServer } from "node:http";
-import { mkdirSync, appendFileSync, createReadStream } from "node:fs";
+import { mkdirSync, appendFileSync, createReadStream, watch } from "node:fs";
 import { join } from "node:path";
 import { html } from "../ui/app.js";
-import { katexFontPath } from "../ui/katex-assets.js";
+import { katexCssPath, katexFontPath, katexJsPath } from "../ui/katex-assets.js";
 import { monacoAssetPath } from "../ui/monaco-assets.js";
-import { loadTextbooks, resolveWorkspace } from "../compile/discover.js";
+import { invalidateWorkspaceCaches, loadTextbooks, resolveWorkspace } from "../compile/discover.js";
 import { summarizeChapter, summarizeTextbook } from "../core/validation.js";
 import { loadCodingDraft, loadCodingFeedback, runCodingProblem, saveCodingDraft } from "./coding.js";
+import { loadQuizState, saveQuizState, submitQuizAttempt } from "./quizzes.js";
 export async function startDevServer(options) {
     const workspace = await resolveWorkspace(options.cwd);
     mkdirSync(workspace.dataDir, { recursive: true });
+    const watchers = watchWorkspace(workspace);
     const server = createServer(async (request, response) => {
         try {
             await handleRequest(workspace.cwd, request, response);
@@ -26,7 +28,10 @@ export async function startDevServer(options) {
     return {
         url: `http://localhost:${port}`,
         close: () => new Promise((resolve, reject) => {
+            closeWatchers(watchers);
             server.close((error) => error ? reject(error) : resolve());
+            server.closeIdleConnections?.();
+            server.closeAllConnections?.();
         })
     };
 }
@@ -37,6 +42,14 @@ async function handleRequest(cwd, request, response) {
         sendFile(response, katexFontPath(decodeURIComponent(katexFontMatch[1] ?? "")));
         return;
     }
+    if (request.method === "GET" && url.pathname === "/__tutor-assets/katex/katex.min.css") {
+        sendFile(response, katexCssPath());
+        return;
+    }
+    if (request.method === "GET" && url.pathname === "/__tutor-assets/katex/katex.min.js") {
+        sendFile(response, katexJsPath());
+        return;
+    }
     const monacoMatch = url.pathname.match(/^\/__tutor-assets\/monaco\/vs\/(.+)$/);
     if (request.method === "GET" && monacoMatch) {
         sendFile(response, monacoAssetPath(decodeURIComponent(monacoMatch[1] ?? "")));
@@ -45,6 +58,12 @@ async function handleRequest(cwd, request, response) {
     if (request.method === "GET" && url.pathname === "/") {
         const workspace = await resolveWorkspace(cwd);
         send(response, 200, "text/html; charset=utf-8", html(workspace.title));
+        return;
+    }
+    if (request.method === "GET" && url.pathname === "/favicon.ico") {
+        response.statusCode = 204;
+        response.setHeader("connection", "close");
+        response.end();
         return;
     }
     if (request.method === "GET" && url.pathname === "/api/textbooks") {
@@ -133,6 +152,18 @@ async function handleRequest(cwd, request, response) {
         sendJson(response, 200, await saveCodingDraft(cwd, await readJson(request)));
         return;
     }
+    if (request.method === "GET" && url.pathname === "/api/quiz/state") {
+        sendJson(response, 200, await loadQuizState(cwd, url.searchParams));
+        return;
+    }
+    if (request.method === "PUT" && url.pathname === "/api/quiz/state") {
+        sendJson(response, 200, await saveQuizState(cwd, await readJson(request)));
+        return;
+    }
+    if (request.method === "POST" && url.pathname === "/api/quiz/attempt") {
+        sendJson(response, 201, await submitQuizAttempt(cwd, await readJson(request)));
+        return;
+    }
     if (request.method === "GET" && !url.pathname.startsWith("/api/")) {
         const workspace = await resolveWorkspace(cwd);
         send(response, 200, "text/html; charset=utf-8", html(workspace.title));
@@ -142,6 +173,7 @@ async function handleRequest(cwd, request, response) {
 }
 function send(response, status, contentType, body) {
     response.statusCode = status;
+    response.setHeader("connection", "close");
     response.setHeader("content-type", contentType);
     response.end(body);
 }
@@ -150,6 +182,7 @@ function sendJson(response, status, body) {
 }
 function sendFile(response, path) {
     response.statusCode = 200;
+    response.setHeader("connection", "close");
     response.setHeader("content-type", contentType(path));
     createReadStream(path)
         .on("error", () => {
@@ -184,5 +217,39 @@ async function readJson(request) {
     if (chunks.length === 0)
         return {};
     return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+}
+function watchWorkspace(workspace) {
+    const watchers = [];
+    const invalidate = () => invalidateWorkspaceCaches(workspace.cwd);
+    watchers.push(...watchTarget(workspace.textbooksDir, { recursive: true }, invalidate));
+    if (workspace.configPath) {
+        watchers.push(...watchTarget(workspace.configPath, undefined, invalidate));
+    }
+    return watchers;
+}
+function watchTarget(path, options, invalidate) {
+    try {
+        return [watch(path, options, invalidate)];
+    }
+    catch (error) {
+        if (!options?.recursive)
+            return [];
+        try {
+            return [watch(path, invalidate)];
+        }
+        catch {
+            return [];
+        }
+    }
+}
+function closeWatchers(watchers) {
+    for (const watcher of watchers) {
+        try {
+            watcher.close();
+        }
+        catch {
+            // Ignore watcher shutdown errors during server close.
+        }
+    }
 }
 //# sourceMappingURL=server.js.map

@@ -1,4 +1,4 @@
-import { callout, codeBlock, codingProblem, heading, list, mathBlock, p } from "../../core/builders.js";
+import { callout, codeBlock, codingProblem, heading, list, mathBlock, p, quiz } from "../../core/builders.js";
 export const coreBlockDefinitions = {
     p: {
         kind: "p",
@@ -34,6 +34,11 @@ export const coreBlockDefinitions = {
         kind: "codingProblem",
         title: "Coding Problem",
         create: codingProblem
+    },
+    quiz: {
+        kind: "quiz",
+        title: "Quiz",
+        create: quiz
     }
 };
 //# sourceMappingURL=index.js.map

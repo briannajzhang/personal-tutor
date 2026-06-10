@@ -1,4 +1,4 @@
-import type { BlurbBlock, CalloutBlock, CalloutProps, CodingProblemBlock, CodingProblemFile, CodeBlock, HeadingBlock, HeadingProps, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, Section, Subsection, Textbook, Chapter, TutorBlock } from "./types.js";
+import type { BlurbBlock, CalloutBlock, CalloutProps, CodingProblemBlock, CodingProblemFile, CodeBlock, HeadingBlock, HeadingProps, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, Section, Subsection, Textbook, Chapter, TutorBlock } from "./types.js";
 interface SubsectionInput {
     id: string;
     title: string;
@@ -79,8 +79,29 @@ interface CodingProblemInput extends BlockInput {
     actions?: Array<CodingProblemCommandInput & {
         id: string;
     }>;
+    verification?: {
+        actionId: string;
+        referenceFiles: Record<string, string>;
+    };
     review?: string;
     reviewPrompt?: string;
+}
+interface QuizChoiceInput {
+    id: string;
+    body: string;
+}
+interface QuizQuestionInput extends BlockInput {
+    prompt: string;
+    choices: QuizChoiceInput[];
+    answer: string;
+    explanation: string;
+    tags?: string[];
+    difficulty?: QuizDifficulty;
+}
+interface QuizInput extends BlockInput {
+    title: string;
+    mode?: QuizMode;
+    questions: QuizQuestionInput[];
 }
 interface LegacyExplanationInput extends ParagraphInput {
     title?: string;
@@ -96,6 +117,7 @@ export declare function codeBlock(input: CodeBlockInput): CodeBlock;
 export declare function mathBlock(input: MathBlockInput): MathBlock;
 export declare function callout(input: CalloutInput): CalloutBlock;
 export declare function codingProblem(input: CodingProblemInput): CodingProblemBlock;
+export declare function quiz(input: QuizInput): QuizBlock;
 export declare function projectFiles(baseUrl: string, dir: string): {
     file(path: string, options?: CodingProblemFileOptions): CodingProblemFile;
     inline(path: string, content: string, options?: CodingProblemFileOptions): CodingProblemFile;

@@ -35,6 +35,7 @@ test("init and add commands create expected workspace files", () => {
   addTextbook(dir, "mlx", "MLX");
   addChapter(dir, "mlx", "arrays", "Arrays");
   addBlock(dir, "p");
+  addBlock(dir, "quiz");
 
   assert.match(readFileSync(join(dir, "package.json"), "utf8"), /file:\/tmp\/tutor-kit/);
   assert.match(readFileSync(join(dir, "textbooks", "mlx", "textbook.ts"), "utf8"), /id: "mlx"/);

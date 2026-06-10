@@ -2,6 +2,16 @@
 
 Use this when the user has not fully specified what kind of learner they are or what kind of plan they need.
 
+## Contents
+
+- Purpose
+- Core dimensions
+- Beginner support
+- Default quality bias
+- Depth, pace, and practice distinctions
+- Reasonable defaults and duration defaults
+- Check, practice, and output implications
+
 ## Purpose
 
 The user should not need to know how to design a good curriculum request. Infer a reasonable learner profile when they are vague, then generate material that fits that profile.

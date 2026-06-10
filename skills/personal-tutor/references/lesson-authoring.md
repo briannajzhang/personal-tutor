@@ -3,6 +3,16 @@
 Textbooks are TypeScript modules named `textbooks/<textbook-id>/textbook.ts`.
 Chapters are usually separate modules in `textbooks/<textbook-id>/chapters/*.chapter.ts`.
 
+## Contents
+
+- Textbook and chapter examples
+- Authoring rules
+- Canonical learning contract
+- Chapter structure and required anatomy
+- Practice taxonomy and quiz usage
+- Quantitative guidance and recommended shapes
+- Anti-patterns and final quality check
+
 ## Textbook Example
 
 ```ts

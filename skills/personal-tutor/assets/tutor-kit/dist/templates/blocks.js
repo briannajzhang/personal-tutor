@@ -15,53 +15,78 @@ export const coreBlocks = {
   codeBlock: { kind: "codeBlock", title: "Code Block" },
   mathBlock: { kind: "mathBlock", title: "Math Block" },
   callout: { kind: "callout", title: "Callout" },
-  codingProblem: { kind: "codingProblem", title: "Coding Problem" }
+  codingProblem: { kind: "codingProblem", title: "Coding Problem" },
+  quiz: { kind: "quiz", title: "Quiz" }
 };
 `;
 }
 export function chapterTemplate(id, title) {
-    return `import { callout, chapter, codeBlock, heading, list, p, section, subsection } from "tutor-kit";
+    return `import { callout, chapter, codeBlock, list, p, section, subsection } from "tutor-kit";
 
 export default chapter({
   id: "${id}",
   title: "${title}",
   sections: [
     section({
-      id: "${id}-section",
-      title: "1.1 Start Here",
+      id: "${id}-core-idea",
+      title: "Core Idea",
       blocks: [
         p({
+          id: "${id}-learner-goal",
+          body: "Goal: state what the learner should be able to do after this chapter."
+        }),
+        p({
           id: "${id}-intro",
-          body: "Write a clear teaching paragraph here. Start from the learner's likely mental model, introduce the new idea in ordinary language, then connect it to one concrete example."
+          body: "Start from the learner's likely task or confusion. Define the key idea in ordinary language, then explain the mechanism that makes it work."
         }),
-        heading({
-          id: "${id}-local-heading",
-          text: "What to notice"
-        }),
-        list({
-          id: "${id}-checks",
-          items: [
-            "What problem does this concept solve?",
-            "What mistake should the learner avoid?"
-          ]
+        p({
+          id: "${id}-example-intro",
+          body: "Before the example, tell the learner what to inspect."
         }),
         codeBlock({
-          id: "${id}-code",
-          language: "ts",
-          code: "// Add a small example when code makes the idea sharper."
+          id: "${id}-worked-example",
+          language: "text",
+          code: "Input or setup\\nOperation\\nExpected output"
+        }),
+        p({
+          id: "${id}-example-explained",
+          body: "After the example, explain what happened and why it matters."
         }),
         callout({
-          id: "${id}-key-idea",
-          tone: "key-idea",
-          title: "Key idea",
-          body: "End with a practical check: what should the learner now be able to notice, predict, or do?"
+          id: "${id}-common-trap",
+          tone: "caution",
+          title: "Common trap",
+          body: "Name a realistic mistake, tempting wrong model, or boundary case."
         })
       ],
       subsections: [
         subsection({
-          id: "${id}-subsection",
-          title: "1.1.1 Details",
-          blocks: []
+          id: "${id}-guided-practice",
+          title: "Guided Practice",
+          blocks: [
+            list({
+              id: "${id}-guided-tasks",
+              items: [
+                "Predict what happens in a small case.",
+                "Explain which part of the example controls the result.",
+                "Fix or improve a realistic mistake."
+              ]
+            })
+          ]
+        })
+      ]
+    }),
+    section({
+      id: "${id}-independent-practice",
+      title: "Independent Practice",
+      blocks: [
+        list({
+          id: "${id}-mastery-check",
+          items: [
+            "Apply the idea to a new case.",
+            "Explain the mechanism without looking back.",
+            "Name one symptom that would help you debug a mistake."
+          ]
         })
       ]
     })

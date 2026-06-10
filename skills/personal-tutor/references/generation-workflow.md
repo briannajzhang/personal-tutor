@@ -2,6 +2,16 @@
 
 Use this workflow when generating new curriculum from a learner request. Do not jump straight from topic request to full textbook prose in one pass.
 
+## Contents
+
+- Default phases
+- Request interpretation and learner profile
+- Curriculum map and persisted planning artifacts
+- Sequence, duration, and pacing checks
+- Chapter specs, checks, and practice planning
+- Chapter generation, critique, revision, and compile evidence
+- Avoid list
+
 ## Default Phases
 
 1. Interpret the learner request.

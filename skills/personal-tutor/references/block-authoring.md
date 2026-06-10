@@ -2,6 +2,15 @@
 
 Use semantic blocks inside section and subsection `blocks` arrays. They are intentionally HTML-like, but typed and opinionated so the UI stays consistent.
 
+## Contents
+
+- Core block examples
+- Callout tones
+- Authoring rules
+- Block coherence and teaching sequence
+- Quiz examples
+- Extension pattern
+
 ## Core Blocks
 
 ```ts

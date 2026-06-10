@@ -13,6 +13,12 @@ export function katexJs() {
     return readFileSync(jsPath, "utf8")
         .replaceAll("</script", "<\\/script");
 }
+export function katexCssPath() {
+    return cssPath;
+}
+export function katexJsPath() {
+    return jsPath;
+}
 export function katexFontPath(fileName) {
     if (!/^[A-Za-z0-9_.-]+$/.test(fileName)) {
         throw new Error(`Invalid KaTeX font path: ${fileName}`);

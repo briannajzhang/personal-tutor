@@ -1,0 +1,4 @@
+interface:
+  display_name: "Personal Tutor"
+  short_description: "Adaptive tutoring and Tutor Kit authoring"
+  default_prompt: "Use $personal-tutor to create a practice-heavy textbook for learning SQL."

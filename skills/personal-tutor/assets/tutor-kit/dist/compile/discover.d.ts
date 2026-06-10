@@ -15,4 +15,8 @@ export interface TextbookLoadResult {
 export declare function resolveWorkspace(cwd: string): Promise<WorkspacePaths>;
 export declare function findTsconfig(cwd: string): string | null;
 export declare function discoverTextbookFiles(textbooksDir: string): string[];
-export declare function loadTextbooks(cwd: string): Promise<TextbookLoadResult>;
+export declare function loadTextbooks(cwd: string, options?: {
+    textbookId?: string;
+}): Promise<TextbookLoadResult>;
+export declare function invalidateWorkspaceCaches(cwd: string): void;
+export declare function clearWorkspaceCaches(): void;

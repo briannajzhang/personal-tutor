@@ -2,6 +2,16 @@
 
 A coding problem should teach or assess a specific skill. Do not use `codingProblem(...)` only because the subject involves code.
 
+## Contents
+
+- Reference solution verification
+- Authoring pattern
+- Runtime harnesses
+- Problem design and prompt completeness
+- Rules
+- Review feedback
+- Practice quality
+
 ## Reference Solution Verification
 
 Every generated coding problem that is intended to be automatically verified must include a hidden reference solution, such as `solution.py`, `reference.ts`, or another clearly named solution file.

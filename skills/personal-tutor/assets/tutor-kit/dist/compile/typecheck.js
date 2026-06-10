@@ -1,6 +1,6 @@
 import { relative } from "node:path";
 import ts from "typescript";
-export function typecheckWorkspace(cwd) {
+export function typecheckWorkspace(cwd, rootFiles) {
     const configPath = ts.findConfigFile(cwd, ts.sys.fileExists, "tsconfig.json");
     if (!configPath) {
         return {
@@ -22,7 +22,7 @@ export function typecheckWorkspace(cwd) {
             messages: parsed.errors.map((diagnostic) => formatDiagnostic(diagnostic, cwd))
         };
     }
-    const program = ts.createProgram(parsed.fileNames, parsed.options);
+    const program = ts.createProgram(rootFiles ?? parsed.fileNames, parsed.options);
     const diagnostics = ts.getPreEmitDiagnostics(program);
     return {
         ok: diagnostics.length === 0,

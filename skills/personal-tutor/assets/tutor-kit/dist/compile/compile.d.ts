@@ -8,4 +8,6 @@ export interface CompileResult {
     blockCount: number;
     widgetCount: number;
 }
-export declare function compileWorkspace(cwd: string): Promise<CompileResult>;
+export declare function compileWorkspace(cwd: string, options?: {
+    textbookId?: string;
+}): Promise<CompileResult>;

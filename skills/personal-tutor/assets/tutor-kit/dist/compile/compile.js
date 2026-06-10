@@ -1,10 +1,18 @@
-import { relative } from "node:path";
+import { join, relative, resolve } from "node:path";
+import { existsSync } from "node:fs";
 import { loadTextbooks, resolveWorkspace } from "./discover.js";
 import { typecheckWorkspace } from "./typecheck.js";
 import { summarizeTextbook } from "../core/validation.js";
-export async function compileWorkspace(cwd) {
-    const workspace = await resolveWorkspace(cwd);
-    const typecheck = typecheckWorkspace(workspace.cwd);
+export async function compileWorkspace(cwd, options = {}) {
+    const root = resolve(cwd);
+    const workspace = await resolveWorkspace(root);
+    const targetedEntry = options.textbookId
+        ? ["textbook.ts", "textbook.tsx"].map((file) => join(workspace.textbooksDir, options.textbookId, file)).find(existsSync)
+        : undefined;
+    if (options.textbookId && !targetedEntry) {
+        return emptyFailure(`Textbook not found: ${options.textbookId}`);
+    }
+    const typecheck = typecheckWorkspace(root, targetedEntry ? [targetedEntry] : undefined);
     if (!typecheck.ok) {
         return {
             ok: false,
@@ -17,10 +25,10 @@ export async function compileWorkspace(cwd) {
             widgetCount: 0
         };
     }
-    const loaded = await loadTextbooks(workspace.cwd);
+    const loaded = await loadTextbooks(root, options);
     if (loaded.issues.length > 0) {
         const messages = loaded.issues.map((issue) => {
-            const file = issue.file ? relative(workspace.cwd, issue.file) : "workspace";
+            const file = issue.file ? relative(root, issue.file) : "workspace";
             const path = issue.path ? ` ${issue.path}` : "";
             return `${file}${path} - ${issue.message}`;
         });
@@ -48,6 +56,7 @@ export async function compileWorkspace(cwd) {
         ok: true,
         output: [
             "Tutor compile passed",
+            `- scope: ${options.textbookId ? `textbook ${options.textbookId}` : "full workspace"}`,
             `- ${loaded.textbooks.length} textbooks`,
             `- ${loaded.chapters.length} chapters`,
             `- ${sectionCount} sections`,
@@ -60,6 +69,18 @@ export async function compileWorkspace(cwd) {
         subsectionCount,
         blockCount,
         widgetCount: blockCount
+    };
+}
+function emptyFailure(message) {
+    return {
+        ok: false,
+        output: formatFailure("Tutor validation failed", [message]),
+        textbookCount: 0,
+        chapterCount: 0,
+        sectionCount: 0,
+        subsectionCount: 0,
+        blockCount: 0,
+        widgetCount: 0
     };
 }
 function formatFailure(title, messages) {

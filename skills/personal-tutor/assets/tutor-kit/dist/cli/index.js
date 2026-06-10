@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
 import { compileWorkspace } from "../compile/compile.js";
+import { verifyCodingProblems } from "../compile/verify-coding.js";
 import { loadTextbooks } from "../compile/discover.js";
 import { startDevServer } from "../server/server.js";
 import { addBlock, addChapter, addTextbook, initWorkspace, printWriteResult } from "./workspace.js";
@@ -60,12 +61,18 @@ async function main() {
     if (command === "add" && (subcommand === "block" || subcommand === "widget")) {
         const kind = rest[0];
         if (!kind)
-            throw new Error("Usage: tutor add block <p|heading|list|codeBlock|mathBlock|callout|codingProblem>");
+            throw new Error("Usage: tutor add block <p|heading|list|codeBlock|mathBlock|callout|quiz|codingProblem>");
         console.log(printWriteResult(`Added block ${kind}`, addBlock(args.cwd, kind)));
         return;
     }
     if (command === "compile") {
-        const result = await compileWorkspace(args.cwd);
+        const result = await compileWorkspace(args.cwd, { textbookId: args.textbookId });
+        console.log(result.output);
+        process.exitCode = result.ok ? 0 : 1;
+        return;
+    }
+    if (command === "verify" && subcommand === "coding-problems") {
+        const result = await verifyCodingProblems(args.cwd, { textbookId: args.textbookId });
         console.log(result.output);
         process.exitCode = result.ok ? 0 : 1;
         return;
@@ -82,6 +89,7 @@ function parseArgs(argv) {
     let cwd = process.cwd();
     let port = 4177;
     let packageSpec = process.env.TUTOR_KIT_PACKAGE_SPEC;
+    let textbookId;
     const command = [];
     for (let i = 0; i < argv.length; i += 1) {
         const arg = argv[i];
@@ -108,9 +116,16 @@ function parseArgs(argv) {
             packageSpec = value;
             continue;
         }
+        if (arg === "--textbook") {
+            const value = argv[++i];
+            if (!value)
+                throw new Error("--textbook requires an id");
+            textbookId = value;
+            continue;
+        }
         command.push(arg);
     }
-    return { cwd: resolve(cwd), port, packageSpec, command };
+    return { cwd: resolve(cwd), port, packageSpec, textbookId, command };
 }
 function titleFromId(id) {
     return id
@@ -127,10 +142,11 @@ Usage:
   tutor [--cwd path] --package-spec file:/path/to/tutor-kit init
   tutor [--cwd path] add textbook <id> [title]
   tutor [--cwd path] add chapter <textbook-id> <id> [title]
-  tutor [--cwd path] add block <p|heading|list|codeBlock|mathBlock|callout|codingProblem>
+  tutor [--cwd path] add block <p|heading|list|codeBlock|mathBlock|callout|quiz|codingProblem>
   tutor [--cwd path] list textbooks
   tutor [--cwd path] inspect textbook <id>
-  tutor [--cwd path] compile
+  tutor [--cwd path] compile [--textbook textbook-id]
+  tutor [--cwd path] verify coding-problems [--textbook textbook-id]
   tutor [--cwd path] dev [--port 4177]
 `;
 }

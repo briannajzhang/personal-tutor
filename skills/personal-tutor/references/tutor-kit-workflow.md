@@ -2,6 +2,20 @@
 
 Tutor Kit is the TypeScript SDK, CLI, and local UI used by this skill.
 
+## Command Invocation
+
+Prefer `tutor <command>` when the binary is already available in the learner workspace.
+
+If `tutor` is not on PATH, use the bundled package from this skill:
+
+```bash
+npm exec --package file:<skill-dir>/assets/tutor-kit -- tutor <command>
+```
+
+Replace `<skill-dir>` with the absolute path to the `personal-tutor` skill folder.
+
+During local Tutor Kit development in this source repo, `npm run tutor -- <command>` is also valid.
+
 ## Commands
 
 ```bash

@@ -18,6 +18,7 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace.
 - For durable written material, follow `references/writing-style.md` and do not settle for polished summary prose.
 - Keep runtime learning history in `tutor-data/events.jsonl`.
 - After changing content or blocks, run `tutor compile`.
+- If `tutor` is not on PATH, invoke the bundled CLI with `npm exec --package file:<skill-dir>/assets/tutor-kit -- tutor <command>`.
 - For generated textbooks, persist lightweight authoring artifacts inside `textbooks/<textbook-id>/`: `prompt.md`, `curriculum-map.md`, `chapter-specs.md`, `review-notes.md`, and `compile-result.md`.
 - Start the local learning UI with `tutor dev` when the user wants to study in the interface.
 - Teach for durable learning: diagnose, explain clearly, practice, assess, and adapt.
@@ -26,7 +27,7 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace.
 
 ## Default Workflow
 
-1. If the workspace is not initialized, run `tutor init`.
+1. If the workspace is not initialized, run `tutor init` using the available `tutor` binary or the bundled CLI fallback.
 2. Check existing textbooks and chapters before creating new material.
 3. Infer or establish a learner profile using `references/learner-profiles.md`.
 4. Save the original user request in `textbooks/<textbook-id>/prompt.md` when creating a generated textbook.

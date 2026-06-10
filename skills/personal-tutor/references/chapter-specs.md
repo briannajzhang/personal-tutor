@@ -6,6 +6,15 @@ A chapter spec is a short planning artifact. It sits between the curriculum map 
 
 Do not skip from a high-level curriculum map directly to finished chapter prose. First write a chapter spec that explains how the chapter will teach the learner from confusion to usable skill.
 
+## Contents
+
+- Purpose and when to use
+- Default spec format
+- Required fields
+- Field guidance and examples
+- Blocks to author
+- Mastery and spec quality checks
+
 ## Purpose
 
 A chapter spec prevents shallow, random, or outline-like chapters.

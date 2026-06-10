@@ -120,7 +120,22 @@ export function codingProblem(input) {
             files: input.files.map(normalizeProblemFile),
             setup: input.setup === undefined ? undefined : normalizeCodingAction("setup", input.setup, "Setup", "setup"),
             actions: normalizeCodingActions(input),
+            verification: input.verification === undefined ? undefined : {
+                actionId: requireText(input.verification.actionId, "codingProblem.verification.actionId"),
+                referenceFiles: { ...input.verification.referenceFiles }
+            },
             review: input.review ?? input.reviewPrompt
+        }
+    };
+}
+export function quiz(input) {
+    return {
+        kind: "quiz",
+        id: requireText(input.id, "quiz.id"),
+        props: {
+            title: requireText(input.title, "quiz.title"),
+            mode: input.mode ?? "check",
+            questions: input.questions.map(normalizeQuizQuestion)
         }
     };
 }
@@ -143,6 +158,23 @@ export function projectFiles(baseUrl, dir) {
         inline(path, content, options = {}) {
             return normalizeProblemFile({ path, content, ...options });
         }
+    };
+}
+function normalizeQuizQuestion(input) {
+    return {
+        id: requireText(input.id, "quiz.questions[].id"),
+        prompt: requireText(input.prompt, "quiz.questions[].prompt"),
+        choices: input.choices.map(normalizeQuizChoice),
+        answer: requireText(input.answer, "quiz.questions[].answer"),
+        explanation: requireText(input.explanation, "quiz.questions[].explanation"),
+        tags: input.tags ?? [],
+        difficulty: input.difficulty
+    };
+}
+function normalizeQuizChoice(input) {
+    return {
+        id: requireText(input.id, "quiz.questions[].choices[].id"),
+        body: requireText(input.body, "quiz.questions[].choices[].body")
     };
 }
 export function explanation(input) {

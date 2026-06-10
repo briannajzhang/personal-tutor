@@ -2,6 +2,13 @@
 
 Use this rubric after drafting a chapter or curriculum map and before finalizing files.
 
+## Contents
+
+- Review questions
+- Minimum quality scores
+- Reject conditions
+- Revision rule
+
 ## Review Questions
 
 ### Structure
