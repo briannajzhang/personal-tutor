@@ -1,4 +1,4 @@
-import { callout, chapter, codeBlock, codingProblem, heading, list, p, projectFiles, section, subsection } from "tutor-kit";
+import { callout, chapter, codeBlock, codingProblem, heading, list, p, projectFiles, quiz, section, subsection } from "tutor-kit";
 
 const pathProject = projectFiles(import.meta.url, "./problems/classify-workspace-paths");
 
@@ -66,10 +66,15 @@ export default chapter({
           language: "python",
           files: [
             pathProject.file("main.py", { editable: true }),
+            pathProject.file("solution.py", { hidden: true }),
             pathProject.file("tests.py")
           ],
           run: "$PYTHON main.py",
           test: "$PYTHON tests.py",
+          verification: {
+            actionId: "test",
+            referenceFiles: { "main.py": "solution.py" }
+          },
           review: "Check whether the learner understands the difference between authored curriculum files and runtime-history files, not just whether the tests pass."
         }),
         callout({
@@ -78,13 +83,67 @@ export default chapter({
           title: "Authoring habit",
           body: "Run `tutor compile` after changing curriculum files. It catches structural problems before the learner opens the UI."
         }),
-        list({
-          id: "starter-mastery-check",
-          items: [
-            "Without looking back, name the file path pattern where chapter source lives.",
-            "Explain why runtime history belongs in `tutor-data/events.jsonl` instead of chapter files.",
-            "Describe what `tutor compile` should catch before the learner opens the UI.",
-            "Explain why the coding problem in this chapter is really a test of source-of-truth reasoning, not just Python syntax."
+        quiz({
+          id: "authoring-review",
+          title: "Chapter Review: Tutor Kit Authoring",
+          mode: "review",
+          questions: [
+            {
+              id: "source-file-location",
+              prompt: "Which path pattern stores authored chapter source?",
+              choices: [
+                { id: "a", body: "`textbooks/<textbook>/chapters/*.chapter.ts`" },
+                { id: "b", body: "`tutor-data/events.jsonl`" },
+                { id: "c", body: "`node_modules/tutor-kit`" },
+                { id: "d", body: "`package-lock.json`" }
+              ],
+              answer: "a",
+              explanation: "Authored curriculum lives in chapter source files under `textbooks/<textbook>/chapters/*.chapter.ts`. Runtime history belongs in `tutor-data/events.jsonl`.",
+              tags: ["tutor-kit", "curriculum-source"],
+              difficulty: "easy"
+            },
+            {
+              id: "runtime-history-location",
+              prompt: "What should `tutor-data/events.jsonl` represent?",
+              choices: [
+                { id: "a", body: "The durable lesson source for a chapter" },
+                { id: "b", body: "Runtime learner activity and event history" },
+                { id: "c", body: "The TypeScript compiler configuration" },
+                { id: "d", body: "The built Tutor Kit package files" }
+              ],
+              answer: "b",
+              explanation: "`tutor-data/events.jsonl` records runtime activity. Changing lesson content should happen in textbook and chapter source files instead.",
+              tags: ["tutor-kit", "runtime-history"],
+              difficulty: "easy"
+            },
+            {
+              id: "compile-purpose",
+              prompt: "Why should an author run `tutor compile` after editing lesson content?",
+              choices: [
+                { id: "a", body: "To erase old learner event history" },
+                { id: "b", body: "To automatically write all chapter prose" },
+                { id: "c", body: "To check imports, IDs, and block structure before the learner opens the UI" },
+                { id: "d", body: "To publish the textbook to a remote server" }
+              ],
+              answer: "c",
+              explanation: "`tutor compile` catches structural and TypeScript problems early. It does not rewrite learner history or publish the course.",
+              tags: ["tutor-kit", "compile"],
+              difficulty: "medium"
+            },
+            {
+              id: "semantic-block-purpose",
+              prompt: "Why does Tutor Kit prefer semantic blocks like `p`, `callout`, `quiz`, and `codingProblem` instead of one giant Markdown string?",
+              choices: [
+                { id: "a", body: "Semantic blocks make each teaching move explicit and easier to validate or render." },
+                { id: "b", body: "Markdown strings cannot contain code examples." },
+                { id: "c", body: "Semantic blocks prevent authors from writing prose." },
+                { id: "d", body: "The UI only supports one block per chapter." }
+              ],
+              answer: "a",
+              explanation: "Semantic blocks preserve the teaching structure. The UI and validator can understand a paragraph, callout, quiz, or runnable coding task as different learning moves.",
+              tags: ["tutor-kit", "semantic-blocks"],
+              difficulty: "medium"
+            }
           ]
         })
       ]

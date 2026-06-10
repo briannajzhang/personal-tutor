@@ -84,18 +84,20 @@ The chapter should replace that with:
 1. Start from...
 2. Define...
 3. Show...
-4. Practice...
-5. Reuse...
-6. Check...
+4. Check...
+5. Practice...
+6. Reuse...
+7. Review...
 
 ## Worked Example Plan
 
 Use a small example where:
 
-- setup:
-- what the learner should notice:
-- walkthrough:
-- why it matters:
+- input, context, or starting state:
+- operation, reasoning step, or action:
+- visible result, output, or conclusion the chapter will show:
+- explanation of why that result follows:
+- misconception or boundary case revealed, if relevant:
 
 ## Practice Plan
 
@@ -115,7 +117,29 @@ Cumulative practice, if relevant:
 
 - ...
 
-For programming chapters, decide during the spec whether independent practice should become a runnable `codingProblem(...)`. If yes, the spec should name the intended function, behavior, starter files, tests, and review focus before chapter prose is written.
+## Check And Review Plan
+
+Local concept checks:
+
+- ...
+
+Chapter review:
+
+- review targets:
+- review transition or dedicated section:
+- review format:
+
+Cumulative practice-test target, if relevant:
+
+- ...
+
+Best formats:
+
+- quiz:
+- concrete task:
+- written/open-ended prompt:
+- coding problem, if relevant:
+- project or synthesis task, if relevant:
 
 ## Blocks To Author
 
@@ -123,8 +147,10 @@ Likely Tutor Kit blocks:
 
 - `p`: ...
 - `codeBlock`: ...
+- `mathBlock`: ...
 - `callout`: ...
 - `list`: ...
+- `quiz`: ...
 - `codingProblem`: ...
 
 ## Mastery Check
@@ -136,6 +162,8 @@ The chapter is complete only if the learner can:
 - ...
 ```
 
+For programming chapters, decide during the spec whether independent practice should become a runnable `codingProblem(...)`. If yes, the spec should name the intended function, behavior, starter files, tests, and review focus before chapter prose is written.
+
 ## Required Fields
 
 Every non-trivial chapter spec must include:
@@ -146,6 +174,7 @@ Every non-trivial chapter spec must include:
 * central mechanism or mental model
 * worked example plan
 * practice plan
+* check and review plan
 * mastery check
 
 Most chapter specs should also include:
@@ -161,11 +190,11 @@ Write the outcome as an ability, not a topic label.
 
 Weak:
 
-> Learn SQL joins.
+> Learn slope.
 
 Better:
 
-> Write a query that combines rows from two related tables, predict when the join will repeat rows, and explain why missing or incorrect join conditions produce wrong results.
+> Given two points or a small graph, explain slope as a rate of change, calculate it, and predict whether a line rises, falls, or stays flat.
 
 Weak:
 
@@ -192,11 +221,11 @@ Example:
 
 This chapter assumes the learner can:
 
-- read a basic `SELECT ... FROM ... WHERE ...` query
-- identify a table, row, and column
-- understand that IDs can connect records across tables
+- read points on a coordinate plane
+- subtract two numbers
+- distinguish horizontal change from vertical change
 
-Briefly review IDs before introducing foreign keys.
+Briefly review coordinate pairs before introducing slope.
 ```
 
 ## New Terms To Define
@@ -210,10 +239,10 @@ Example:
 ```md
 ## New Terms To Define
 
-- join: a way to create output rows by matching rows from two tables
-- join condition: the rule that decides which rows match
-- primary key: a column or set of columns that uniquely identifies a row
-- foreign key: a column whose values refer to rows in another table
+- slope: the ratio of vertical change to horizontal change
+- rise: the vertical change between two points
+- run: the horizontal change between two points
+- rate of change: how much one quantity changes compared with another
 ```
 
 ## Central Mechanism Or Mental Model
@@ -224,11 +253,11 @@ This is usually more useful than a polished summary.
 
 Weak:
 
-> Joins are important for relational databases.
+> Slope is important for lines.
 
 Better:
 
-> A join creates one output row for each pair of rows that satisfies the match condition. If one row on the left matches three rows on the right, the result contains three joined rows.
+> Slope compares how much y changes for a fixed change in x. If two lines move the same distance right, the one that moves farther up has the greater slope.
 
 Weak:
 
@@ -236,7 +265,7 @@ Weak:
 
 Better:
 
-> An index is a separate lookup structure. It can help the database find matching rows without scanning the whole table, but it adds maintenance work when data changes.
+> An index is a separate lookup structure. It can help a system find matching records without scanning everything, but it adds maintenance work when data changes.
 
 ## Tempting Wrong Model Or Trap
 
@@ -251,11 +280,11 @@ Example:
 
 Wrong model:
 
-A join glues two tables together side by side.
+A steeper line is just a line that "looks taller."
 
 Better model:
 
-A join creates one output row for each matching pair. This means the output can have more rows than either input table.
+Steepness compares vertical change to horizontal change. A line is steeper when it rises or falls more for the same horizontal movement.
 ```
 
 ## Teaching Path
@@ -267,22 +296,21 @@ It should not be a table of contents. It should describe the learner's progressi
 Weak:
 
 ```md
-1. Introduce joins
-2. Explain inner joins
-3. Practice joins
+1. Introduce slope
+2. Explain formula
+3. Practice slope
 ```
 
 Better:
 
 ```md
-1. Start with a question that cannot be answered from one table alone.
-2. Define a join as a row-matching operation.
-3. Show a tiny `customers` and `orders` example.
-4. Ask the learner to predict how many rows one customer with two orders produces.
-5. Walk through the `ON` condition.
-6. Name the one-to-many trap.
-7. Give guided queries with partial scaffolding.
-8. End with an independent query and a debugging prompt.
+1. Start with two ramps that move the same distance forward but rise different amounts.
+2. Define slope as vertical change divided by horizontal change.
+3. Show two points and ask the learner to identify rise and run before calculating.
+4. Use a quiz check to ask which line is steeper when the run is the same.
+5. Give guided practice calculating slope from two points.
+6. Show a boundary case: horizontal line versus vertical line.
+7. End with independent practice and a review quiz.
 ```
 
 ## Worked Example Plan
@@ -291,31 +319,38 @@ A worked example should make the mechanism visible.
 
 Before writing the example, specify:
 
-* the small setup
-* what the learner should notice
-* how the walkthrough will proceed
-* what mistake or boundary case the example reveals
+* the input, context, or starting state the learner can inspect
+* the operation, reasoning step, or action being performed
+* the visible result, output, or conclusion the chapter will show
+* the explanation of why that result follows
+* any mistake or boundary case the example reveals
+
+Do not treat a worked example as planned if it only names the kind of example to include or promises to "show the visible result." The spec should identify the actual input/context, operation, result/output/conclusion, and explanation the authored chapter will display.
 
 Example:
 
 ```md
 ## Worked Example Plan
 
-Setup:
+Input, context, or starting state:
 
-Use `customers(customer_id, name)` and `orders(order_id, customer_id, total)`.
+Use two points: (1, 2) and (4, 8).
 
-What the learner should notice:
+Operation, reasoning step, or action:
 
-One customer can match multiple orders, so the joined result may repeat the customer name.
+Ask the learner to identify the horizontal change first, then the vertical change, then compute 6 / 3.
 
-Walkthrough:
+Visible result, output, or conclusion:
 
-Show two customers and three orders. Ask the learner to predict the output before showing the query result.
+The horizontal change is 3, the vertical change is 6, and the slope is 2.
 
-Why it matters:
+Explanation of why that result follows:
 
-This prepares the learner to debug duplicate-looking rows and wrong counts in later aggregation queries.
+Slope compares vertical change to horizontal change. Because y increases by 6 while x increases by 3, the slope is 6 / 3 = 2.
+
+Misconception or boundary case revealed, if relevant:
+
+This prevents treating slope as just "how tall the line looks" or accidentally dividing run by rise.
 ```
 
 ## Practice Plan
@@ -324,17 +359,18 @@ Do not describe practice vaguely. Instantiate it.
 
 Weak:
 
-> Practice writing joins.
+> Practice calculating slope.
 
 Better:
 
-> Given `customers(customer_id, name)` and `orders(order_id, customer_id, total)`, write a query that returns each customer's name and each order total. Then modify it to include customers with no orders.
+> Given the points (2, 3) and (6, 11), identify the horizontal change, identify the vertical change, and calculate the slope. Then explain what the value means in words.
 
 A good practice plan usually includes more than one mode:
 
 * guided practice
 * prediction
-* debugging
+* classification
+* debugging or error diagnosis
 * independent application
 * cumulative review
 
@@ -345,21 +381,61 @@ Example:
 
 Guided practice:
 
-- Fill in the missing `ON` condition for a join between `customers` and `orders`.
-- Predict how many rows appear when customer 1 has three matching orders.
+- Label the rise and run between two marked points.
+- Choose which of two lines is steeper before calculating.
 
 Independent practice:
 
-- Write a query that returns customer names and order totals.
-- Change the query so customers with no orders still appear.
+- Calculate slope from three pairs of points.
+- Explain one slope value in words.
 
-Debugging practice:
+Error diagnosis:
 
-- Fix a query that joins on the wrong ID and produces incorrect matches.
+- Fix a solution that divides run by rise instead of rise by run.
 
 Cumulative practice:
 
-- Add a `WHERE` condition from the previous chapter to filter joined results.
+- Reuse earlier coordinate-plane reading skills to identify points before calculating slope.
+```
+
+## Check And Review Plan
+
+Checks and review should be planned before writing prose.
+
+A good check and review plan identifies:
+
+- local concept checks near new concepts, examples, traps, or boundary cases
+- chapter review targets
+- cumulative review targets, when relevant
+- which checks should be quizzes versus concrete tasks, written prompts, coding problems, project tasks, or other practice blocks
+
+Use quizzes for fast conceptual diagnosis, prediction, classification, misconception checks, retrieval, and local scoring.
+
+Use other practice blocks when the learner must produce a larger artifact, solve a multi-step problem, debug a multi-step issue, design something, write a longer response, or build/revise a project artifact.
+
+For substantial chapters, also plan how the learner will enter review. Use either a dedicated review section or an explicit transition that signals the chapter is moving from instruction or practice into review.
+
+Example:
+
+```md
+## Check And Review Plan
+
+Local concept checks:
+
+- Quiz: Given two lines with the same run but different rise, choose the steeper line.
+- Quiz: Identify whether a slope is positive, negative, zero, or undefined from a small graph.
+
+Chapter review:
+
+- Review quiz covering slope from points, slope from graph, and common mistakes.
+
+Concrete task:
+
+- Calculate slope from three pairs of points and explain one answer in words.
+
+Cumulative practice-test target:
+
+- Later review should mix slope with coordinate-plane reading and linear equations.
 ```
 
 ## Blocks To Author
@@ -371,12 +447,16 @@ A chapter spec may name likely blocks before the chapter is written:
 ```md
 ## Blocks To Author
 
-- `p`: introduce the learner problem and define join
-- `codeBlock`: show the first join query
-- `callout`: warn that repeated rows can be correct in one-to-many joins
-- `list`: guided prediction checks
-- `codingProblem`: independent SQL query task, if runnable SQL practice is supported
+- `p`: introduce the learner problem and define slope
+- `mathBlock`: show the slope formula
+- `callout`: warn about swapping rise and run
+- `quiz`: local prediction check
+- `list`: guided practice
+- `quiz`: chapter review
+- `codingProblem`: only if the chapter includes runnable code practice
 ```
+
+Use `mathBlock` for displayed equations or formal notation. Use `codeBlock` for executable code, queries, commands, or exact structured examples.
 
 Do not force every chapter into the same block sequence. Match the block shape to the teaching path.
 
@@ -386,11 +466,11 @@ The mastery check should verify usable skill, not passive recognition.
 
 Weak:
 
-> Review the key ideas about joins.
+> Review the key ideas about slope.
 
 Better:
 
-> Given two small tables, predict the joined rows before running the query. Then explain why a customer appears multiple times or disappears from the result.
+> Given two points, calculate slope, explain the meaning of the value, and identify whether a mistaken solution swapped rise and run.
 
 A chapter is not ready if the mastery check only asks the learner to reread or summarize.
 
@@ -398,14 +478,16 @@ A chapter is not ready if the mastery check only asks the learner to reread or s
 
 Before writing the chapter, check:
 
-* Is the learner outcome an ability, not a topic label?
-* Are prerequisite ideas named?
-* Are new terms listed before prose generation begins?
-* Is the central mechanism clear?
-* Is there a concrete worked example plan?
-* Is practice instantiated rather than merely described?
-* Does the spec include at least one learner action: predict, explain, debug, compare, apply, create, or test?
-* Does the chapter reuse earlier material when appropriate?
-* Would this spec prevent an outline-like chapter?
+- Is the learner outcome an ability, not a topic label?
+- Are prerequisite ideas named?
+- Are new terms listed before prose generation begins?
+- Is the central mechanism clear?
+- Is there a concrete worked example plan?
+- Is practice instantiated rather than merely described?
+- Does the check and review plan include local checks and chapter review?
+- Does the spec identify which checks should be quizzes versus other practice blocks?
+- Does the spec include at least one learner action: predict, explain, debug, compare, classify, apply, create, or test?
+- Does the chapter reuse earlier material when appropriate?
+- Would this spec prevent an outline-like chapter?
 
 If the spec is vague, revise the spec before writing prose.

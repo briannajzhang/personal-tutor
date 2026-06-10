@@ -20,7 +20,7 @@ export default textbook({
 ## Chapter Example
 
 ```ts
-import { callout, chapter, codeBlock, codingProblem, list, p, projectFiles, section, subsection } from "tutor-kit";
+import { callout, chapter, codeBlock, codingProblem, list, p, projectFiles, quiz, section, subsection } from "tutor-kit";
 
 const project = projectFiles(import.meta.url, "./problems/filter-rows");
 
@@ -44,6 +44,27 @@ export default chapter({
           id: "filtering-example",
           language: "python",
           code: "recent = df[\"year\"] >= 2020\\nresult = df[recent]"
+        }),
+        quiz({
+          id: "mask-check",
+          title: "Check: Boolean Masks",
+          mode: "check",
+          questions: [
+            {
+              id: "kept-rows",
+              prompt: "When pandas evaluates `df[mask]`, which rows are kept?",
+              choices: [
+                { id: "a", body: "Rows where the mask value is `True`." },
+                { id: "b", body: "Rows where the mask value is `False`." },
+                { id: "c", body: "Only the first row of the DataFrame." },
+                { id: "d", body: "Every row, because the mask only affects columns." }
+              ],
+              answer: "a",
+              explanation: "`df[mask]` keeps the rows where the aligned mask value is `True`. The mask is a row-selection rule.",
+              tags: ["filtering", "boolean-mask"],
+              difficulty: "easy"
+            }
+          ]
         }),
         callout({
           id: "filtering-trap",
@@ -103,12 +124,25 @@ export default chapter({
           test: "$PYTHON tests.py",
           review: "Check mask construction, operator choice, and whether the learner understands why the filters work."
         }),
-        list({
-          id: "mastery-check",
-          items: [
-            "Without looking back, write the rule for combining two pandas conditions with AND.",
-            "Describe one bug that can happen if a mask does not align with the rows being filtered.",
-            "Explain how you would test whether a filter keeps exactly the intended rows."
+        quiz({
+          id: "filtering-review",
+          title: "Chapter Review: Filtering Rows",
+          mode: "review",
+          questions: [
+            {
+              id: "operator-choice",
+              prompt: "Why does `recent & passed` express the row filter better than `recent and passed`?",
+              choices: [
+                { id: "a", body: "`&` combines the two masks row by row." },
+                { id: "b", body: "`&` sorts the rows before filtering." },
+                { id: "c", body: "`and` works only when the DataFrame has one column." },
+                { id: "d", body: "`and` changes `False` values into `True` values." }
+              ],
+              answer: "a",
+              explanation: "Each comparison creates a Boolean Series. `&` combines those Series element by element, which is what a row filter needs.",
+              tags: ["filtering", "boolean-mask", "operators"],
+              difficulty: "medium"
+            }
           ]
         })
       ]
@@ -117,7 +151,7 @@ export default chapter({
 });
 ```
 
-This example is intentionally compact for documentation purposes, but it still shows the full loop: concept framing, worked example, guided practice, retrieval, independent practice, and a mastery check. Real generated chapters should usually contain more explanation, more examples, and more practice than this sample.
+This example is intentionally compact for documentation purposes, but it still shows the full loop: concept framing, worked example, local concept check, guided practice, retrieval, independent practice, and a review quiz. Real generated chapters should usually contain more explanation, more examples, and more practice than this sample.
 
 ## Rules
 
@@ -144,9 +178,10 @@ Treat the framework as subject-generic. The artifact should instantiate differen
 - Every chapter must include substantial learner practice.
 - Checkpoint bullets and summaries do not count as practice unless they are written as concrete learner tasks.
 - Design for active use, not passive reading.
-- A chapter is incomplete unless the learner has been asked to use, test, explain, compare, or create with the ideas.
-- Prefer a learning loop: introduce, model, practice with support, practice independently, review, and synthesize.
+- A chapter is incomplete unless the learner has been asked to use, test, explain, compare, predict, classify, debug, or create with the ideas.
+- Prefer a learning loop: introduce, model, check, practice with support, practice independently, review, and synthesize.
 - Adapt the form of practice to the subject, but do not omit practice.
+- Use quizzes as assessment tools, not decoration.
 
 ## Chapter Structure
 
@@ -165,28 +200,38 @@ Non-trivial chapters should contain these teaching moves somewhere in their stru
 - a learner-facing goal or problem
 - a concept introduction
 - at least one worked example
+- local concept checks near major new mechanisms, worked examples, misconceptions, or boundary cases, usually as `quiz({ mode: "check" })` when multiple choice fits
 - guided practice
 - independent practice
 - retrieval or self-test prompts
-- an end-of-chapter review or mastery check
+- an end-of-chapter review or mastery check, usually as `quiz({ mode: "review" })` when multiple choice fits
 - at least one misconception, trap, or boundary case
 
 Every few chapters should also include:
 
 - cumulative mixed practice
 - a short synthesis or mini-project when appropriate
+- a practice-test chapter or cumulative check when the textbook is long enough
 
 These moves do not have to appear as separate headings, but they should all be present in the chapter.
 
 ### What Counts
 
 - Concept introduction: defines the new idea and explains why it matters now.
-- Worked example: walks through a concrete case rather than only naming the rule.
+- Worked example: walks through a concrete case rather than only naming the rule. A worked example is incomplete if the learner cannot inspect what changed. A complete worked example should usually include:
+  - input, context, or starting state
+  - operation, reasoning step, or action
+  - visible result, output, or conclusion
+  - explanation of why that result follows
+
+For examples involving data, code, math, diagrams, text, evidence, or other artifacts, the input and result should usually be shown as inspectable artifacts, not only described in prose.
+- Local concept check: asks the learner to predict, classify, identify, compare, or apply the idea soon after it is introduced.
 - Guided practice: gives the learner a concrete task with support, scaffolding, prompts, partial setup, or a model to lean on.
 - Independent practice: asks the learner to perform the target move with less support.
 - Retrieval or self-test: asks the learner to recall, explain, predict, classify, or apply without simply rereading the prose.
 - End-of-chapter review or mastery check: verifies whether the learner can use the chapter's ideas in a coherent way.
 - Misconception or trap: protects the learner from a realistic mistake.
+- Cumulative mixed practice: requires reuse of earlier material, not only the newest concept.
 
 If a chapter is missing several of these moves, it is probably an outline, not a strong learning unit.
 
@@ -216,15 +261,83 @@ Use the taxonomy generically. The point is not to force the same exercises into 
 
 When the subject is programming, topic-appropriate tasks should usually become runnable tasks. Prefer `codingProblem(...)` for implementation, debugging, refactoring, and code-behavior exercises when the learner benefits from executing real code.
 
+## Quiz Widget Usage
+
+Use the `quiz(...)` builder as a first-class check and review block.
+
+Quizzes are for fast conceptual diagnosis, retrieval, misconception checks, prediction, classification, chapter review, and cumulative mixed review. They should complement concrete practice, not replace it.
+
+Do not skip quizzes only because a subject also needs hands-on practice. Many strong lessons need both:
+
+- quizzes to check whether the learner understands the concept
+- concrete tasks to check whether the learner can use the concept
+
+Quizzes should appear in three places:
+
+1. **Concept checks**
+
+- Placement: immediately after a new concept, mental model, worked example, boundary case, or common trap.
+- Mode: `"check"`
+- Size: 1-3 questions.
+- Purpose: catch misunderstanding before moving on.
+
+2. **Chapter review quizzes**
+
+- Placement: final review or mastery-check section of a chapter.
+- Mode: `"review"`
+- Size: 4-8 questions.
+- Purpose: retrieval practice across the chapter.
+
+Substantial chapter reviews should usually have a dedicated section or an explicit transition. The learner should be able to tell when the chapter is moving from instruction or practice into review.
+
+3. **Practice-test chapters**
+
+- Placement: after a cluster of chapters, at the end of a module, or at the end of the textbook.
+- Mode: `"practice-test"`
+- Size: usually 10-25 questions for full practice-test chapters; shorter cumulative checks may use 8-9 questions when the textbook is small.
+- Purpose: mixed review with local scoring.
+
+The mode distinction matters:
+
+- `"check"` = local comprehension
+- `"review"` = chapter mastery
+- `"practice-test"` = mixed cumulative assessment
+
+Do not use these modes interchangeably.
+
+Use quizzes for checks like:
+
+- predicting an output, result, next step, or consequence
+- choosing which rule, concept, or method applies
+- classifying an example
+- identifying a misconception
+- distinguishing nearby concepts
+- checking whether a boundary case changes the answer
+- interpreting a small scenario, snippet, diagram, dataset, passage, or equation
+
+Use another practice block when the learner needs to produce a larger artifact, such as:
+
+- writing or revising a substantive answer
+- solving a multi-step problem
+- debugging a multi-step issue
+- designing a schema, system, proof, experiment, or project artifact
+- comparing tradeoffs in their own words
+- building or revising something
+
+If a chapter already includes checkpoint or review questions that can be represented as multiple-choice questions, prefer a `quiz({ mode: "review" })` block instead of a plain list.
+
+Use plain lists or prose prompts for open-ended reflection, free-response questions, project planning, or tasks that do not fit multiple choice.
+
 ## Insufficient Practice
 
 The following do not count as substantial practice by themselves:
 
-- "Practice writing queries about X."
+- "Practice writing about X."
 - "Try building a small project."
 - "Review the key ideas."
 - "Explain this concept in your own words." when used as the only practice mode
 - a list of broad suggestions with no concrete input, expected output, scenario, or target behavior
+- a quiz question that only asks for a memorized definition when the learner needs to apply the idea
 
 A practice task should usually give the learner at least one of:
 
@@ -254,6 +367,7 @@ Create a new section when the learner is changing tasks in a meaningful way, for
 - moving from one major subtopic to another
 - moving from explanation to practice
 - moving from one kind of practice to cumulative review
+- moving from local comprehension to chapter-level review
 
 Sections should feel like major teaching moves, not just visual wrappers.
 
@@ -279,8 +393,8 @@ Use this only when the topic is intentionally narrow.
 
 Example:
 
-- Section 1: core idea and small example
-- Section 2: focused practice and recap
+- Section 1: core idea, small example, and local check
+- Section 2: focused practice and review
 
 ### Standard Chapter
 
@@ -291,10 +405,10 @@ This should be the default shape for most beginner lessons.
 
 Example:
 
-- Section 1: learner problem and concept introduction
+- Section 1: learner problem, concept introduction, and concept check
 - Section 2: worked example and guided practice
   Add a subsection for the misconception, edge case, or a second example
-- Section 3: independent practice and self-check
+- Section 3: independent practice and chapter review quiz
 
 ### Larger Chapter
 
@@ -305,10 +419,10 @@ Use this when the learner must connect several related ideas.
 
 Example:
 
-- Section 1: central concept
+- Section 1: central concept and local concept check
 - Section 2: mechanism and example
 - Section 3: second related concept or comparison
-- Section 4: cumulative practice and recap or mastery check
+- Section 4: cumulative practice and review quiz
 
 ## Anti-Patterns
 
@@ -321,8 +435,11 @@ Avoid these common weak structures:
 - practice that is really only summary bullets or reflective prompts with no concrete task
 - one practice mode repeated over and over with no shift from support to independence
 - chapters that never require cumulative reuse of earlier material
+- review questions left as plain bullet lists when they could be represented as scored quiz questions
 - titles and headings that read like schedule containers instead of naming the actual concept or skill
 - worked examples embedded as one small block inside a section that is really doing three jobs at once
+- quizzes used as decoration rather than diagnosis or retrieval
+- practice-test chapters that only review the immediately preceding chapter
 
 If the structure looks clean but does not help the learner navigate the lesson, rewrite it.
 
@@ -334,5 +451,9 @@ Before finalizing, ask:
 - Is there a progression from easier tasks to harder tasks?
 - Are the tasks concrete enough to complete?
 - Are there opportunities for retrieval without looking back?
+- Are concept checks placed near the ideas they test?
+- Does the chapter end with a meaningful review or mastery check?
 - Are earlier ideas reused later?
+- Does the textbook include cumulative mixed practice?
+- For longer textbooks, is there at least one practice-test chapter?
 - Does the artifact teach toward mastery or just coverage?

@@ -10,6 +10,8 @@ import type {
 const calloutTones = new Set(["note", "caution", "key-idea"]);
 const listStyles = new Set(["bullet", "number"]);
 const headingLevels = new Set([4, 5]);
+const quizModes = new Set(["check", "review", "practice-test"]);
+const quizDifficulties = new Set(["easy", "medium", "hard"]);
 const taskVerbPattern = /^(write|predict|explain|compare|classify|debug|fix|implement|solve|justify|design|create|trace|identify|rewrite|describe|test|name|build|apply|refactor|interpret|spot)\b/i;
 const reviewHintPattern = /\b(check|self-check|review|recall|retrieval|mastery|quiz|practice|try|exercise|explain|predict|compare|debug|apply|test)\b/i;
 
@@ -51,6 +53,26 @@ export function validateTextbook(value: unknown, file?: string): ValidationIssue
       }
       chapterIds.add(chapter.id);
     }
+  }
+
+  issues.push(...validateTextbookQuizHeuristics(value, file));
+
+  return issues;
+}
+
+function validateTextbookQuizHeuristics(textbook: Record<string, unknown>, file?: string): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  if (!Array.isArray(textbook.chapters)) return issues;
+
+  const quizBlocks = collectTextbookBlocks(textbook).filter(isQuizBlock);
+  const practiceTestQuizzes = quizBlocks.filter((block) => block.props.mode === "practice-test");
+
+  if (textbook.chapters.length >= 4 && practiceTestQuizzes.length === 0) {
+    issues.push(issue("Textbook should include at least one cumulative practice-test quiz.", "chapters", file));
+  }
+
+  if (textbook.chapters.length >= 8 && practiceTestQuizzes.length < 2) {
+    issues.push(issue("Textbook should include at least 2 cumulative practice-test quizzes.", "chapters", file));
   }
 
   return issues;
@@ -95,6 +117,32 @@ function validateChapterLearningHeuristics(chapter: Chapter, file?: string): Val
 
   if (blocks.length < 4) return issues;
 
+  const quizBlocks = blocks.filter(isQuizBlock);
+
+  if (blocks.length >= 8 && quizBlocks.length === 0) {
+    issues.push(issue(
+      "Non-trivial chapter should include at least one quiz block.",
+      "sections",
+      file
+    ));
+  }
+
+  if (blocks.length >= 8 && !quizBlocks.some((block) => block.props.mode === "review")) {
+    issues.push(issue(
+      "Non-trivial chapter should end with a review quiz.",
+      "sections",
+      file
+    ));
+  }
+
+  if (chapter.sections.length >= 3 && !quizBlocks.some((block) => block.props.mode === "check")) {
+    issues.push(issue(
+      "Chapter with several sections should include at least one check quiz before the final review.",
+      "sections",
+      file
+    ));
+  }
+
   if (chapter.sections.length < 2) {
     issues.push(issue(
       "Non-trivial chapter has fewer than 2 sections. Split concept introduction, examples, practice, and review into clearer teaching moves.",
@@ -118,6 +166,7 @@ function validateChapterLearningHeuristics(chapter: Chapter, file?: string): Val
 
   const hasPracticeMove = blocks.some((block) => (
     block.kind === "codingProblem" ||
+    block.kind === "quiz" ||
     looksLikeTaskList(block) ||
     blockText(block).some((text) => reviewHintPattern.test(text))
   ));
@@ -131,7 +180,9 @@ function validateChapterLearningHeuristics(chapter: Chapter, file?: string): Val
   }
 
   const hasReviewMove = blocks.some((block) => (
-    looksLikeTaskList(block) || blockText(block).some((text) => reviewHintPattern.test(text))
+    block.kind === "quiz" ||
+    looksLikeTaskList(block) ||
+    blockText(block).some((text) => reviewHintPattern.test(text))
   ));
 
   if (!hasReviewMove) {
@@ -300,6 +351,11 @@ export function validateBlock(
 
   if (block.kind === "codingProblem") {
     validateCodingProblem(block.props, `${path}.props`, file, issues);
+    return;
+  }
+
+  if (block.kind === "quiz") {
+    validateQuiz(block.props, `${path}.props`, file, issues);
   }
 }
 
@@ -367,6 +423,13 @@ function validateCodingProblem(
     if (editableCount === 0) {
       issues.push(issue("Coding problem must contain at least one editable file.", `${path}.files`, file));
     }
+    if (props.verification === undefined) {
+      issues.push(issue(
+        "Coding problem should define verification metadata so its starter failure and reference solution can be verified.",
+        `${path}.verification`,
+        file
+      ));
+    }
   }
 
   if (!Array.isArray(props.actions) || props.actions.length === 0) {
@@ -388,6 +451,172 @@ function validateCodingProblem(
       actionIds.add(action.id);
     }
   });
+
+  validateCodingVerification(props.verification, props.files, actionIds, `${path}.verification`, file, issues);
+}
+
+function validateCodingVerification(
+  verification: unknown,
+  files: unknown,
+  actionIds: Set<string>,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  if (verification === undefined) return;
+  if (!isRecord(verification)) {
+    issues.push(issue("Coding problem verification must be an object.", path, file));
+    return;
+  }
+  if (!hasText(verification.actionId)) {
+    issues.push(issue("Coding problem verification actionId is required.", `${path}.actionId`, file));
+  } else if (!actionIds.has(verification.actionId)) {
+    issues.push(issue("Coding problem verification actionId must match an action.", `${path}.actionId`, file));
+  }
+  if (!isRecord(verification.referenceFiles) || Object.keys(verification.referenceFiles).length === 0) {
+    issues.push(issue("Coding problem verification referenceFiles must be a non-empty object.", `${path}.referenceFiles`, file));
+    return;
+  }
+  const problemFiles = Array.isArray(files)
+    ? files.filter(isRecord)
+    : [];
+  for (const [targetPath, referencePath] of Object.entries(verification.referenceFiles)) {
+    const target = problemFiles.find((problemFile) => problemFile.path === targetPath);
+    const reference = problemFiles.find((problemFile) => problemFile.path === referencePath);
+    if (!target || target.editable !== true) {
+      issues.push(issue(`Verification target must match an editable file: ${targetPath}`, `${path}.referenceFiles`, file));
+    }
+    if (!reference) {
+      issues.push(issue(`Verification reference file does not exist: ${String(referencePath)}`, `${path}.referenceFiles`, file));
+    } else if (reference.hidden !== true) {
+      issues.push(issue(`Verification reference file must be hidden: ${String(referencePath)}`, `${path}.referenceFiles`, file));
+    }
+  }
+}
+
+function validateQuiz(
+  props: Record<string, unknown>,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  validateTextProp(props.title, `${path}.title`, file, issues);
+
+  if (!quizModes.has(props.mode as string)) {
+    issues.push(issue("Quiz mode must be check, review, or practice-test.", `${path}.mode`, file));
+  }
+
+  if (!Array.isArray(props.questions) || props.questions.length === 0) {
+    issues.push(issue("Quiz questions must be a non-empty array.", `${path}.questions`, file));
+    return;
+  }
+
+  if (props.mode === "check" && (props.questions.length < 1 || props.questions.length > 3)) {
+    issues.push(issue("Check quiz should contain 1-3 questions.", `${path}.questions`, file));
+  }
+  if (props.mode === "review" && (props.questions.length < 4 || props.questions.length > 10)) {
+    issues.push(issue("Review quiz should contain 4-10 questions.", `${path}.questions`, file));
+  }
+  if (props.mode === "practice-test" && props.questions.length < 8) {
+    issues.push(issue("Practice-test quiz should contain at least 8 questions.", `${path}.questions`, file));
+  }
+
+  const questionIds = new Set<string>();
+  const tags = new Set<string>();
+  const difficulties = new Set<string>();
+  const answerPositions = new Map<number, number>();
+  props.questions.forEach((question, index) => {
+    const questionPath = `${path}.questions[${index}]`;
+    if (!isRecord(question)) {
+      issues.push(issue("Quiz question must be an object.", questionPath, file));
+      return;
+    }
+
+    if (!hasText(question.id)) {
+      issues.push(issue("Quiz question id is required.", `${questionPath}.id`, file));
+    } else {
+      if (questionIds.has(question.id)) {
+        issues.push(issue(`Duplicate quiz question id: ${question.id}`, `${questionPath}.id`, file));
+      }
+      questionIds.add(question.id);
+    }
+
+    validateTextProp(question.prompt, `${questionPath}.prompt`, file, issues);
+    validateTextProp(question.explanation, `${questionPath}.explanation`, file, issues);
+
+    if (question.difficulty !== undefined && !quizDifficulties.has(question.difficulty as string)) {
+      issues.push(issue("Quiz question difficulty must be easy, medium, or hard.", `${questionPath}.difficulty`, file));
+    }
+
+    if (question.tags !== undefined) {
+      if (!Array.isArray(question.tags)) {
+        issues.push(issue("Quiz question tags must be an array of strings.", `${questionPath}.tags`, file));
+      } else {
+        question.tags.forEach((tag, tagIndex) => {
+          if (typeof tag !== "string") {
+            issues.push(issue("Quiz question tag must be a string.", `${questionPath}.tags[${tagIndex}]`, file));
+          } else if (tag.trim().length > 0) {
+            tags.add(tag);
+          }
+        });
+      }
+    } else {
+      issues.push(issue("Quiz question should include tags.", `${questionPath}.tags`, file));
+    }
+
+    if (!Array.isArray(question.choices) || question.choices.length < 2) {
+      issues.push(issue("Quiz question choices must contain at least 2 choices.", `${questionPath}.choices`, file));
+      return;
+    }
+
+    const choiceIds = new Set<string>();
+    question.choices.forEach((choice, choiceIndex) => {
+      const choicePath = `${questionPath}.choices[${choiceIndex}]`;
+      if (!isRecord(choice)) {
+        issues.push(issue("Quiz choice must be an object.", choicePath, file));
+        return;
+      }
+      if (!hasText(choice.id)) {
+        issues.push(issue("Quiz choice id is required.", `${choicePath}.id`, file));
+      } else {
+        if (choiceIds.has(choice.id)) {
+          issues.push(issue(`Duplicate quiz choice id: ${choice.id}`, `${choicePath}.id`, file));
+        }
+        choiceIds.add(choice.id);
+      }
+      validateTextProp(choice.body, `${choicePath}.body`, file, issues);
+    });
+
+    if (!hasText(question.answer)) {
+      issues.push(issue("Quiz question answer is required.", `${questionPath}.answer`, file));
+    } else if (!choiceIds.has(question.answer)) {
+      issues.push(issue("Quiz question answer must match a choice id.", `${questionPath}.answer`, file));
+    } else {
+      const answerPosition = question.choices.findIndex((choice) => isRecord(choice) && choice.id === question.answer);
+      answerPositions.set(answerPosition, (answerPositions.get(answerPosition) ?? 0) + 1);
+    }
+
+    if (typeof question.difficulty === "string" && quizDifficulties.has(question.difficulty)) {
+      difficulties.add(question.difficulty);
+    }
+  });
+
+  if (props.mode === "practice-test" && tags.size < 3) {
+    issues.push(issue("Practice-test quiz should include questions from at least 3 distinct tags.", `${path}.questions`, file));
+  }
+  if (props.mode === "practice-test" && difficulties.size < 2) {
+    issues.push(issue("Practice-test quiz should include at least 2 difficulty levels.", `${path}.questions`, file));
+  }
+  if (props.questions.length >= 4) {
+    const highestPositionCount = Math.max(0, ...answerPositions.values());
+    if (highestPositionCount / props.questions.length > 0.7) {
+      issues.push(issue(
+        "Quiz correct answers are overly concentrated in one choice position. Shuffle choices to reduce answer-position bias.",
+        `${path}.questions`,
+        file
+      ));
+    }
+  }
 }
 
 function validateCodingAction(
@@ -471,6 +700,29 @@ function collectChapterBlocks(chapter: Chapter): TutorBlock[] {
   return blocks;
 }
 
+function collectTextbookBlocks(textbook: Record<string, unknown>): TutorBlock[] {
+  const blocks: TutorBlock[] = [];
+  if (!Array.isArray(textbook.chapters)) return blocks;
+  for (const chapter of textbook.chapters) {
+    if (!isRecord(chapter) || !Array.isArray(chapter.sections)) continue;
+    for (const section of chapter.sections) {
+      if (!isRecord(section)) continue;
+      if (Array.isArray(section.blocks)) blocks.push(...section.blocks as TutorBlock[]);
+      if (!Array.isArray(section.subsections)) continue;
+      for (const subsection of section.subsections) {
+        if (isRecord(subsection) && Array.isArray(subsection.blocks)) {
+          blocks.push(...subsection.blocks as TutorBlock[]);
+        }
+      }
+    }
+  }
+  return blocks;
+}
+
+function isQuizBlock(block: TutorBlock): block is TutorBlock & { props: { mode?: string; questions?: unknown[] } } {
+  return block.kind === "quiz" && isRecord(block.props);
+}
+
 function blockText(block: TutorBlock): string[] {
   const texts = [block.id];
   if (!isRecord(block.props)) return texts;
@@ -482,6 +734,13 @@ function blockText(block: TutorBlock): string[] {
   if (Array.isArray(block.props.items)) {
     for (const item of block.props.items) {
       if (typeof item === "string") texts.push(item);
+    }
+  }
+  if (Array.isArray(block.props.questions)) {
+    for (const question of block.props.questions) {
+      if (!isRecord(question)) continue;
+      if (typeof question.prompt === "string") texts.push(question.prompt);
+      if (typeof question.explanation === "string") texts.push(question.explanation);
     }
   }
   return texts;

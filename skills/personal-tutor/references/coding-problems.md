@@ -2,6 +2,27 @@
 
 A coding problem should teach or assess a specific skill. Do not use `codingProblem(...)` only because the subject involves code.
 
+## Reference Solution Verification
+
+Every generated coding problem that is intended to be automatically verified must include a hidden reference solution, such as `solution.py`, `reference.ts`, or another clearly named solution file.
+
+If a coding problem is intentionally open-ended or manually reviewed, state that explicitly in the problem review focus, and do not present it as automatically verified.
+
+Use `verification.referenceFiles` to map each learner-editable file to its reference-solution file, and use `verification.actionId` to select the action that should be run for verification.
+
+Before finalizing the problem:
+
+1. Run the tests against the intentionally incomplete starter and confirm it fails for the intended assertion reason.
+2. Run the same tests against the reference solution and confirm it passes.
+3. Distinguish setup/runtime failures from assertion failures.
+4. Record the starter result and reference-solution result in `compile-result.md` under `## Coding Problem Verification`.
+
+Run:
+
+```bash
+tutor verify coding-problems --textbook <textbook-id>
+```
+
 A good coding problem gives the learner:
 
 - a concrete task
@@ -11,6 +32,8 @@ A good coding problem gives the learner:
 - a review focus that matches the chapter goal
 
 The problem should connect to the surrounding lesson. The prose before the problem should prepare the learner for the task, and the review or mastery check after the problem should help the learner interpret what they practiced.
+
+Coding problems do not replace concept checks or review quizzes. Use `codingProblem(...)` when the learner needs runnable practice, and use `quiz(...)` when the learner needs fast conceptual diagnosis, prediction, misconception checks, or local scoring.
 
 ## Authoring Pattern
 
@@ -28,11 +51,16 @@ codingProblem({
   language: "python",
   files: [
     project.file("main.py", { editable: true }),
+    project.file("solution.py", { hidden: true }),
     project.file("tests.py")
   ],
   setup: "uv --version",
   run: "$PYTHON main.py",
   test: "$PYTHON tests.py",
+  verification: {
+    actionId: "test",
+    referenceFiles: { "main.py": "solution.py" }
+  },
   review: "Check correctness, edge cases, and clarity."
 });
 ```
@@ -45,8 +73,35 @@ chapters/
   problems/
     normalize-vector/
       main.py
+      solution.py
       tests.py
 ```
+
+## Runtime Harnesses
+
+Do not avoid `codingProblem(...)` only because the target skill does not have a dedicated runtime configured.
+
+When the learner would benefit from runnable practice, use an available runtime or test harness to exercise the target artifact.
+
+A harness is appropriate when:
+
+- the learner edits one artifact, such as a query, config file, function, command, regex, parser rule, schema, or data transformation
+- tests can load that artifact and check observable behavior
+- the harness can stay secondary to the target skill
+- the prompt can make clear what the learner should edit and what behavior must pass
+
+The learner should not have to learn the harness language to solve the problem. If the harness becomes the main task, the problem is poorly designed.
+
+Examples of acceptable harness patterns:
+
+- SQL query checked by a small database fixture
+- regex checked against matching and non-matching strings
+- JSON/YAML/config checked by a parser and expected fields
+- command-line behavior checked by a script
+- data transformation checked against small input and expected output
+- API handler checked by request/response tests
+
+Do not downgrade runnable practice into prose-only prompts merely because the target language, file type, or tool is not itself configured as a runtime. If execution would meaningfully improve feedback, create a small harness and satisfy the normal verification requirements.
 
 ## Problem Design
 
@@ -90,6 +145,7 @@ The learner should not need to read the tests to discover core requirements.
 Tests may reveal edge cases, but the problem prompt, docstring, or starter comments should state the main behavior needed to solve the task.
 
 A coding problem is under-specified if:
+
 - tests require behavior not mentioned in the prompt
 - starter comments omit an important filter, ordering rule, or return shape
 - the learner must infer the main task from assertion names
@@ -105,16 +161,20 @@ Better:
 
 > Return active products with `price_cents >= 5000` and `created_at >= '2026-02-01'`, ordered by `created_at DESC`.
 
+During review, reject or revise a coding problem when the learner must read the tests to discover core requirements.
+
+Tests may cover edge cases, but they should not be the only place where the main behavior, required inputs, output shape, ordering rule, constraint, or important failure mode appears.
+
 ## Rules
 
-- Prefer real `.py` files over large inline strings.
+- Prefer real source files over large inline strings.
 - Keep `codingProblem(...)` as the manifest: prompt, files, commands, review focus.
 - Mark learner-editable files with `{ editable: true }`.
 - Keep tests visible by default. Hidden files/actions are hidden from the UI, not secret from local source.
 - Use `language` as a runtime/editor hint, not as a restriction. Commands are the source of truth.
 - Use `setup` for dependency checks or environment preparation. It runs before each action in the same temporary project directory.
 - Use `$PYTHON`, `$NODE`, `$TSX`, or custom runtime env vars in commands when helpful.
-- For Python packages, prefer hermetic commands such as `uv run --with mlx python tests.py` over assuming global installs.
+- For package-dependent exercises, prefer hermetic commands such as `uv run --with mlx python tests.py` over assuming global installs.
 - Configure runtime commands in `tutor.config.ts`:
 
 ```ts
@@ -127,7 +187,7 @@ const config = {
 };
 ```
 
-Run `tutor compile` after adding or moving problem files.
+Run `tutor compile` after adding or moving problem files. Run `tutor verify coding-problems --textbook <textbook-id>` after changing starter code, tests, setup, commands, or reference solutions.
 
 ## Review Feedback
 
