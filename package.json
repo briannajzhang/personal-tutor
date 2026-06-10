@@ -1,8 +1,28 @@
 {
   "name": "personal-tutor",
   "version": "0.1.0",
-  "private": true,
+  "description": "Adaptive tutoring skill and Tutor Kit workspace tooling for Codex.",
+  "license": "MIT",
   "type": "module",
+  "bin": {
+    "personal-tutor": "./bin/personal-tutor.js"
+  },
+  "files": [
+    "bin",
+    "skills/personal-tutor",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "codex",
+    "skill",
+    "tutor",
+    "education",
+    "learning"
+  ],
   "workspaces": [
     "packages/*",
     "examples/learner-workspace"
@@ -10,6 +30,7 @@
   "scripts": {
     "build": "rm -rf packages/tutor-kit/dist && tsc -b packages/tutor-kit --force && chmod +x packages/tutor-kit/dist/cli/index.js",
     "build:skill": "npm run build && node scripts/build-skill.mjs",
+    "prepack": "npm run build:skill",
     "test": "npm run build && node --import tsx --test tests/*.test.ts tests/server/*.test.ts",
     "tutor": "tsx packages/tutor-kit/src/cli/index.ts",
     "compile:example": "npm run tutor -- --cwd examples/learner-workspace compile",

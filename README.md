@@ -6,9 +6,41 @@ adaptive tutors.
 The first package in this repo is `personal-tutor`: a Claude/Codex-compatible
 skill plus **Tutor Kit**, a TypeScript SDK/CLI/UI for authoring textbooks as code.
 
+## Install The Skill
+
+After the package is published to npm, install the skill into Codex with:
+
+```bash
+npx personal-tutor@latest
+```
+
+By default this copies the skill to:
+
+```txt
+${CODEX_HOME:-~/.codex}/skills/personal-tutor
+```
+
+Useful options:
+
+```bash
+npx personal-tutor@latest --dry-run
+npx personal-tutor@latest --force
+npx personal-tutor@latest --skills-dir ~/.codex/skills
+```
+
+Use `--force` to replace an existing installed copy. Without `--force`, the
+installer refuses to overwrite local changes.
+
+From a local checkout, test the same installer with:
+
+```bash
+npm exec --package file:. -- personal-tutor --dry-run
+```
+
 ## Repo Shape
 
 ```txt
+bin/personal-tutor.js       npx-friendly skill installer
 skills/personal-tutor/      installable skill
 packages/tutor-kit/         TypeScript SDK, CLI, compile checks, dev server
 examples/learner-workspace/ example workspace authored with Tutor Kit
@@ -26,9 +58,21 @@ npm run build
 npm test
 ```
 
+Refresh the bundled Tutor Kit asset inside the skill:
+
+```bash
+npm run build:skill
+```
+
 Try the example workspace:
 
 ```bash
 npm run tutor -- --cwd examples/learner-workspace compile
 npm run tutor -- --cwd examples/learner-workspace dev
+```
+
+Check the npm package contents before publishing:
+
+```bash
+npm pack --dry-run
 ```
