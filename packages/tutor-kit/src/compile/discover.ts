@@ -130,8 +130,9 @@ function discoverFiles(rootDir: string, pattern: RegExp): string[] {
   return [...files].sort();
 }
 
-export async function loadTextbooks(cwd: string): Promise<TextbookLoadResult> {
+export async function loadTextbooks(cwd: string, options: { textbookId?: string } = {}): Promise<TextbookLoadResult> {
   const root = resolve(cwd);
+  if (options.textbookId) return loadTextbooksUncached(root, options.textbookId);
   const cachedTextbooks = textbookCache.get(root);
   if (cachedTextbooks) return cachedTextbooks;
 
@@ -149,7 +150,7 @@ export async function loadTextbooks(cwd: string): Promise<TextbookLoadResult> {
   }
 }
 
-async function loadTextbooksUncached(cwd: string): Promise<TextbookLoadResult> {
+async function loadTextbooksUncached(cwd: string, textbookId?: string): Promise<TextbookLoadResult> {
   const tsconfig = findTsconfig(cwd) ?? false;
   const importer = createTsImporter(tsconfig);
   try {
@@ -158,7 +159,13 @@ async function loadTextbooksUncached(cwd: string): Promise<TextbookLoadResult> {
     const chapters: LoadedChapter[] = [];
     const issues: ValidationIssue[] = [];
 
-    for (const file of discoverTextbookFiles(workspace.textbooksDir)) {
+    const files = discoverTextbookFiles(workspace.textbooksDir).filter((file) => (
+      !textbookId || file === join(workspace.textbooksDir, textbookId, "textbook.ts") || file === join(workspace.textbooksDir, textbookId, "textbook.tsx")
+    ));
+    if (textbookId && files.length === 0) {
+      issues.push({ message: `Textbook not found: ${textbookId}` });
+    }
+    for (const file of files) {
       try {
         const mod = await importTsModule(importer, pathToFileURL(file).href, import.meta.url) as { default?: unknown };
         const textbook = mod.default;
@@ -241,10 +248,28 @@ export function clearWorkspaceCaches(): void {
 }
 
 function createTsImporter(tsconfig: false | string) {
+  if (hasTsxPreload()) {
+    return {
+      import(specifier: string): Promise<unknown> {
+        const separator = specifier.includes("?") ? "&" : "?";
+        return import(`${specifier}${separator}tutor-kit-import=${importNamespaceCounter += 1}`);
+      },
+      async unregister(): Promise<void> {}
+    };
+  }
   return register({
     namespace: `tutor-kit-${importNamespaceCounter += 1}`,
     tsconfig
   });
+}
+
+function hasTsxPreload(): boolean {
+  return process.execArgv.some((arg, index, args) => (
+    arg === "tsx" ||
+    arg === "tsx/esm" ||
+    arg.startsWith("--import=tsx") ||
+    (arg === "--import" && (args[index + 1] === "tsx" || args[index + 1] === "tsx/esm"))
+  ));
 }
 
 async function importTsModule(

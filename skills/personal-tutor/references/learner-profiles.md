@@ -21,7 +21,7 @@ Optional dimensions when useful:
 - `priorKnowledge`
 - `timeHorizon`
 - `sessionLength`
-- `subjectBias` such as backend, analytics, theory, implementation, or problem solving
+- `subjectBias` such as theory, implementation, analysis, communication, problem solving, or project building
 
 ## Beginner Means
 
@@ -62,7 +62,7 @@ Do not collapse learner level, depth, pace, and practice intensity into one vagu
 - `learnerLevel` controls assumed background.
 - `depth` controls how thoroughly the material explains mechanisms, tradeoffs, and edge cases.
 - `pace` controls how quickly new complexity is introduced.
-- `practiceIntensity` controls how often the learner must retrieve, apply, debug, compare, or create.
+- `practiceIntensity` controls how often the learner must retrieve, apply, debug, compare, classify, or create.
 
 Examples:
 
@@ -74,7 +74,7 @@ Beginner does not imply overview. Advanced does not imply deep. A learner can ne
 
 ## Reasonable Defaults
 
-When the user gives only a topic such as "teach me SQL", assume defaults like:
+When the user gives only a broad topic such as "teach me statistics" or "make a course on databases," assume defaults like:
 
 - learnerLevel: beginner
 - goal: practical fluency
@@ -82,17 +82,27 @@ When the user gives only a topic such as "teach me SQL", assume defaults like:
 - pace: normal
 - practiceIntensity: heavy
 
+For a broad vague request such as "Teach me SQL", "Teach me statistics", or "Teach me databases", do not choose compact, overview, or light-practice defaults unless the user asks for a quick overview, cram plan, or lightweight introduction.
+
+Default broad-topic generation should favor:
+
+- beginner-friendly scaffolding
+- deep mechanism explanation
+- heavy practice
+- cumulative review
+
 When the user explicitly wants lots of exercises, bias toward:
 
 - practiceIntensity: heavy
 - depth: standard or deep
 - pace: gentle or normal
 
-When the user asks for an interview-focused plan, bias toward:
+When the user asks for an interview-focused, exam-focused, or performance-focused plan, bias toward:
 
 - realistic problem solving
 - cumulative review
 - stronger correctness checks
+- mixed practice under review conditions
 
 ## Duration Defaults
 
@@ -112,7 +122,18 @@ For time-based plans, infer or define:
 - review cadence
 - cumulative checkpoints
 
-If the user says only "teach me SQL" or "make a SQL course," use the general broad-subject default: beginner-friendly practical fluency, deep depth, normal or gentle pace, and heavy practice intensity. If the user asks for a "12-week SQL plan," the duration should increase structure, depth, practice, review, and cumulative work, not reduce each week to a paragraph.
+If the user asks for a broad course with no other constraints, use the general broad-subject default: beginner-friendly practical fluency, deep depth, normal or gentle pace, and heavy practice intensity. If the user asks for a multi-week plan, the duration should increase structure, practice, review, and cumulative work, not reduce each week to a paragraph.
+
+## Check And Practice Implications
+
+Use the learner profile to adjust check density and practice format.
+
+- Heavier practice intensity should usually mean more local checks, more concrete practice, and more cumulative review.
+- Deeper treatment should usually include more misconception checks and more transfer questions.
+- Gentler pace should usually include more guided checks before independent practice.
+- Interview, exam, or performance goals should usually include more mixed review and practice-test chapters when the textbook is long enough.
+
+Use a mix of check formats that fits the learner profile and subject: quizzes for fast diagnosis, and concrete tasks when the learner needs to produce or apply something.
 
 ## Output Implications
 

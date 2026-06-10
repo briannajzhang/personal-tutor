@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -56,4 +56,43 @@ export default textbook({
   const result = await compileWorkspace(dir);
   assert.equal(result.ok, false);
   assert.match(result.output, /Duplicate block id: same/);
+});
+
+test("targeted compile ignores unrelated broken textbooks", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
+  initWorkspace(dir);
+  linkTutorKit(dir);
+  mkdirSync(join(dir, "textbooks", "broken"), { recursive: true });
+  writeFileSync(join(dir, "textbooks", "broken", "textbook.ts"), "import missing from './missing.js'; export default missing;\n");
+
+  const result = await compileWorkspace(dir, { textbookId: "getting-started" });
+  assert.equal(result.ok, true, result.output);
+  assert.match(result.output, /scope: textbook getting-started/);
+  assert.equal(result.textbookCount, 1);
+});
+
+test("compile rejects textbooks that fail learning heuristics", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
+  initWorkspace(dir);
+  linkTutorKit(dir);
+  writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), `import { chapter, p, section } from "tutor-kit";
+export default chapter({
+  id: "welcome",
+  title: "Welcome",
+  sections: [section({
+    id: "only-section",
+    title: "Only Section",
+    blocks: [
+      p({ id: "one", body: "Explanation one." }),
+      p({ id: "two", body: "Explanation two." }),
+      p({ id: "three", body: "Explanation three." }),
+      p({ id: "four", body: "Explanation four." })
+    ]
+  })]
+});
+`);
+
+  const result = await compileWorkspace(dir);
+  assert.equal(result.ok, false, result.output);
+  assert.match(result.output, /exposition-heavy/);
 });

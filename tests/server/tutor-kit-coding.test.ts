@@ -20,6 +20,7 @@ test("coding problems run commands and persist drafts", async () => {
   const problemDir = join(dir, "textbooks", "getting-started", "chapters", "problems", "add-one");
   mkdirSync(problemDir, { recursive: true });
   writeFileSync(join(problemDir, "main.py"), "def add_one(x):\n    return x\n\nif __name__ == \"__main__\":\n    print(add_one(1))\n");
+  writeFileSync(join(problemDir, "solution.py"), "def add_one(x):\n    return x + 1\n");
   writeFileSync(join(problemDir, "tests.py"), "from main import add_one\nassert add_one(2) == 3\nprint(\"ok\")\n");
   writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), `import { chapter, codingProblem, projectFiles, section } from "tutor-kit";
 
@@ -40,11 +41,13 @@ export default chapter({
           language: "python",
           files: [
             project.file("main.py", { editable: true }),
+            project.file("solution.py", { hidden: true }),
             project.file("tests.py")
           ],
           setup: "$PYTHON -c \\"print('setup ok')\\"",
           run: "$PYTHON main.py",
           test: "$PYTHON tests.py",
+          verification: { actionId: "test", referenceFiles: { "main.py": "solution.py" } },
           review: "Check the implementation."
         })
       ]

@@ -59,11 +59,11 @@ Avoid sentences where the learner must already understand the term in order to u
 
 Weak:
 
-> Normalization can sound abstract until repeated facts start disagreeing with each other.
+> Photosynthesis converts light into energy.
 
 Better:
 
-> Normalization means designing tables so each fact is stored in one appropriate place. For example, a customer's email should usually live in the `customers` table, not be copied into every order row. If the email is copied into many rows, one missed update can leave two different emails for the same customer.
+> Photosynthesis is the process plants use to turn light, water, and carbon dioxide into sugar they can store and use. The light does not become energy by magic; it powers a set of chemical reactions that build sugar molecules.
 
 ## Explain Mechanisms, Not Just Claims
 
@@ -71,19 +71,19 @@ Do not make abstract claims without explaining the concrete mechanism or consequ
 
 Weak:
 
-> Foreign keys protect relationships.
+> Evidence supports an argument.
 
 Better:
 
-> A foreign key is a rule that says values in one column must match existing rows in another table. If `orders.customer_id` references `customers.customer_id`, the database rejects an order whose customer does not exist. That prevents rows from pointing to missing records.
+> Evidence supports an argument when it gives the reader a concrete reason to believe the claim. If the claim is that a policy reduced traffic, useful evidence might show traffic counts before and after the policy changed.
 
 Weak:
 
-> Joins can create surprising results.
+> Negative slopes can be confusing.
 
 Better:
 
-> A join creates one output row for each matching pair of rows. If one customer matches three orders, that customer appears in three joined rows. The repeated customer values are not automatically a mistake; they reflect the one-to-many relationship.
+> A negative slope means y decreases as x increases. On a graph, the line moves downward as you read it from left to right.
 
 ## Contrast the Wrong Model With the Better Model
 
@@ -93,19 +93,19 @@ Do not only state the correct definition. Explain what the learner might incorre
 
 Weak:
 
-> Joins combine data from multiple tables.
+> Correlation does not prove causation.
 
 Better:
 
-> A join does not simply glue two tables together. It creates one output row for each pair of rows that satisfies the match condition. If one customer matches three orders, that customer appears in three output rows.
+> Correlation means two things move together, but it does not prove one caused the other. Ice cream sales and swimming accidents may both rise in summer because hot weather affects both. The shared pattern alone does not show that ice cream causes accidents.
 
 Weak:
 
-> Indexes make queries faster.
+> An index makes searching faster.
 
 Better:
 
-> An index is not a magic speed switch. It is a separate lookup structure that helps the database find matching rows without scanning every row in the table. It speeds up some reads, but it also adds work when rows are inserted, updated, or deleted.
+> An index is not a magic speed switch. It is a separate lookup structure that can help a system find matching records without scanning everything. It speeds up some reads, but it adds maintenance work when data changes.
 
 Use this pattern especially when the learner is likely to have a plausible but incomplete mental model.
 
@@ -113,7 +113,7 @@ Use this pattern especially when the learner is likely to have a plausible but i
 
 A teaching section should feel like one continuous explanation, not a set of related notes.
 
-Each paragraph, callout, code block, table, or question should have a clear job:
+Each paragraph, callout, code block, table, diagram, notation block, or question should have a clear job:
 
 * introduce a problem
 * define a term
@@ -122,37 +122,37 @@ Each paragraph, callout, code block, table, or question should have a clear job:
 * name a common mistake
 * ask the learner to apply the idea
 
-Do not drop in a code block, callout, table, or question without context.
+Do not drop in a code block, callout, table, diagram, notation block, or question without context.
 
 Before an example, tell the learner what to look for.
 After an example, explain what happened and why it matters.
 
 Weak flow:
 
-1. Explain joins.
-2. Show a SQL query.
-3. Add a callout about multiplicity.
+1. Explain slope.
+2. Show the formula.
+3. Add a callout about negative slopes.
 4. Ask questions.
 
 Better flow:
 
-1. Explain that joins create row pairs.
-2. Show a tiny case where one customer has two orders.
-3. Ask the learner to predict the number of output rows.
-4. Show the SQL query.
-5. Walk through why the customer appears twice.
-6. State the general rule about multiplicity.
-7. Ask the learner to apply the rule to a new case.
+1. Explain that slope compares vertical change to horizontal change.
+2. Show two points on a line.
+3. Ask the learner to identify the rise and run.
+4. Show the formula.
+5. Walk through why the numerator is vertical change.
+6. State the common trap of swapping rise and run.
+7. Ask the learner to apply the rule to a new pair of points.
 
 ## Code, Notation, and Semantic Blocks
 
 Use code and notation to clarify an idea, not to decorate the page.
 
-If you include a `codeBlock`, `mathBlock`, query, schema, table, or formal notation, the surrounding prose should do at least one of these:
+If you include a `codeBlock`, `mathBlock`, query, schema, table, diagram, or formal notation, the surrounding prose should do at least one of these:
 
 * define unfamiliar syntax before the example
 * tell the learner what to inspect
-* walk through the important lines or symbols after the example
+* walk through the important lines, symbols, cells, or labels after the example
 * explain what would change or break if one important part were removed or changed
 
 If the example is not explained, shorten it or remove it.
@@ -160,12 +160,65 @@ If the example is not explained, shorten it or remove it.
 Use semantic blocks as teaching moves:
 
 * `p` should introduce, define, explain, or connect ideas
-* `codeBlock` should make a mechanism visible
+* `codeBlock` should make a mechanism visible when exact code matters
 * `mathBlock` should clarify a relationship that prose alone would make harder to see
 * `callout` should protect the learner from a mistake, boundary, or tempting wrong model
 * `list` should help the learner compare, recall, predict, debug, or apply
 
 A block should earn its place by making the learner understand or do something more clearly.
+
+## Quiz and Check Writing Style
+
+This section governs quiz wording. For where quizzes belong and which quiz mode to use, follow `lesson-authoring.md`.
+
+Prompts should be concrete and scenario-based. Prefer questions that ask the learner to predict, classify, debug, compare, or apply a concept.
+
+Weak:
+
+> What is slope?
+
+Better:
+
+> A line moves 3 units up every time it moves 1 unit right. What does that tell you about its slope?
+
+Weak:
+
+> Why is evidence useful?
+
+Better:
+
+> A paragraph claims that a new bus lane reduced commute times. Which evidence would most directly support that claim?
+
+Choices should include plausible distractors based on real learner mistakes.
+
+Avoid:
+
+- joke answers
+- obviously impossible answers
+- choices that differ only by wording
+- choices where more than one answer could reasonably be defended
+- distractors that test reading tricks instead of the concept
+
+Explanations should teach:
+
+- State why the correct answer is correct.
+- Explain the underlying concept or mechanism.
+- If a wrong answer is tempting, name the misconception.
+- Do not merely restate the selected answer.
+
+Avoid predictable answer-position patterns across a quiz. Do not let learners succeed by guessing the same choice position repeatedly.
+
+Weak explanation:
+
+> The answer is B because B is correct.
+
+Weak explanation:
+
+> Correct, because this is the definition.
+
+Better explanation:
+
+> The evidence needs to test the claim directly. If the claim is about commute times, before-and-after commute data is stronger than a general statement that bus lanes are helpful.
 
 ## No Floating Insight
 
@@ -184,11 +237,11 @@ If a sentence only says that something is important, difficult, abstract, powerf
 
 Weak:
 
-> A learner can understand SQL ideas in theory and still lose time because the environment feels opaque.
+> A learner can understand an idea in theory and still lose time because the environment feels opaque.
 
 Better:
 
-> SQL errors can be hard to debug because the database usually tells you where parsing failed, not what mental model was wrong. If a query with a `JOIN` returns too many rows, the database will not say, "Your join matched multiple orders per customer." You have to inspect the data shape yourself.
+> A learner may know the formula for slope but still get the wrong answer if they choose the points in the wrong order or divide horizontal change by vertical change. The mistake is not the formula itself; it is misidentifying the two changes the formula compares.
 
 ## Avoid Template Prose
 
@@ -231,15 +284,29 @@ Avoid prose that is:
 
 If a sentence could be pasted into a lesson about almost any topic, it is probably too generic.
 
+## Number Style
+
+Use numerals for technical values, counts, dimensions, thresholds, scores, quiz choice counts, and code/data values.
+
+Examples:
+
+- 3 rows
+- 4 choices
+- 60-90 minutes
+- 2 sections
+- `score >= 80`
+
+Use words when the number is part of ordinary prose and precision does not matter.
+
 ## Bad vs Better
 
 Weak:
 
-> Joins combine data from multiple tables. A primary key uniquely identifies a row. A foreign key refers to a primary key in another table. Joins are important in relational databases.
+> Slope is important in math. It tells you how steep a line is. You should understand rise over run.
 
 Better:
 
-> A join helps you answer questions that need data from more than one table. Suppose one table lists students and another lists enrollments. If you want to know which classes Maya is taking, SQL has to connect Maya's row to the matching enrollment rows. It usually makes that connection with IDs. The primary key is the ID that uniquely identifies a row, such as `students.student_id`. The foreign key stores that ID in another table, such as `enrollments.student_id`. If you match the wrong columns, the query may still run, but the answer will be wrong.
+> Slope compares vertical change to horizontal change. If a line moves 6 units up while moving 3 units right, its slope is 6 / 3, or 2. That means y increases by 2 each time x increases by 1.
 
 Weak:
 
@@ -251,11 +318,11 @@ Better:
 
 Weak:
 
-> Caching is useful because it improves performance and reduces repeated work.
+> Evidence is useful because it makes arguments stronger.
 
 Better:
 
-> A cache stores a result so the system can reuse it instead of recomputing or refetching it. For example, if a product page asks for the same product details many times, the app can keep the result in memory and serve later requests faster. The tradeoff is staleness: the cached value may no longer match the source of truth.
+> Evidence makes an argument stronger when it directly tests the claim. If the claim is that a medicine lowered fever, the strongest evidence would compare temperatures before and after treatment, not simply say the medicine is popular.
 
 Use the better pattern as the default:
 
@@ -274,7 +341,7 @@ Before finalizing a chapter or subsection, ask:
 * Does each paragraph have a clear teaching job?
 * Does the explanation show how or why, not just that something matters?
 * Is there a concrete example, mechanism, or scenario?
-* If there is code or notation, is it introduced and interpreted?
+* If there is code, notation, table, diagram, or formal representation, is it introduced and interpreted?
 * Does every callout protect the learner from a mistake, boundary, or tempting wrong model?
 * Does the section flow from one teaching move to the next?
 * Does this section sound distinct from the last one, or does it feel like the same template reused?

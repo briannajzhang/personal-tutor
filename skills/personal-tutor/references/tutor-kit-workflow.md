@@ -9,10 +9,13 @@ tutor init
 tutor --package-spec file:/path/to/tutor-kit init
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
-tutor add block <p|heading|list|codeBlock|mathBlock|callout|codingProblem>
+tutor add block <p|heading|list|codeBlock|mathBlock|callout|quiz|codingProblem>
 tutor list textbooks
 tutor inspect textbook <id>
 tutor compile
+tutor compile --textbook <textbook-id>
+tutor verify coding-problems
+tutor verify coding-problems --textbook <textbook-id>
 tutor dev
 ```
 
@@ -29,7 +32,14 @@ Use `--package-spec` during local dogfooding when Tutor Kit is installed from a 
 6. Put content in chapter `sections` and `subsections` using semantic `blocks`.
 7. Run `tutor compile`.
 8. Fix TypeScript or Tutor Kit validation errors.
-9. Run `tutor dev` when the user wants the local UI.
+
+   If unrelated incomplete textbooks block full workspace compile, use `tutor compile --textbook <textbook-id>` while repairing the generated textbook. Record that result as targeted compile evidence only. A targeted compile proves the selected textbook is usable in isolation; it does not prove the whole workspace is healthy.
+
+9. When the textbook contains coding problems, run `tutor verify coding-problems --textbook <textbook-id>` and fix any verification issues.
+
+10. Before claiming the workspace is fully healthy, run full `tutor compile`.
+
+11. Run `tutor dev` when the user wants the local UI.
 
 ## Workspace Files
 

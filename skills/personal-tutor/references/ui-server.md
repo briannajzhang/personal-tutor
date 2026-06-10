@@ -9,6 +9,8 @@ Use `tutor dev` to start the local Tutor UI.
 - Serves a textbook dashboard and chapter reader.
 - Renders semantic blocks.
 - Runs `codingProblem` actions in temporary local project directories.
+- Persists current quiz selections and submitted attempt history under `tutor-data/quiz-state/`.
+- Appends lightweight `quiz_checked` events to `tutor-data/events.jsonl`.
 - Reads coding feedback from `tutor-data/feedback/...` when present.
 - Appends learner activity to `tutor-data/events.jsonl`.
 

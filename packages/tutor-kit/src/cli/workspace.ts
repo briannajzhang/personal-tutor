@@ -8,6 +8,7 @@ import {
   welcomeTextbookTemplate,
   welcomeChapterTemplate,
   welcomeProblemMainTemplate,
+  welcomeProblemSolutionTemplate,
   welcomeProblemTestsTemplate
 } from "../templates/workspace.js";
 import {
@@ -39,6 +40,7 @@ export function initWorkspace(cwd: string, options: InitWorkspaceOptions = {}): 
   writeIfMissing(join(cwd, "textbooks", "getting-started", "textbook.ts"), welcomeTextbookTemplate(), result);
   writeIfMissing(join(cwd, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), welcomeChapterTemplate(), result);
   writeIfMissing(join(cwd, "textbooks", "getting-started", "chapters", "problems", "classify-workspace-paths", "main.py"), welcomeProblemMainTemplate(), result);
+  writeIfMissing(join(cwd, "textbooks", "getting-started", "chapters", "problems", "classify-workspace-paths", "solution.py"), welcomeProblemSolutionTemplate(), result);
   writeIfMissing(join(cwd, "textbooks", "getting-started", "chapters", "problems", "classify-workspace-paths", "tests.py"), welcomeProblemTestsTemplate(), result);
   writeIfMissing(join(cwd, "tutor", "registry.ts"), registryTemplate(), result);
   writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);

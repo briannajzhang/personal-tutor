@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
 import { compileWorkspace } from "../compile/compile.js";
+import { verifyCodingProblems } from "../compile/verify-coding.js";
 import { loadTextbooks } from "../compile/discover.js";
 import { startDevServer } from "../server/server.js";
 import { addBlock, addChapter, addTextbook, initWorkspace, printWriteResult } from "./workspace.js";
@@ -9,6 +10,7 @@ interface ParsedArgs {
   cwd: string;
   port: number;
   packageSpec?: string;
+  textbookId?: string;
   command: string[];
 }
 
@@ -76,7 +78,14 @@ async function main(): Promise<void> {
   }
 
   if (command === "compile") {
-    const result = await compileWorkspace(args.cwd);
+    const result = await compileWorkspace(args.cwd, { textbookId: args.textbookId });
+    console.log(result.output);
+    process.exitCode = result.ok ? 0 : 1;
+    return;
+  }
+
+  if (command === "verify" && subcommand === "coding-problems") {
+    const result = await verifyCodingProblems(args.cwd, { textbookId: args.textbookId });
     console.log(result.output);
     process.exitCode = result.ok ? 0 : 1;
     return;
@@ -96,6 +105,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   let cwd = process.cwd();
   let port = 4177;
   let packageSpec: string | undefined = process.env.TUTOR_KIT_PACKAGE_SPEC;
+  let textbookId: string | undefined;
   const command: string[] = [];
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -119,10 +129,16 @@ function parseArgs(argv: string[]): ParsedArgs {
       packageSpec = value;
       continue;
     }
+    if (arg === "--textbook") {
+      const value = argv[++i];
+      if (!value) throw new Error("--textbook requires an id");
+      textbookId = value;
+      continue;
+    }
     command.push(arg);
   }
 
-  return { cwd: resolve(cwd), port, packageSpec, command };
+  return { cwd: resolve(cwd), port, packageSpec, textbookId, command };
 }
 
 function titleFromId(id: string): string {
@@ -144,7 +160,8 @@ Usage:
   tutor [--cwd path] add block <p|heading|list|codeBlock|mathBlock|callout|codingProblem>
   tutor [--cwd path] list textbooks
   tutor [--cwd path] inspect textbook <id>
-  tutor [--cwd path] compile
+  tutor [--cwd path] compile [--textbook textbook-id]
+  tutor [--cwd path] verify coding-problems [--textbook textbook-id]
   tutor [--cwd path] dev [--port 4177]
 `;
 }

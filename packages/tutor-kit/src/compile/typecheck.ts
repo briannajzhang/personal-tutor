@@ -6,7 +6,7 @@ export interface TypecheckResult {
   messages: string[];
 }
 
-export function typecheckWorkspace(cwd: string): TypecheckResult {
+export function typecheckWorkspace(cwd: string, rootFiles?: string[]): TypecheckResult {
   const configPath = ts.findConfigFile(cwd, ts.sys.fileExists, "tsconfig.json");
   if (!configPath) {
     return {
@@ -38,7 +38,7 @@ export function typecheckWorkspace(cwd: string): TypecheckResult {
     };
   }
 
-  const program = ts.createProgram(parsed.fileNames, parsed.options);
+  const program = ts.createProgram(rootFiles ?? parsed.fileNames, parsed.options);
   const diagnostics = ts.getPreEmitDiagnostics(program);
   return {
     ok: diagnostics.length === 0,

@@ -17,6 +17,11 @@ import type {
   MathBlock,
   ParagraphBlock,
   ParagraphProps,
+  QuizBlock,
+  QuizChoice,
+  QuizDifficulty,
+  QuizMode,
+  QuizQuestion,
   Section,
   Subsection,
   Textbook,
@@ -116,8 +121,32 @@ interface CodingProblemInput extends BlockInput {
   test?: CodingProblemCommandValue;
   commands?: Record<string, CodingProblemCommandValue>;
   actions?: Array<CodingProblemCommandInput & { id: string }>;
+  verification?: {
+    actionId: string;
+    referenceFiles: Record<string, string>;
+  };
   review?: string;
   reviewPrompt?: string;
+}
+
+interface QuizChoiceInput {
+  id: string;
+  body: string;
+}
+
+interface QuizQuestionInput extends BlockInput {
+  prompt: string;
+  choices: QuizChoiceInput[];
+  answer: string;
+  explanation: string;
+  tags?: string[];
+  difficulty?: QuizDifficulty;
+}
+
+interface QuizInput extends BlockInput {
+  title: string;
+  mode?: QuizMode;
+  questions: QuizQuestionInput[];
 }
 
 interface LegacyExplanationInput extends ParagraphInput {
@@ -255,7 +284,23 @@ export function codingProblem(input: CodingProblemInput): CodingProblemBlock {
       files: input.files.map(normalizeProblemFile),
       setup: input.setup === undefined ? undefined : normalizeCodingAction("setup", input.setup, "Setup", "setup"),
       actions: normalizeCodingActions(input),
+      verification: input.verification === undefined ? undefined : {
+        actionId: requireText(input.verification.actionId, "codingProblem.verification.actionId"),
+        referenceFiles: { ...input.verification.referenceFiles }
+      },
       review: input.review ?? input.reviewPrompt
+    }
+  };
+}
+
+export function quiz(input: QuizInput): QuizBlock {
+  return {
+    kind: "quiz",
+    id: requireText(input.id, "quiz.id"),
+    props: {
+      title: requireText(input.title, "quiz.title"),
+      mode: input.mode ?? "check",
+      questions: input.questions.map(normalizeQuizQuestion)
     }
   };
 }
@@ -282,6 +327,25 @@ export function projectFiles(baseUrl: string, dir: string): {
     inline(path: string, content: string, options: CodingProblemFileOptions = {}): CodingProblemFile {
       return normalizeProblemFile({ path, content, ...options });
     }
+  };
+}
+
+function normalizeQuizQuestion(input: QuizQuestionInput): QuizQuestion {
+  return {
+    id: requireText(input.id, "quiz.questions[].id"),
+    prompt: requireText(input.prompt, "quiz.questions[].prompt"),
+    choices: input.choices.map(normalizeQuizChoice),
+    answer: requireText(input.answer, "quiz.questions[].answer"),
+    explanation: requireText(input.explanation, "quiz.questions[].explanation"),
+    tags: input.tags ?? [],
+    difficulty: input.difficulty
+  };
+}
+
+function normalizeQuizChoice(input: QuizChoiceInput): QuizChoice {
+  return {
+    id: requireText(input.id, "quiz.questions[].choices[].id"),
+    body: requireText(input.body, "quiz.questions[].choices[].body")
   };
 }
 

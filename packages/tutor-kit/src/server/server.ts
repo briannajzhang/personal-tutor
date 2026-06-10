@@ -7,6 +7,7 @@ import { monacoAssetPath } from "../ui/monaco-assets.js";
 import { invalidateWorkspaceCaches, loadTextbooks, resolveWorkspace, type WorkspacePaths } from "../compile/discover.js";
 import { summarizeChapter, summarizeTextbook } from "../core/validation.js";
 import { loadCodingDraft, loadCodingFeedback, runCodingProblem, saveCodingDraft } from "./coding.js";
+import { loadQuizState, saveQuizState, submitQuizAttempt } from "./quizzes.js";
 
 export interface DevServerOptions {
   cwd: string;
@@ -177,6 +178,21 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
 
   if (request.method === "PUT" && url.pathname === "/api/coding/draft") {
     sendJson(response, 200, await saveCodingDraft(cwd, await readJson(request)));
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/quiz/state") {
+    sendJson(response, 200, await loadQuizState(cwd, url.searchParams));
+    return;
+  }
+
+  if (request.method === "PUT" && url.pathname === "/api/quiz/state") {
+    sendJson(response, 200, await saveQuizState(cwd, await readJson(request)));
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/quiz/attempt") {
+    sendJson(response, 201, await submitQuizAttempt(cwd, await readJson(request)));
     return;
   }
 
