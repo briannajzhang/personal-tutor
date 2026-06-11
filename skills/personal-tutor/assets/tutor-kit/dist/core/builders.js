@@ -28,6 +28,7 @@ export function section(input) {
         title: requireText(input.title, "section.title"),
         description: input.description,
         tags: input.tags ?? [],
+        role: input.role,
         blocks: input.blocks ?? input.widgets ?? [],
         subsections: input.subsections ?? []
     };
@@ -38,6 +39,7 @@ export function chapter(input) {
         title: requireText(input.title, "chapter.title"),
         description: input.description,
         tags: input.tags ?? [],
+        role: input.role,
         sections: input.sections ?? []
     };
 }

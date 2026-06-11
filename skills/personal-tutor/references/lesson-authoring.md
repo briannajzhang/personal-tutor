@@ -9,7 +9,7 @@ Chapters are usually separate modules in `textbooks/<textbook-id>/chapters/*.cha
 - Authoring rules
 - Canonical learning contract
 - Chapter structure and required anatomy
-- Practice taxonomy and quiz usage
+- Teaching readiness, practice taxonomy, and quiz usage
 - Quantitative guidance and recommended shapes
 - Anti-patterns and final quality check
 
@@ -203,6 +203,20 @@ Use sections and subsections to reflect the teaching plan, not just the schema.
 - Do not collapse concept introduction, worked example, practice, and recap into one flat section unless the lesson is intentionally very small.
 - If every chapter in a textbook ends up with the same exact shape, stop and ask whether the structure matches the content or just your template.
 
+For generated textbooks, use semantic roles to identify purpose without forcing a fixed section count:
+
+```ts
+chapter({ role: "instruction", ... })
+section({ role: "instruction", ... })
+section({ role: "practice", ... })
+section({ role: "review", ... })
+
+chapter({ role: "cumulative-checkpoint", ... })
+section({ role: "assessment", ... })
+```
+
+Roles describe teaching purpose. They do not require every instructional chapter to have the same number or order of non-review sections.
+
 ## Required Chapter Anatomy
 
 Non-trivial chapters should contain these teaching moves somewhere in their structure:
@@ -217,11 +231,11 @@ Non-trivial chapters should contain these teaching moves somewhere in their stru
 - an end-of-chapter review or mastery check, usually as `quiz({ mode: "review" })` when multiple choice fits
 - at least one misconception, trap, or boundary case
 
-Every few chapters should also include:
+Across a longer textbook, also include when appropriate:
 
 - cumulative mixed practice
 - a short synthesis or mini-project when appropriate
-- a practice-test chapter or cumulative check when the textbook is long enough
+- a dedicated practice-test chapter when mixed cumulative assessment is warranted
 
 These moves do not have to appear as separate headings, but they should all be present in the chapter.
 
@@ -244,6 +258,16 @@ For examples involving data, code, math, diagrams, text, evidence, or other arti
 - Cumulative mixed practice: requires reuse of earlier material, not only the newest concept.
 
 If a chapter is missing several of these moves, it is probably an outline, not a strong learning unit.
+
+## Teach The Moves You Assess
+
+A chapter does not teach a mechanism merely by naming it. Any mechanism required by independent practice, chapter review, or mastery assessment should first be:
+
+1. defined or framed plainly
+2. demonstrated through an inspectable example
+3. used in guided practice or a local check
+
+An intentionally difficult transfer task may combine previously taught mechanisms, but it should not silently introduce a new required technique.
 
 ## Practice Taxonomy
 
@@ -293,19 +317,25 @@ Quizzes should appear in three places:
 
 2. **Chapter review quizzes**
 
-- Placement: final review or mastery-check section of a chapter.
+- Placement: dedicated final review or mastery-check section of a non-trivial instructional chapter.
 - Mode: `"review"`
 - Size: 4-8 questions.
 - Purpose: retrieval practice across the chapter.
 
-Substantial chapter reviews should usually have a dedicated section or an explicit transition. The learner should be able to tell when the chapter is moving from instruction or practice into review.
+Every non-trivial instructional chapter should have a dedicated final `review` section. It may include a short review introduction, retrieval prompts, mastery checks, and one review quiz when multiple choice fits. It must not double as the chapter's primary independent-practice section.
+
+Review questions should assess the current chapter's outcomes. Normally use new scenarios, applications, or comparisons instead of duplicating local checks verbatim. Provide all context needed to answer without reconstructing an earlier example. Direct repetition is appropriate when deliberately retrieving a fundamental concept.
 
 3. **Practice-test chapters**
 
 - Placement: after a cluster of chapters, at the end of a module, or at the end of the textbook.
 - Mode: `"practice-test"`
-- Size: usually 10-25 questions for full practice-test chapters; shorter cumulative checks may use 8-9 questions when the textbook is small.
-- Purpose: mixed review with local scoring.
+- Size: 10-25 questions.
+- Purpose: mixed transfer across several earlier chapters with local scoring.
+
+Practice tests are optional and must earn their inclusion. Put them in dedicated `cumulative-checkpoint` chapters with an `assessment` section, not at the end of an instructional chapter. They should require the learner to choose and combine earlier ideas without being told which chapter or technique applies. Provide enough local context for every question.
+
+Each practice-test chapter should include at least one non-quiz cumulative task, such as synthesis, diagnosis, comparison, design, explanation, or runnable practice. It should not introduce new central mechanisms or contain a chapter-review quiz. Do not add a practice test merely because the textbook reached a particular chapter count.
 
 The mode distinction matters:
 
@@ -314,6 +344,14 @@ The mode distinction matters:
 - `"practice-test"` = mixed cumulative assessment
 
 Do not use these modes interchangeably.
+
+## Practice And Review Transitions
+
+Written tasks and coding problems may share a `practice` section when they reinforce the same learner move. Introduce each task so the learner knows whether it is a model-supported exercise, runnable implementation, debugging task, or independent transfer. Separate unrelated tasks instead of placing them next to one another.
+
+Retrieval prompts belong in the final `review` section. Introduce them with a short framing block that tells the learner whether to recall, explain, diagnose, or transfer without looking back.
+
+After an interactive or runnable task, add a transition before switching to a different scenario, retrieval, review, or assessment activity.
 
 Use quizzes for checks like:
 
@@ -418,7 +456,8 @@ Example:
 - Section 1: learner problem, concept introduction, and concept check
 - Section 2: worked example and guided practice
   Add a subsection for the misconception, edge case, or a second example
-- Section 3: independent practice and chapter review quiz
+- Section 3: independent practice
+- Final section: chapter review and mastery check
 
 ### Larger Chapter
 
@@ -432,7 +471,8 @@ Example:
 - Section 1: central concept and local concept check
 - Section 2: mechanism and example
 - Section 3: second related concept or comparison
-- Section 4: cumulative practice and review quiz
+- Section 4: cumulative practice
+- Final section: chapter review and mastery check
 
 ## Anti-Patterns
 
@@ -450,6 +490,9 @@ Avoid these common weak structures:
 - worked examples embedded as one small block inside a section that is really doing three jobs at once
 - quizzes used as decoration rather than diagnosis or retrieval
 - practice-test chapters that only review the immediately preceding chapter
+- practice tests appended to instructional chapters
+- practice-test chapters that contain only another quiz without mixed transfer or a non-quiz cumulative task
+- chapter reviews that repeat local checks without new context or deliberate fundamental retrieval
 
 If the structure looks clean but does not help the learner navigate the lesson, rewrite it.
 
@@ -465,5 +508,9 @@ Before finalizing, ask:
 - Does the chapter end with a meaningful review or mastery check?
 - Are earlier ideas reused later?
 - Does the textbook include cumulative mixed practice?
-- For longer textbooks, is there at least one practice-test chapter?
+- When a practice-test chapter is present, does it earn its inclusion through mixed transfer and non-quiz cumulative practice?
 - Does the artifact teach toward mastery or just coverage?
+
+## Chapter Descriptions
+
+Use chapter descriptions consistently within a textbook. When used, every non-trivial chapter should include one concise learner-facing description stating the capability or problem addressed rather than repeating the title.

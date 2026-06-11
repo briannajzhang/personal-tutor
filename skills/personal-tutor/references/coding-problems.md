@@ -117,6 +117,37 @@ Do not downgrade runnable practice into prose-only prompts merely because the ta
 
 Design coding problems around learner actions, not topic labels.
 
+## Preserve The Central Learner Move
+
+Classify each task during planning:
+
+- `construct`: the learner writes the central logic
+- `debug`: the learner diagnoses and repairs a realistic failure
+- `complete`: the learner fills a deliberately limited missing piece
+- `extend`: the learner adds behavior to a working artifact
+
+The prompt and starter should match the classification. Expose the environment, available interface, input shape, execution context, and expected result needed to begin. Do not provide the central reasoning the task claims to assess. If most of the target mechanism is already present, describe the task honestly as debugging or completion rather than independent construction.
+
+Make the classification clear in learner-facing wording:
+
+- debug prompts identify what is wrong and what correct behavior should replace it
+- complete prompts identify the deliberately missing part
+- construct prompts provide context and expected behavior without starting the central solution
+- extend prompts identify existing behavior and the new capability to add
+
+For each planned coding problem, identify:
+
+- task classification
+- central learner move
+- context supplied to reduce setup uncertainty
+- logic deliberately omitted from the starter
+
+Starter files should reflect the learner profile. A placeholder such as `SELECT 1` or an empty function is insufficient when the learner must inspect tests to reconstruct the environment or discover how to begin. A nearly complete solution is also insufficient when the task claims to assess independent construction.
+
+Surrounding prose should explain why the learner is doing the problem and which mechanism it exercises. Do not merely restate the coding prompt.
+
+A coding problem should not be inserted solely to satisfy compile. It must reinforce a central or cumulative learner move identified in the chapter spec. Follow-up tasks should interpret, extend, debug, or retrieve from the coding problem rather than appearing as an unrelated list.
+
 Weak:
 
 > Practice using arrays.

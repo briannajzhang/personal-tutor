@@ -22,6 +22,8 @@ import type {
   QuizDifficulty,
   QuizMode,
   QuizQuestion,
+  ChapterRole,
+  SectionRole,
   Section,
   Subsection,
   Textbook,
@@ -39,6 +41,7 @@ interface SubsectionInput {
 }
 
 interface SectionInput extends SubsectionInput {
+  role?: SectionRole;
   subsections?: Subsection[];
 }
 
@@ -47,6 +50,7 @@ interface ChapterInput {
   title: string;
   description?: string;
   tags?: string[];
+  role?: ChapterRole;
   sections?: Section[];
 }
 
@@ -183,6 +187,7 @@ export function section(input: SectionInput): Section {
     title: requireText(input.title, "section.title"),
     description: input.description,
     tags: input.tags ?? [],
+    role: input.role,
     blocks: input.blocks ?? input.widgets ?? [],
     subsections: input.subsections ?? []
   };
@@ -194,6 +199,7 @@ export function chapter(input: ChapterInput): Chapter {
     title: requireText(input.title, "chapter.title"),
     description: input.description,
     tags: input.tags ?? [],
+    role: input.role,
     sections: input.sections ?? []
   };
 }

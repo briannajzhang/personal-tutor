@@ -60,7 +60,7 @@ Before writing chapter prose, sketch the plan:
 - prerequisite flow
 - major review points
 - cumulative tasks or checkpoints
-- planned cumulative practice-test points, when the textbook is long enough
+- planned cumulative practice-test chapters, when mixed cumulative assessment is warranted
 
 The map can be brief, but it should be real. Do not skip directly to prose blocks if the sequence is still fuzzy.
 
@@ -97,6 +97,10 @@ Before chapter generation, inspect the map for:
 - missing bridge concepts that would make later chapters feel abrupt
 - sensible placement for cumulative review or practice tests
 
+Audit the requirements of each chapter's independent practice, mastery check, and runnable problems against the curriculum sequence. Move the task, move the prerequisite concept, or add explicit teaching and guided practice before prose generation.
+
+Audit scope against intended depth. Scope should be small enough to teach the central mechanisms with explanation, inspectable examples, learner action, and useful checks. Let chapter complexity determine explanation, example, practice, and check density. Do not force simpler and more complex chapters into uniform length or structure. Split or narrow overloaded chapters before authoring.
+
 If the map feels like a table of contents instead of a learning path, revise it before generating chapters.
 
 ## Phase 6: Duration And Pacing
@@ -130,6 +134,14 @@ Each chapter spec should include:
 - assessment plan
 - cumulative review target, when relevant
 - mastery check
+
+For generated textbooks, reject incomplete or compressed chapter specs before prose generation. Every non-trivial chapter spec must include all required fields from `chapter-specs.md`, including the scope and depth plan, practice flow plan, and practice readiness. Do not treat a short paragraph that mentions several fields as a substitute for the required planning decisions.
+
+Generated chapters must use semantic roles:
+
+- `chapter({ role: "instruction" })` for chapters that teach new central mechanisms
+- `chapter({ role: "cumulative-checkpoint" })` for dedicated mixed cumulative assessment
+- section roles `instruction`, `practice`, `review`, and `assessment` according to their teaching purpose
 
 The assessment plan should identify:
 
@@ -172,6 +184,8 @@ For each chapter:
 
 After drafting each chapter, review it with the rubric in `review-rubric.md`.
 
+Compare the authored chapter against its spec's scope and depth, practice flow, practice readiness, worked-example, and assessment plans. Confirm that actual chapter and section roles match the planned teaching purpose. Reject chapters whose final tasks require untaught moves, whose promised inspectable examples were reduced to prose descriptions, or whose activity transitions are unclear.
+
 Revise chapters that are:
 
 - structurally flat
@@ -184,6 +198,8 @@ Revise chapters that are:
 - using quizzes where the learner should produce, debug, design, or revise something
 - missing cumulative reuse of earlier material
 - repetitive in rhetoric or chapter shape
+- compressed into the same structural budget as materially simpler chapters
+- repeating a uniform structure that contradicts materially different scope and depth plans
 - disconnected from the learner goal
 
 ## Phase 11: Compile Evidence

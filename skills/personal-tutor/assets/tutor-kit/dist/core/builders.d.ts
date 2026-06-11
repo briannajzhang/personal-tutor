@@ -1,4 +1,4 @@
-import type { BlurbBlock, CalloutBlock, CalloutProps, CodingProblemBlock, CodingProblemFile, CodeBlock, HeadingBlock, HeadingProps, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, Section, Subsection, Textbook, Chapter, TutorBlock } from "./types.js";
+import type { BlurbBlock, CalloutBlock, CalloutProps, CodingProblemBlock, CodingProblemFile, CodeBlock, HeadingBlock, HeadingProps, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, ChapterRole, SectionRole, Section, Subsection, Textbook, Chapter, TutorBlock } from "./types.js";
 interface SubsectionInput {
     id: string;
     title: string;
@@ -8,6 +8,7 @@ interface SubsectionInput {
     widgets?: TutorBlock[];
 }
 interface SectionInput extends SubsectionInput {
+    role?: SectionRole;
     subsections?: Subsection[];
 }
 interface ChapterInput {
@@ -15,6 +16,7 @@ interface ChapterInput {
     title: string;
     description?: string;
     tags?: string[];
+    role?: ChapterRole;
     sections?: Section[];
 }
 interface TextbookInput {

@@ -18,7 +18,9 @@ Use this rubric after drafting a chapter or curriculum map and before finalizing
 - Are sections and subsections doing real teaching work, or are they decorative wrappers?
 - Does the chapter shape fit the topic, or does it feel copied from the previous chapter?
 - Do chapter, section, and subsection titles name the concept or task instead of sounding like schedule buckets such as `Week 2` or `Phase B`?
-- Does a substantial chapter review have a dedicated section or explicit transition, rather than appearing abruptly after instruction or practice?
+- Does every non-trivial instructional chapter use a dedicated final review section?
+- Does chapter depth reflect conceptual complexity, or do materially different chapters appear generated to the same structural budget?
+- For generated textbooks, do chapter and section roles match their actual teaching purpose?
 
 ### Curriculum Map Quality
 
@@ -57,6 +59,9 @@ Use this rubric after drafting a chapter or curriculum map and before finalizing
 - For programming chapters, is `codingProblem(...)` used when the learner should actually implement, debug, refactor, or run code?
 - When runnable practice would benefit the learner but the target runtime is not configured, did the chapter use an appropriate harness instead of downgrading the task to prose-only practice?
 - For coding problems, does the prompt state the core behavior, inputs, outputs, constraints, and important edge cases needed to solve the task without requiring the learner to reverse-engineer the tests?
+- Does the coding-problem starter preserve the central learner move, or does it perform most of the reasoning the task claims to assess?
+- Is each coding problem tied to a central or cumulative learner move planned in the chapter spec?
+- Do follow-up tasks interpret, extend, debug, or retrieve from the coding problem instead of appearing as an unrelated list?
 - Does every automatically verified coding problem have verification metadata, an appropriate hidden reference solution, and evidence that the starter fails for the intended reason while the reference solution passes under `tutor verify coding-problems`?
 
 ### Check And Review Quality
@@ -71,12 +76,18 @@ Use this rubric after drafting a chapter or curriculum map and before finalizing
 - Are quiz distractors plausible and based on realistic learner mistakes?
 - Are correct-answer positions not predictably concentrated in one choice slot?
 - Do concept checks, review quizzes, and practice-test questions avoid repeating the same question shape without increasing transfer, difficulty, or context?
+- Are chapter-review questions self-contained and normally new applications rather than duplicated local checks?
+- When present, is a practice test a dedicated cumulative chapter with mixed transfer and at least one non-quiz cumulative task?
+- Are retrieval prompts framed so the learner knows how to use them?
+- Are written and runnable tasks clearly related or separately introduced?
 - Do quiz explanations teach the mechanism rather than merely restating the answer?
 
 ### Progression
 
 - Does practice get harder within the chapter?
 - Does practice move from supported to more independent work?
+- Does every independent task use only previously taught or explicitly scaffolded concepts?
+- Does each mechanism named in the learner outcome receive explanation, demonstration, and learner action?
 - Does the chapter build naturally on prior chapters?
 - Is there some cumulative reuse of earlier ideas?
 
@@ -90,6 +101,9 @@ Use this rubric after drafting a chapter or curriculum map and before finalizing
 - Do review notes cite concrete chapter content, examples, blocks, or questions as evidence?
 - Do scores of 4 or 5 identify specific generated content that satisfies the criterion?
 - Does the review flag missing visible results, weak distractors, sparse local checks, and under-specified practice when present?
+- Does the review flag missing required spec fields, unclear activity transitions, and role mismatches when present?
+
+A score of 4 or 5 must cite specific chapter, section, or block evidence. A score of 5 means no meaningful gap was found for that category. If a reject condition applies, the affected category cannot score above 3 until revised. Review notes must record unresolved known issues rather than claiming none remain.
 
 ## Minimum Quality Scores
 
@@ -128,9 +142,23 @@ Reject and revise the chapter if any of these are true:
 - The prose contains vague claims that could apply to almost any topic.
 - A worked example lacks enough context, operation, result, or explanation for the learner to understand what happened.
 - A major worked example describes the result in prose but does not show enough input/context and result/output/conclusion for the learner to inspect what changed.
+- An independent task, coding problem, or mastery check requires a mechanism that has not been taught or explicitly scaffolded.
+- A chapter claims to teach a mechanism that is only named, reviewed, or assessed.
+- Several central mechanisms receive only summary-level coverage.
+- A chapter is forced into the same structural budget as materially simpler chapters, leaving its central mechanisms under-taught.
 - A coding problem’s tests require core behavior that is not stated in the prompt, starter comments, or visible task description.
+- A coding-problem starter performs most of the central reasoning the task claims to assess.
 - Quiz distractors are obviously wrong, joke answers, or unrelated to realistic learner mistakes.
 - Quiz questions repeat the same shape without increasing transfer, difficulty, or context.
+- A non-trivial instructional chapter does not use a dedicated final review section.
+- A practice test is appended to an instructional chapter, reviews only the immediately preceding chapter, duplicates nearby review questions, or contains no non-quiz cumulative task.
+- Practice and review are combined in one section despite semantic roles.
+- A generated chapter spec omits a required planning field.
+- Written and runnable tasks are placed together without a clear relationship or transition.
+- Retrieval prompts appear after unrelated practice without framing.
+- A coding problem was added without a planned central or cumulative learner move.
+- Repeated chapter shapes contradict their scope and depth plans.
+- An inspectable artifact's layout makes the intended comparison difficult to read.
 
 ## Revision Rule
 

@@ -201,6 +201,8 @@ Better:
 
 Choices should include plausible distractors based on real learner mistakes.
 
+For every distractor, be able to name the realistic mistake or incomplete mental model it represents. If no plausible learner reasoning leads to the choice, replace it.
+
 Avoid:
 
 - joke answers

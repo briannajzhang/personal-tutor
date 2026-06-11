@@ -92,7 +92,7 @@ When the user gives only a broad topic such as "teach me statistics" or "make a 
 - pace: normal
 - practiceIntensity: heavy
 
-For a broad vague request such as "Teach me SQL", "Teach me statistics", or "Teach me databases", do not choose compact, overview, or light-practice defaults unless the user asks for a quick overview, cram plan, or lightweight introduction.
+For a broad vague request such as "Teach me SQL", "Teach me statistics", or "Teach me databases", proceed without requesting additional input. Record the inferred profile in the curriculum map. Do not choose compact, overview, or light-practice defaults unless the user asks for a quick overview, cram plan, or lightweight introduction.
 
 Default broad-topic generation should favor:
 
@@ -100,6 +100,8 @@ Default broad-topic generation should favor:
 - deep mechanism explanation
 - heavy practice
 - cumulative review
+
+Reduce scope when necessary to preserve depth. Do not compress many topics into uniformly short chapters and call the result deep.
 
 When the user explicitly wants lots of exercises, bias toward:
 
@@ -141,7 +143,7 @@ Use the learner profile to adjust check density and practice format.
 - Heavier practice intensity should usually mean more local checks, more concrete practice, and more cumulative review.
 - Deeper treatment should usually include more misconception checks and more transfer questions.
 - Gentler pace should usually include more guided checks before independent practice.
-- Interview, exam, or performance goals should usually include more mixed review and practice-test chapters when the textbook is long enough.
+- Interview, exam, or performance goals should usually include more mixed review and dedicated practice-test chapters when cumulative assessment is warranted.
 
 Use a mix of check formats that fits the learner profile and subject: quizzes for fast diagnosis, and concrete tasks when the learner needs to produce or apply something.
 

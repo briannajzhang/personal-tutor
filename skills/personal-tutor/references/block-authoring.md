@@ -115,6 +115,7 @@ codingProblem({
 - For programming lessons, prefer `codingProblem` over prose-only exercise descriptions when the target skill requires writing, running, debugging, or refactoring code.
 - Prefer several semantic blocks over one giant Markdown string.
 - Keep block IDs stable and unique within their section or subsection.
+- Give lists a clear teaching job. Add nearby framing when the purpose is not obvious from the section and preceding block.
 
 `explanation` and `blurb` are legacy aliases. Do not use them in new material.
 
@@ -175,6 +176,10 @@ For programming lessons, a common pattern is:
 6. `codingProblem`: require runnable independent practice.
 
 Avoid isolated blocks that are individually valid but weak together. A technically correct `codeBlock`, `callout`, and `list` can still produce a poor lesson if the learner is not told why each block appears or how they connect.
+
+After an interactive or runnable block, add a transition before switching to retrieval, review, assessment, or an unrelated scenario.
+
+Do not place separate tables or parallel artifacts into one plain-text block when spacing is required to understand their relationship. Prefer separate labeled blocks unless the combined alignment has been verified in the rendered UI.
 
 ## Quiz Examples
 
@@ -237,6 +242,7 @@ chapter({
   id: "foundations-practice-test-1",
   title: "Practice Test 1: Foundations",
   description: "Mixed review across the first unit.",
+  role: "cumulative-checkpoint",
   sections: [
     section({
       id: "instructions",
@@ -251,7 +257,14 @@ chapter({
     section({
       id: "mixed-review",
       title: "Mixed Review Quiz",
+      role: "assessment",
       blocks: [
+        list({
+          id: "mixed-synthesis",
+          items: [
+            "Diagnose one scenario that combines two earlier ideas and explain the correction."
+          ]
+        }),
         quiz({
           id: "foundations-practice-test",
           title: "Practice Test: Foundations",

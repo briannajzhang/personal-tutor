@@ -11,7 +11,7 @@ Do not skip from a high-level curriculum map directly to finished chapter prose.
 - Purpose and when to use
 - Default spec format
 - Required fields
-- Field guidance and examples
+- Field guidance, practice readiness, and examples
 - Blocks to author
 - Mastery and spec quality checks
 
@@ -98,6 +98,24 @@ The chapter should replace that with:
 6. Reuse...
 7. Review...
 
+## Scope And Depth Plan
+
+Central mechanisms the chapter promises to teach:
+
+- mechanism:
+  - explanation:
+  - inspectable example:
+  - learner action:
+  - local check:
+
+Secondary mechanisms introduced but deliberately deferred:
+
+- ...
+
+Split or narrow the chapter:
+
+- ...
+
 ## Worked Example Plan
 
 Use a small example where:
@@ -126,6 +144,31 @@ Cumulative practice, if relevant:
 
 - ...
 
+## Practice Flow Plan
+
+For each learner task, identify:
+
+- task:
+- form: written/open-ended, runnable, retrieval, or assessment
+- teaching purpose:
+- intended order:
+- transition needed before or after a substantially different task:
+
+For each coding problem, also identify:
+
+- classification: construct, debug, complete, or extend
+- central learner move:
+
+## Practice Readiness
+
+For each independent task, coding problem, project, or mastery check, list the concepts and learner moves required to complete it. Mark each requirement as:
+
+- taught earlier in this chapter
+- taught in a prerequisite chapter
+- deliberately scaffolded inside the task
+
+A task is not ready when it requires a mechanism that appears for the first time only in the task prompt, starter files, tests, review focus, or answer explanation.
+
 ## Check And Review Plan
 
 Local concept checks:
@@ -135,12 +178,20 @@ Local concept checks:
 Chapter review:
 
 - review targets:
-- review transition or dedicated section:
+- dedicated final review section:
 - review format:
 
-Cumulative practice-test target, if relevant:
+Cumulative practice-test chapter, if warranted:
 
-- ...
+- covered prior chapters and outcomes:
+- how the assessment requires selection or transfer:
+- planned non-quiz cumulative task:
+- why a dedicated practice test is warranted:
+
+Generated chapter and section roles:
+
+- chapter role: `instruction` or `cumulative-checkpoint`
+- section roles: `instruction`, `practice`, `review`, or `assessment`
 
 Best formats:
 
@@ -181,8 +232,11 @@ Every non-trivial chapter spec must include:
 * prerequisites
 * new terms to define
 * central mechanism or mental model
+* scope and depth plan
 * worked example plan
 * practice plan
+* practice flow plan
+* practice readiness
 * check and review plan
 * mastery check
 
@@ -192,6 +246,8 @@ Most chapter specs should also include:
 * cumulative reuse of earlier material
 * expected Tutor Kit block types
 * notes about pacing or depth
+
+Generated textbook specs must use the full required format rather than compressed substitutes that omit required fields. A cumulative checkpoint needs its own chapter spec. It should cover multiple prior outcomes, require mixed transfer, and introduce no new central mechanism.
 
 ## Learner Outcome
 
@@ -362,6 +418,21 @@ Misconception or boundary case revealed, if relevant:
 This prevents treating slope as just "how tall the line looks" or accidentally dividing run by rise.
 ```
 
+## Scope And Depth Plan
+
+Plan depth according to the number and complexity of the chapter's central mechanisms.
+
+For every central mechanism the learner outcome promises, identify:
+
+1. how it will be explained
+2. the inspectable example that will demonstrate it
+3. the learner action that will use it
+4. the local check that will diagnose misunderstanding, when a local check fits
+
+Name secondary mechanisms that are intentionally introduced but deferred. If the teaching path cannot support every central mechanism at the intended depth, split the chapter or narrow its learner outcome before writing prose.
+
+Do not plan chapters to a uniform word, block, section, or subsection count. Similar chapter size is acceptable only when the teaching work is genuinely similar.
+
 ## Practice Plan
 
 Do not describe practice vaguely. Instantiate it.
@@ -407,6 +478,32 @@ Cumulative practice:
 - Reuse earlier coordinate-plane reading skills to identify points before calculating slope.
 ```
 
+## Practice Readiness
+
+Independent practice should assess or combine moves the learner has already been prepared to use.
+
+For every independent task, coding problem, project, or mastery check:
+
+1. list the concepts and learner moves needed to complete it
+2. identify where each requirement was taught earlier in the chapter or curriculum
+3. identify any requirement deliberately scaffolded inside the task
+
+A task is not ready when a required mechanism appears for the first time only in the task prompt, starter files, tests, review focus, or answer explanation. Move the task, teach the mechanism earlier, or add explicit scaffolding before prose generation.
+
+## Practice Flow Plan
+
+Plan how learner actions connect instead of placing valid tasks next to one another without a reason.
+
+For every written task, runnable task, retrieval prompt, and assessment:
+
+1. identify its form and teaching purpose
+2. state why it appears at that point in the learning sequence
+3. identify the transition needed when the next task changes scenario, support level, or activity type
+
+Written and runnable tasks may share a practice section when they reinforce the same learner move. If they use unrelated scenarios or assess different moves, separate them or introduce each task explicitly.
+
+For every coding problem, name its `construct`, `debug`, `complete`, or `extend` classification and central learner move.
+
 ## Check And Review Plan
 
 Checks and review should be planned before writing prose.
@@ -422,7 +519,7 @@ Use quizzes for fast conceptual diagnosis, prediction, classification, misconcep
 
 Use other practice blocks when the learner must produce a larger artifact, solve a multi-step problem, debug a multi-step issue, design something, write a longer response, or build/revise a project artifact.
 
-For substantial chapters, also plan how the learner will enter review. Use either a dedicated review section or an explicit transition that signals the chapter is moving from instruction or practice into review.
+For every non-trivial instructional chapter, plan a dedicated final review section that clearly signals the move from instruction or practice into review.
 
 Example:
 
@@ -436,15 +533,19 @@ Local concept checks:
 
 Chapter review:
 
-- Review quiz covering slope from points, slope from graph, and common mistakes.
+- Dedicated final section covering slope from points, slope from graph, and common mistakes.
+- Use new scenarios where possible; directly repeat only fundamentals worth deliberate retrieval.
 
 Concrete task:
 
 - Calculate slope from three pairs of points and explain one answer in words.
 
-Cumulative practice-test target:
+Cumulative practice-test chapter, if warranted:
 
-- Later review should mix slope with coordinate-plane reading and linear equations.
+- Cover slope, coordinate-plane reading, and linear equations.
+- Require the learner to choose which earlier method applies.
+- Include a non-quiz error-diagnosis task.
+- Use a dedicated chapter because the assessment mixes several earlier outcomes.
 ```
 
 ## Blocks To Author
@@ -491,8 +592,12 @@ Before writing the chapter, check:
 - Are prerequisite ideas named?
 - Are new terms listed before prose generation begins?
 - Is the central mechanism clear?
+- Does the scope and depth plan identify explanation, demonstration, learner action, and checking for every central mechanism?
+- Does planned depth reflect conceptual complexity, or is the chapter being forced into the same structural size as simpler chapters?
 - Is there a concrete worked example plan?
 - Is practice instantiated rather than merely described?
+- Does the practice flow plan explain how written, runnable, retrieval, and assessment tasks connect?
+- Can the learner complete every independent task using concepts already taught or deliberately scaffolded?
 - Does the check and review plan include local checks and chapter review?
 - Does the spec identify which checks should be quizzes versus other practice blocks?
 - Does the spec include at least one learner action: predict, explain, debug, compare, classify, apply, create, or test?

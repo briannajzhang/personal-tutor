@@ -3,7 +3,9 @@ const listStyles = new Set(["bullet", "number"]);
 const headingLevels = new Set([4, 5]);
 const quizModes = new Set(["check", "review", "practice-test"]);
 const quizDifficulties = new Set(["easy", "medium", "hard"]);
-const taskVerbPattern = /^(write|predict|explain|compare|classify|debug|fix|implement|solve|justify|design|create|trace|identify|rewrite|describe|test|name|build|apply|refactor|interpret|spot)\b/i;
+const chapterRoles = new Set(["instruction", "cumulative-checkpoint"]);
+const sectionRoles = new Set(["instruction", "practice", "review", "assessment"]);
+const taskVerbPattern = /^(write|predict|explain|compare|classify|debug|diagnose|fix|implement|solve|justify|design|create|trace|identify|rewrite|describe|test|name|build|apply|refactor|interpret|spot)\b/i;
 const reviewHintPattern = /\b(check|self-check|review|recall|retrieval|mastery|quiz|practice|try|exercise|explain|predict|compare|debug|apply|test)\b/i;
 function isRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -40,20 +42,23 @@ export function validateTextbook(value, file) {
             chapterIds.add(chapter.id);
         }
     }
-    issues.push(...validateTextbookQuizHeuristics(value, file));
+    issues.push(...validateTextbookHeuristics(value, file));
     return issues;
 }
-function validateTextbookQuizHeuristics(textbook, file) {
+function validateTextbookHeuristics(textbook, file) {
     const issues = [];
     if (!Array.isArray(textbook.chapters))
         return issues;
     const quizBlocks = collectTextbookBlocks(textbook).filter(isQuizBlock);
-    const practiceTestQuizzes = quizBlocks.filter((block) => block.props.mode === "practice-test");
-    if (textbook.chapters.length >= 4 && practiceTestQuizzes.length === 0) {
-        issues.push(issue("Textbook should include at least one cumulative practice-test quiz.", "chapters", file));
+    const answerPositions = collectFourChoiceAnswerPositions(quizBlocks);
+    const chapters = textbook.chapters.filter(isRecord);
+    const describedChapterCount = chapters.filter((chapter) => hasText(chapter.description)).length;
+    if (describedChapterCount > 0 && describedChapterCount < chapters.length) {
+        issues.push(issue("Chapter descriptions should be used consistently across a textbook: provide descriptions for all chapters or none.", "chapters", file));
     }
-    if (textbook.chapters.length >= 8 && practiceTestQuizzes.length < 2) {
-        issues.push(issue("Textbook should include at least 2 cumulative practice-test quizzes.", "chapters", file));
+    if (answerPositions.total >= 24 &&
+        [0, 1, 2, 3].some((position) => (answerPositions.counts.get(position) ?? 0) / answerPositions.total < 0.1)) {
+        issues.push(issue("Textbook quiz correct answers should use all four choice positions, with each position containing at least 10% of four-choice answers.", "chapters", file));
     }
     return issues;
 }
@@ -66,6 +71,9 @@ export function validateChapter(value, file) {
         issues.push(issue("Chapter id is required.", "id", file));
     if (!hasText(value.title))
         issues.push(issue("Chapter title is required.", "title", file));
+    if (value.role !== undefined && !chapterRoles.has(value.role)) {
+        issues.push(issue("Chapter role must be instruction or cumulative-checkpoint.", "role", file));
+    }
     if (!Array.isArray(value.sections)) {
         issues.push(issue("Chapter sections must be an array.", "sections", file));
         return issues;
@@ -89,16 +97,59 @@ export function validateChapter(value, file) {
 function validateChapterLearningHeuristics(chapter, file) {
     const issues = [];
     const blocks = collectChapterBlocks(chapter);
+    const quizBlocks = blocks.filter(isQuizBlock);
+    const reviewQuizzes = quizBlocks.filter((block) => block.props.mode === "review");
+    const practiceTestQuizzes = quizBlocks.filter((block) => block.props.mode === "practice-test");
+    const isPracticeTestChapter = practiceTestQuizzes.length > 0;
+    const chapterRole = chapter.role;
+    const finalSection = chapter.sections.at(-1);
+    if (reviewQuizzes.length > 0 && practiceTestQuizzes.length > 0) {
+        issues.push(issue("A chapter must not contain both review and practice-test quizzes. Put cumulative practice tests in dedicated chapters.", "sections", file));
+    }
+    if (chapterRole === "instruction") {
+        if (practiceTestQuizzes.length > 0) {
+            issues.push(issue("Instruction chapters must not contain practice-test quizzes. Put cumulative assessment in a cumulative-checkpoint chapter.", "sections", file));
+        }
+        if (blocks.length >= 8 && finalSection?.role !== "review") {
+            issues.push(issue("Non-trivial instruction chapters must end with a section whose role is review.", "sections", file));
+        }
+        if (blocks.length >= 8 &&
+            finalSection?.role === "review" &&
+            !collectSectionBlocks(finalSection).some((block) => isQuizBlock(block) && block.props.mode === "review")) {
+            issues.push(issue("The final review section of a non-trivial instruction chapter must contain a review quiz.", "sections", file));
+        }
+    }
+    if (chapterRole === "cumulative-checkpoint") {
+        if (practiceTestQuizzes.length === 0) {
+            issues.push(issue("Cumulative-checkpoint chapters must contain a practice-test quiz.", "sections", file));
+        }
+        if (quizBlocks.some((block) => block.props.mode === "check" || block.props.mode === "review")) {
+            issues.push(issue("Cumulative-checkpoint chapters must not contain check or review quizzes.", "sections", file));
+        }
+        if (finalSection?.role !== "assessment") {
+            issues.push(issue("Cumulative-checkpoint chapters must end with a section whose role is assessment.", "sections", file));
+        }
+        const hasConcreteNonQuizTask = blocks.some((block) => block.kind === "codingProblem" || looksLikeTaskList(block));
+        if (!hasConcreteNonQuizTask) {
+            issues.push(issue("Cumulative-checkpoint chapters must include at least one concrete non-quiz task.", "sections", file));
+        }
+    }
     if (blocks.length < 4)
         return issues;
-    const quizBlocks = blocks.filter(isQuizBlock);
     if (blocks.length >= 8 && quizBlocks.length === 0) {
         issues.push(issue("Non-trivial chapter should include at least one quiz block.", "sections", file));
     }
-    if (blocks.length >= 8 && !quizBlocks.some((block) => block.props.mode === "review")) {
+    if (blocks.length >= 8 && reviewQuizzes.length === 0 && !isPracticeTestChapter) {
         issues.push(issue("Non-trivial chapter should end with a review quiz.", "sections", file));
     }
-    if (chapter.sections.length >= 3 && !quizBlocks.some((block) => block.props.mode === "check")) {
+    if (blocks.length >= 8 && reviewQuizzes.length > 0) {
+        const finalSectionHasReview = finalSection !== undefined &&
+            collectSectionBlocks(finalSection).some((block) => isQuizBlock(block) && block.props.mode === "review");
+        if (!finalSectionHasReview) {
+            issues.push(issue("Non-trivial chapter review quiz must appear in the chapter's final section.", "sections", file));
+        }
+    }
+    if (chapter.sections.length >= 3 && !isPracticeTestChapter && !quizBlocks.some((block) => block.props.mode === "check")) {
         issues.push(issue("Chapter with several sections should include at least one check quiz before the final review.", "sections", file));
     }
     if (chapter.sections.length < 2) {
@@ -140,6 +191,9 @@ export function validateSection(value, file) {
         issues.push(issue("Section id is required.", "id", file));
     if (!hasText(value.title))
         issues.push(issue("Section title is required.", "title", file));
+    if (value.role !== undefined && !sectionRoles.has(value.role)) {
+        issues.push(issue("Section role must be instruction, practice, review, or assessment.", "role", file));
+    }
     validateBlockList(value.blocks, "blocks", file, issues);
     if (!Array.isArray(value.subsections)) {
         issues.push(issue("Section subsections must be an array.", "subsections", file));
@@ -156,6 +210,16 @@ export function validateSection(value, file) {
                 issues.push(issue(`Duplicate subsection id in section: ${subsection.id}`, `subsections[${index}].id`, file));
             }
             subsectionIds.add(subsection.id);
+        }
+    }
+    if (sectionRoles.has(value.role)) {
+        const blocks = collectSectionBlocks(value);
+        const quizBlocks = blocks.filter(isQuizBlock);
+        if (value.role === "review" && quizBlocks.some((block) => block.props.mode === "practice-test")) {
+            issues.push(issue("Review sections must not contain practice-test quizzes.", "blocks", file));
+        }
+        if (value.role === "assessment" && quizBlocks.some((block) => block.props.mode === "review")) {
+            issues.push(issue("Assessment sections must not contain review quizzes.", "blocks", file));
         }
     }
     return issues;
@@ -380,13 +444,15 @@ function validateQuiz(props, path, file, issues) {
     if (props.mode === "review" && (props.questions.length < 4 || props.questions.length > 10)) {
         issues.push(issue("Review quiz should contain 4-10 questions.", `${path}.questions`, file));
     }
-    if (props.mode === "practice-test" && props.questions.length < 8) {
-        issues.push(issue("Practice-test quiz should contain at least 8 questions.", `${path}.questions`, file));
+    if (props.mode === "practice-test" && props.questions.length < 10) {
+        issues.push(issue("Practice-test quiz should contain at least 10 questions.", `${path}.questions`, file));
     }
     const questionIds = new Set();
     const tags = new Set();
     const difficulties = new Set();
     const answerPositions = new Map();
+    const fourChoiceAnswerPositions = new Map();
+    let fourChoiceQuestionCount = 0;
     props.questions.forEach((question, index) => {
         const questionPath = `${path}.questions[${index}]`;
         if (!isRecord(question)) {
@@ -456,6 +522,10 @@ function validateQuiz(props, path, file, issues) {
         else {
             const answerPosition = question.choices.findIndex((choice) => isRecord(choice) && choice.id === question.answer);
             answerPositions.set(answerPosition, (answerPositions.get(answerPosition) ?? 0) + 1);
+            if (question.choices.length === 4) {
+                fourChoiceQuestionCount += 1;
+                fourChoiceAnswerPositions.set(answerPosition, (fourChoiceAnswerPositions.get(answerPosition) ?? 0) + 1);
+            }
         }
         if (typeof question.difficulty === "string" && quizDifficulties.has(question.difficulty)) {
             difficulties.add(question.difficulty);
@@ -472,6 +542,9 @@ function validateQuiz(props, path, file, issues) {
         if (highestPositionCount / props.questions.length > 0.7) {
             issues.push(issue("Quiz correct answers are overly concentrated in one choice position. Shuffle choices to reduce answer-position bias.", `${path}.questions`, file));
         }
+    }
+    if (fourChoiceQuestionCount >= 8 && fourChoiceAnswerPositions.size < 3) {
+        issues.push(issue("Quiz correct answers should use at least 3 different choice positions across 8 or more four-choice questions.", `${path}.questions`, file));
     }
 }
 function validateCodingAction(action, path, file, issues) {
@@ -522,12 +595,15 @@ function validateMarkupText(value, path, file, issues) {
 function collectChapterBlocks(chapter) {
     const blocks = [];
     for (const section of chapter.sections) {
-        blocks.push(...section.blocks);
-        for (const subsection of section.subsections) {
-            blocks.push(...subsection.blocks);
-        }
+        blocks.push(...collectSectionBlocks(section));
     }
     return blocks;
+}
+function collectSectionBlocks(section) {
+    return [
+        ...section.blocks,
+        ...section.subsections.flatMap((subsection) => subsection.blocks)
+    ];
 }
 function collectTextbookBlocks(textbook) {
     const blocks = [];
@@ -551,6 +627,25 @@ function collectTextbookBlocks(textbook) {
         }
     }
     return blocks;
+}
+function collectFourChoiceAnswerPositions(quizBlocks) {
+    const counts = new Map();
+    let total = 0;
+    for (const block of quizBlocks) {
+        if (!Array.isArray(block.props.questions))
+            continue;
+        for (const question of block.props.questions) {
+            if (!isRecord(question) || !Array.isArray(question.choices) || question.choices.length !== 4 || !hasText(question.answer)) {
+                continue;
+            }
+            const answerPosition = question.choices.findIndex((choice) => isRecord(choice) && choice.id === question.answer);
+            if (answerPosition < 0)
+                continue;
+            total += 1;
+            counts.set(answerPosition, (counts.get(answerPosition) ?? 0) + 1);
+        }
+    }
+    return { total, counts };
 }
 function isQuizBlock(block) {
     return block.kind === "quiz" && isRecord(block.props);

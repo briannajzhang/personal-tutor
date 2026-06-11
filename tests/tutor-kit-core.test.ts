@@ -10,6 +10,39 @@ test.afterEach(() => {
   clearWorkspaceCaches();
 });
 
+function quizQuestions(answerIds: string[], prefix = "question") {
+  return answerIds.map((answer, index) => ({
+    id: `${prefix}-${index + 1}`,
+    prompt: `Apply concept ${index + 1}.`,
+    choices: [
+      { id: "a", body: "First choice" },
+      { id: "b", body: "Second choice" },
+      { id: "c", body: "Third choice" },
+      { id: "d", body: "Fourth choice" }
+    ],
+    answer,
+    explanation: `Choice ${answer} follows from the tested concept.`,
+    tags: [`topic-${index % 3}`],
+    difficulty: index % 2 === 0 ? "easy" as const : "medium" as const
+  }));
+}
+
+function textbookWithQuizzes(quizzes: ReturnType<typeof quiz>[]) {
+  return textbook({
+    id: "quiz-validation",
+    title: "Quiz Validation",
+    chapters: [chapter({
+      id: "quiz-validation",
+      title: "Quiz Validation",
+      sections: [section({
+        id: "quizzes",
+        title: "Quizzes",
+        blocks: quizzes
+      })]
+    })]
+  });
+}
+
 test("builders create valid textbooks", () => {
   const built = textbook({
     id: "programming",
@@ -265,8 +298,8 @@ test("validation flags non-trivial chapters without review quizzes", () => {
   );
 });
 
-test("validation flags multi-chapter textbooks without practice-test quizzes", () => {
-  const chapters = ["one", "two", "three", "four"].map((id) => chapter({
+test("validation accepts long textbooks without practice-test quizzes", () => {
+  const chapters = ["one", "two", "three", "four", "five", "six", "seven", "eight"].map((id) => chapter({
     id,
     title: id,
     sections: [
@@ -286,10 +319,557 @@ test("validation flags multi-chapter textbooks without practice-test quizzes", (
     chapters
   });
 
+  assert.doesNotMatch(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /practice-test quiz/
+  );
+});
+
+test("validation rejects chapters containing both review and practice-test quizzes", () => {
+  const built = textbookWithQuizzes([
+    quiz({
+      id: "review",
+      title: "Chapter Review",
+      mode: "review",
+      questions: quizQuestions(["a", "b", "c", "d"], "review")
+    }),
+    quiz({
+      id: "practice-test",
+      title: "Practice Test",
+      mode: "practice-test",
+      questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b"], "practice")
+    })
+  ]);
+
   assert.match(
     validateTextbook(built).map((issue) => issue.message).join("\n"),
-    /Textbook should include at least one cumulative practice-test quiz/
+    /must not contain both review and practice-test quizzes/
   );
+});
+
+test("validation rejects non-trivial chapters with review quizzes outside the final section", () => {
+  const built = textbook({
+    id: "review-placement",
+    title: "Review Placement",
+    chapters: [chapter({
+      id: "review-placement",
+      title: "Review Placement",
+      sections: [
+        section({
+          id: "instruction",
+          title: "Instruction",
+          blocks: [
+            p({ id: "one", body: "First explanation." }),
+            p({ id: "two", body: "Second explanation." }),
+            p({ id: "three", body: "Third explanation." }),
+            p({ id: "four", body: "Fourth explanation." }),
+            quiz({
+              id: "review",
+              title: "Chapter Review",
+              mode: "review",
+              questions: quizQuestions(["a", "b", "c", "d"])
+            })
+          ],
+          subsections: [subsection({
+            id: "example",
+            title: "Example",
+            blocks: [p({ id: "example-body", body: "A focused example." })]
+          })]
+        }),
+        section({
+          id: "after-review",
+          title: "After Review",
+          blocks: [
+            list({ id: "task", items: ["Apply the idea independently."] }),
+            p({ id: "closing", body: "The chapter closes after the review." })
+          ]
+        })
+      ]
+    })]
+  });
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /review quiz must appear in the chapter's final section/
+  );
+});
+
+test("validation accepts non-trivial chapters with review quizzes in the final section", () => {
+  const built = textbook({
+    id: "review-placement",
+    title: "Review Placement",
+    chapters: [chapter({
+      id: "review-placement",
+      title: "Review Placement",
+      sections: [
+        section({
+          id: "instruction",
+          title: "Instruction",
+          blocks: [
+            p({ id: "one", body: "First explanation." }),
+            p({ id: "two", body: "Second explanation." }),
+            p({ id: "three", body: "Third explanation." }),
+            p({ id: "four", body: "Fourth explanation." }),
+            list({ id: "task", items: ["Apply the idea independently."] })
+          ],
+          subsections: [subsection({
+            id: "example",
+            title: "Example",
+            blocks: [p({ id: "example-body", body: "A focused example." })]
+          })]
+        }),
+        section({
+          id: "review",
+          title: "Chapter Review",
+          blocks: [
+            p({ id: "review-intro", body: "Use the review to check the chapter outcome." }),
+            quiz({
+              id: "review",
+              title: "Chapter Review",
+              mode: "review",
+              questions: quizQuestions(["a", "b", "c", "d"])
+            })
+          ]
+        })
+      ]
+    })]
+  });
+
+  assert.doesNotMatch(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /review quiz must appear/
+  );
+});
+
+test("validation accepts a dedicated practice-test chapter without a review quiz", () => {
+  const built = textbook({
+    id: "practice-test",
+    title: "Practice Test",
+    chapters: [chapter({
+      id: "practice-test",
+      title: "Cumulative Practice Test",
+      sections: [
+        section({
+          id: "prepare",
+          title: "Prepare",
+          blocks: [
+            p({ id: "intro", body: "This assessment mixes earlier ideas." }),
+            p({ id: "context", body: "Choose the relevant method for each scenario." }),
+            list({ id: "synthesis", items: ["Explain how two earlier ideas work together."] })
+          ],
+          subsections: [subsection({
+            id: "strategy",
+            title: "Strategy",
+            blocks: [p({ id: "strategy-body", body: "Read each scenario before choosing a method." })]
+          })]
+        }),
+        section({
+          id: "assessment",
+          title: "Cumulative Assessment",
+          blocks: [
+            p({ id: "assessment-intro", body: "Complete the mixed assessment without relying on chapter labels." }),
+            list({ id: "diagnosis", items: ["Diagnose one multi-step failure and explain the correction."] }),
+            p({ id: "bridge", body: "The quiz now checks transfer across the earlier material." }),
+            quiz({
+              id: "practice-test",
+              title: "Practice Test",
+              mode: "practice-test",
+              questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b"])
+            })
+          ]
+        })
+      ]
+    })]
+  });
+
+  const messages = validateTextbook(built).map((issue) => issue.message).join("\n");
+  assert.doesNotMatch(messages, /should end with a review quiz/);
+  assert.doesNotMatch(messages, /must not contain both review and practice-test quizzes/);
+});
+
+test("validation rejects inconsistent chapter descriptions", () => {
+  const built = textbook({
+    id: "descriptions",
+    title: "Descriptions",
+    chapters: [
+      chapter({
+        id: "described",
+        title: "Described",
+        description: "A learner-facing capability.",
+        sections: [section({ id: "one", title: "One", blocks: [p({ id: "one-p", body: "Small chapter." })] })]
+      }),
+      chapter({
+        id: "undescribed",
+        title: "Undescribed",
+        sections: [section({ id: "two", title: "Two", blocks: [p({ id: "two-p", body: "Small chapter." })] })]
+      })
+    ]
+  });
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /Chapter descriptions should be used consistently/
+  );
+});
+
+test("validation accepts textbooks with all or no chapter descriptions", () => {
+  const makeChapter = (id: string, description?: string) => chapter({
+    id,
+    title: id,
+    ...(description ? { description } : {}),
+    sections: [section({ id: `${id}-section`, title: id, blocks: [p({ id: `${id}-p`, body: "Small chapter." })] })]
+  });
+  const allDescriptions = textbook({
+    id: "all-descriptions",
+    title: "All Descriptions",
+    chapters: [makeChapter("one", "First capability."), makeChapter("two", "Second capability.")]
+  });
+  const noDescriptions = textbook({
+    id: "no-descriptions",
+    title: "No Descriptions",
+    chapters: [makeChapter("one"), makeChapter("two")]
+  });
+
+  assert.doesNotMatch(
+    validateTextbook(allDescriptions).map((issue) => issue.message).join("\n"),
+    /Chapter descriptions should be used consistently/
+  );
+  assert.doesNotMatch(
+    validateTextbook(noDescriptions).map((issue) => issue.message).join("\n"),
+    /Chapter descriptions should be used consistently/
+  );
+});
+
+test("validation accepts only documented chapter and section roles", () => {
+  const built = textbook({
+    id: "roles",
+    title: "Roles",
+    chapters: [chapter({
+      id: "roles",
+      title: "Roles",
+      role: "invalid" as any,
+      sections: [section({
+        id: "roles",
+        title: "Roles",
+        role: "invalid" as any,
+        blocks: [p({ id: "intro", body: "Role validation." })]
+      })]
+    })]
+  });
+
+  const messages = validateTextbook(built).map((issue) => issue.message).join("\n");
+  assert.match(messages, /Chapter role must be instruction or cumulative-checkpoint/);
+  assert.match(messages, /Section role must be instruction, practice, review, or assessment/);
+});
+
+test("validation accepts legacy textbooks without semantic roles", () => {
+  const built = textbook({
+    id: "legacy",
+    title: "Legacy",
+    chapters: [chapter({
+      id: "legacy",
+      title: "Legacy",
+      sections: [section({
+        id: "legacy",
+        title: "Legacy",
+        blocks: [p({ id: "intro", body: "Legacy textbooks remain valid without roles." })]
+      })]
+    })]
+  });
+
+  assert.deepEqual(validateTextbook(built), []);
+});
+
+test("validation accepts instruction chapters with separated practice and review roles", () => {
+  const built = textbook({
+    id: "instruction",
+    title: "Instruction",
+    chapters: [chapter({
+      id: "instruction",
+      title: "Instruction",
+      role: "instruction",
+      sections: [
+        section({
+          id: "instruction",
+          title: "Instruction",
+          role: "instruction",
+          blocks: [
+            p({ id: "one", body: "Define the idea." }),
+            p({ id: "two", body: "Explain the mechanism." }),
+            p({ id: "three", body: "Interpret an example." }),
+            quiz({ id: "check", title: "Check", mode: "check", questions: quizQuestions(["a"]) })
+          ],
+          subsections: [subsection({
+            id: "example",
+            title: "Example",
+            blocks: [p({ id: "example-body", body: "A focused example." })]
+          })]
+        }),
+        section({
+          id: "practice",
+          title: "Practice",
+          role: "practice",
+          blocks: [
+            list({ id: "guided", items: ["Apply the idea to a new case."] }),
+            p({ id: "practice-bridge", body: "Now use the idea independently." })
+          ]
+        }),
+        section({
+          id: "review",
+          title: "Review",
+          role: "review",
+          blocks: [
+            p({ id: "review-intro", body: "Retrieve the chapter outcome without looking back." }),
+            quiz({
+              id: "review",
+              title: "Chapter Review",
+              mode: "review",
+              questions: quizQuestions(["a", "b", "c", "d"])
+            })
+          ]
+        })
+      ]
+    })]
+  });
+
+  assert.deepEqual(validateTextbook(built), []);
+});
+
+test("validation rejects instruction chapters containing practice-test quizzes", () => {
+  const built = textbook({
+    id: "instruction",
+    title: "Instruction",
+    chapters: [chapter({
+      id: "instruction",
+      title: "Instruction",
+      role: "instruction",
+      sections: [section({
+        id: "assessment",
+        title: "Assessment",
+        role: "assessment",
+        blocks: [quiz({
+          id: "practice-test",
+          title: "Practice Test",
+          mode: "practice-test",
+          questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b"])
+        })]
+      })]
+    })]
+  });
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /Instruction chapters must not contain practice-test quizzes/
+  );
+});
+
+test("validation rejects non-trivial instruction chapters without a final review role", () => {
+  const built = textbook({
+    id: "instruction",
+    title: "Instruction",
+    chapters: [chapter({
+      id: "instruction",
+      title: "Instruction",
+      role: "instruction",
+      sections: [
+        section({
+          id: "instruction",
+          title: "Instruction",
+          role: "instruction",
+          blocks: [
+            p({ id: "one", body: "Define the idea." }),
+            p({ id: "two", body: "Explain the mechanism." }),
+            p({ id: "three", body: "Interpret an example." }),
+            p({ id: "four", body: "Name a boundary case." }),
+            quiz({ id: "check", title: "Check", mode: "check", questions: quizQuestions(["a"]) })
+          ],
+          subsections: [subsection({
+            id: "example",
+            title: "Example",
+            blocks: [p({ id: "example-body", body: "A focused example." })]
+          })]
+        }),
+        section({
+          id: "practice-and-review",
+          title: "Practice and Review",
+          role: "practice",
+          blocks: [
+            list({ id: "practice", items: ["Apply the idea independently."] }),
+            quiz({
+              id: "review",
+              title: "Chapter Review",
+              mode: "review",
+              questions: quizQuestions(["a", "b", "c", "d"])
+            })
+          ]
+        })
+      ]
+    })]
+  });
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /must end with a section whose role is review/
+  );
+});
+
+test("validation accepts cumulative checkpoints with assessment and non-quiz practice", () => {
+  const built = textbook({
+    id: "checkpoint",
+    title: "Checkpoint",
+    chapters: [chapter({
+      id: "checkpoint",
+      title: "Checkpoint",
+      role: "cumulative-checkpoint",
+      sections: [section({
+        id: "assessment",
+        title: "Assessment",
+        role: "assessment",
+        blocks: [
+          list({ id: "synthesis", items: ["Diagnose a scenario combining two earlier ideas."] }),
+          quiz({
+            id: "practice-test",
+            title: "Practice Test",
+            mode: "practice-test",
+            questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b"])
+          })
+        ]
+      })]
+    })]
+  });
+
+  assert.deepEqual(validateTextbook(built), []);
+});
+
+test("validation rejects cumulative checkpoints without a final assessment role", () => {
+  const built = textbook({
+    id: "checkpoint",
+    title: "Checkpoint",
+    chapters: [chapter({
+      id: "checkpoint",
+      title: "Checkpoint",
+      role: "cumulative-checkpoint",
+      sections: [section({
+        id: "mixed-practice",
+        title: "Mixed Practice",
+        role: "practice",
+        blocks: [
+          list({ id: "synthesis", items: ["Diagnose a mixed scenario."] }),
+          quiz({
+            id: "practice-test",
+            title: "Practice Test",
+            mode: "practice-test",
+            questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b"])
+          })
+        ]
+      })]
+    })]
+  });
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /must end with a section whose role is assessment/
+  );
+});
+
+test("validation rejects cumulative checkpoints with check or review quizzes", () => {
+  const built = textbook({
+    id: "checkpoint",
+    title: "Checkpoint",
+    chapters: [chapter({
+      id: "checkpoint",
+      title: "Checkpoint",
+      role: "cumulative-checkpoint",
+      sections: [section({
+        id: "assessment",
+        title: "Assessment",
+        role: "assessment",
+        blocks: [
+          list({ id: "synthesis", items: ["Diagnose a mixed scenario."] }),
+          quiz({ id: "check", title: "Check", mode: "check", questions: quizQuestions(["a"]) }),
+          quiz({ id: "review", title: "Review", mode: "review", questions: quizQuestions(["a", "b", "c", "d"]) }),
+          quiz({
+            id: "practice-test",
+            title: "Practice Test",
+            mode: "practice-test",
+            questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b"])
+          })
+        ]
+      })]
+    })]
+  });
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /Cumulative-checkpoint chapters must not contain check or review quizzes/
+  );
+});
+
+test("validation rejects cumulative checkpoints containing only a quiz", () => {
+  const built = textbook({
+    id: "checkpoint",
+    title: "Checkpoint",
+    chapters: [chapter({
+      id: "checkpoint",
+      title: "Checkpoint",
+      role: "cumulative-checkpoint",
+      sections: [section({
+        id: "assessment",
+        title: "Assessment",
+        role: "assessment",
+        blocks: [quiz({
+          id: "practice-test",
+          title: "Practice Test",
+          mode: "practice-test",
+          questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b"])
+        })]
+      })]
+    })]
+  });
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /must include at least one concrete non-quiz task/
+  );
+});
+
+test("validation rejects review and assessment section quiz-mode mismatches", () => {
+  const built = textbook({
+    id: "section-roles",
+    title: "Section Roles",
+    chapters: [chapter({
+      id: "section-roles",
+      title: "Section Roles",
+      sections: [
+        section({
+          id: "review",
+          title: "Review",
+          role: "review",
+          blocks: [quiz({
+            id: "practice-test",
+            title: "Practice Test",
+            mode: "practice-test",
+            questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b"])
+          })]
+        }),
+        section({
+          id: "assessment",
+          title: "Assessment",
+          role: "assessment",
+          blocks: [quiz({
+            id: "review",
+            title: "Review",
+            mode: "review",
+            questions: quizQuestions(["a", "b", "c", "d"])
+          })]
+        })
+      ]
+    })]
+  });
+
+  const messages = validateTextbook(built).map((issue) => issue.message).join("\n");
+  assert.match(messages, /Review sections must not contain practice-test quizzes/);
+  assert.match(messages, /Assessment sections must not contain review quizzes/);
 });
 
 test("validation rejects quiz answer-position bias", () => {
@@ -324,6 +904,98 @@ test("validation rejects quiz answer-position bias", () => {
   assert.match(
     validateTextbook(built).map((issue) => issue.message).join("\n"),
     /answer-position bias/
+  );
+});
+
+test("validation requires at least 10 practice-test questions", () => {
+  const built = textbookWithQuizzes([
+    quiz({
+      id: "short-practice-test",
+      title: "Short Practice Test",
+      mode: "practice-test",
+      questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d"])
+    })
+  ]);
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /Practice-test quiz should contain at least 10 questions/
+  );
+});
+
+test("validation accepts a 10-question practice test", () => {
+  const built = textbookWithQuizzes([
+    quiz({
+      id: "complete-practice-test",
+      title: "Complete Practice Test",
+      mode: "practice-test",
+      questions: quizQuestions(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b"])
+    })
+  ]);
+
+  assert.doesNotMatch(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /Practice-test quiz should contain/
+  );
+});
+
+test("validation rejects long quizzes using only two answer positions", () => {
+  const built = textbookWithQuizzes([
+    quiz({
+      id: "two-position-practice-test",
+      title: "Two Position Practice Test",
+      mode: "practice-test",
+      questions: quizQuestions(["a", "b", "a", "b", "a", "b", "a", "b", "a", "b"])
+    })
+  ]);
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /at least 3 different choice positions/
+  );
+});
+
+test("validation rejects textbook-wide underrepresented answer positions", () => {
+  const answers = ["a", "b", "c", "a", "b", "c", "a", "b"];
+  const built = textbookWithQuizzes([
+    quiz({ id: "review-one", title: "Review One", mode: "review", questions: quizQuestions(answers, "one") }),
+    quiz({ id: "review-two", title: "Review Two", mode: "review", questions: quizQuestions(answers, "two") }),
+    quiz({ id: "review-three", title: "Review Three", mode: "review", questions: quizQuestions(answers, "three") })
+  ]);
+
+  assert.match(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /each position containing at least 10%/
+  );
+});
+
+test("validation accepts balanced textbook-wide answer positions", () => {
+  const answers = ["a", "b", "c", "d", "a", "b", "c", "d"];
+  const built = textbookWithQuizzes([
+    quiz({ id: "review-one", title: "Review One", mode: "review", questions: quizQuestions(answers, "one") }),
+    quiz({ id: "review-two", title: "Review Two", mode: "review", questions: quizQuestions(answers, "two") }),
+    quiz({ id: "review-three", title: "Review Three", mode: "review", questions: quizQuestions(answers, "three") })
+  ]);
+
+  assert.doesNotMatch(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /choice positions/
+  );
+});
+
+test("validation does not apply answer-position diversity checks to short local checks", () => {
+  const built = textbookWithQuizzes([
+    quiz({
+      id: "short-check",
+      title: "Short Check",
+      mode: "check",
+      questions: quizQuestions(["a", "a"])
+    })
+  ]);
+
+  assert.doesNotMatch(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /choice positions/
   );
 });
 

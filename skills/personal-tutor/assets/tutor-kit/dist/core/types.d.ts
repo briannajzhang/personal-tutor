@@ -76,6 +76,8 @@ export interface CodingProblemProps {
 }
 export type QuizMode = "check" | "review" | "practice-test";
 export type QuizDifficulty = "easy" | "medium" | "hard";
+export type ChapterRole = "instruction" | "cumulative-checkpoint";
+export type SectionRole = "instruction" | "practice" | "review" | "assessment";
 export interface QuizChoice {
     id: string;
     body: string;
@@ -119,6 +121,7 @@ export interface Section {
     title: string;
     description?: string;
     tags?: string[];
+    role?: SectionRole;
     blocks: TutorBlock[];
     subsections: Subsection[];
 }
@@ -127,6 +130,7 @@ export interface Chapter {
     title: string;
     description?: string;
     tags?: string[];
+    role?: ChapterRole;
     sections: Section[];
 }
 export interface Textbook {
