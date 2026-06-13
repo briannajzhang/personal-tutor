@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -16,6 +16,30 @@ test("dev server exposes textbooks, chapters, and appends events", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
   initWorkspace(dir);
   linkTutorKit(dir);
+  const chaptersDir = join(dir, "textbooks", "getting-started", "chapters");
+  const welcomePath = join(chaptersDir, "welcome.chapter.ts");
+  const welcomeChapter = readFileSync(welcomePath, "utf8");
+  writeFileSync(
+    join(chaptersDir, "practice.chapter.ts"),
+    welcomeChapter.replace('id: "welcome"', 'id: "practice"').replace("Chapter 1: Welcome", "Chapter 2: Practice")
+  );
+  writeFileSync(
+    join(chaptersDir, "review.chapter.ts"),
+    welcomeChapter.replace('id: "welcome"', 'id: "review"').replace("Chapter 1: Welcome", "Chapter 3: Review")
+  );
+  writeFileSync(join(dir, "textbooks", "getting-started", "textbook.ts"), `import { textbook } from "tutor-kit";
+import welcome from "./chapters/welcome.chapter.js";
+import practice from "./chapters/practice.chapter.js";
+import review from "./chapters/review.chapter.js";
+
+export default textbook({
+  id: "getting-started",
+  title: "Getting Started",
+  description: "A starter textbook for checking Tutor Kit.",
+  tags: ["starter"],
+  chapters: [welcome, practice, review]
+});
+`);
 
   const server = await startDevServer({ cwd: dir, port: 0 });
   try {
@@ -25,6 +49,10 @@ test("dev server exposes textbooks, chapters, and appends events", async () => {
 
     const page = await fetchText(`${server.url}/textbooks/getting-started/chapters/welcome`);
     assert.match(page, /katex/);
+    assert.match(page, /chapter-navigation/);
+    assert.match(page, /data-chapter-navigation/);
+    assert.match(page, /bindChapterNavigation/);
+    assert.match(page, /grid-template-columns: 1fr/);
 
     const fontResponse = await fetch(`${server.url}/__tutor-assets/katex/fonts/KaTeX_Main-Regular.woff2`);
     assert.equal(fontResponse.status, 200);
@@ -52,6 +80,16 @@ test("dev server exposes textbooks, chapters, and appends events", async () => {
     const chapterResponse = await fetchJson(`${server.url}/api/textbooks/getting-started/chapters/welcome`);
     assert.equal(chapterResponse.title, "Chapter 1: Welcome");
     assert.equal(chapterResponse.textbookId, "getting-started");
+    assert.equal(chapterResponse.previousChapter, null);
+    assert.deepEqual(chapterResponse.nextChapter, { id: "practice", title: "Chapter 2: Practice" });
+
+    const middleChapterResponse = await fetchJson(`${server.url}/api/textbooks/getting-started/chapters/practice`);
+    assert.deepEqual(middleChapterResponse.previousChapter, { id: "welcome", title: "Chapter 1: Welcome" });
+    assert.deepEqual(middleChapterResponse.nextChapter, { id: "review", title: "Chapter 3: Review" });
+
+    const finalChapterResponse = await fetchJson(`${server.url}/api/textbooks/getting-started/chapters/review`);
+    assert.deepEqual(finalChapterResponse.previousChapter, { id: "practice", title: "Chapter 2: Practice" });
+    assert.equal(finalChapterResponse.nextChapter, null);
 
     const eventResponse = await fetchJson(`${server.url}/api/events`, {
       method: "POST",
