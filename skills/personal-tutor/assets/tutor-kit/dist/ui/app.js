@@ -177,6 +177,43 @@ h1 {
 .chapter-content {
   min-width: 0;
 }
+.chapter-navigation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  border-top: 1px solid var(--line);
+  margin-top: 50px;
+  padding-top: 24px;
+}
+.chapter-navigation-button {
+  display: grid;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+.chapter-navigation-button.next {
+  grid-column: 2;
+  text-align: right;
+}
+.chapter-navigation-button:hover .chapter-navigation-title {
+  color: var(--accent-2);
+}
+.chapter-navigation-label {
+  color: var(--muted-2);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.chapter-navigation-title {
+  font-size: 17px;
+  font-weight: 560;
+  line-height: 1.35;
+}
 .chapter-section {
   border-top: 1px solid var(--line);
   padding: 32px 0 6px;
@@ -648,6 +685,14 @@ body.route-loading {
   .chapter-index {
     position: static;
   }
+  .chapter-navigation {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .chapter-navigation-button.next {
+    grid-column: 1;
+    text-align: left;
+  }
   .coding-workspace {
     grid-template-columns: 1fr;
   }
@@ -772,14 +817,44 @@ async function renderChapter(textbookId, chapterId) {
         </aside>
         <div class="chapter-content">
           \${chapter.sections.map((section) => renderSection(section)).join("")}
+          \${renderChapterNavigation(chapter)}
         </div>
       </div>
     </section>
   \`;
   bindCrumbs();
+  bindChapterNavigation(textbookId);
   bindQuizzes(chapter);
   bindCodingProblems(chapter);
   finishRouteLoad(token);
+}
+
+function renderChapterNavigation(chapter) {
+  if (!chapter.previousChapter && !chapter.nextChapter) return "";
+  return \`
+    <nav class="chapter-navigation" aria-label="Chapter navigation">
+      \${chapter.previousChapter ? \`
+        <button class="chapter-navigation-button previous" data-chapter-navigation="\${escapeAttr(chapter.previousChapter.id)}">
+          <span class="chapter-navigation-label">Previous chapter</span>
+          <span class="chapter-navigation-title">\${escapeHtml(chapter.previousChapter.title)}</span>
+        </button>
+      \` : ""}
+      \${chapter.nextChapter ? \`
+        <button class="chapter-navigation-button next" data-chapter-navigation="\${escapeAttr(chapter.nextChapter.id)}">
+          <span class="chapter-navigation-label">Next chapter</span>
+          <span class="chapter-navigation-title">\${escapeHtml(chapter.nextChapter.title)}</span>
+        </button>
+      \` : ""}
+    </nav>
+  \`;
+}
+
+function bindChapterNavigation(textbookId) {
+  document.querySelectorAll("[data-chapter-navigation]").forEach((button) => {
+    button.addEventListener("click", () => {
+      navigateChapter(textbookId, button.dataset.chapterNavigation, true);
+    });
+  });
 }
 
 function renderSection(section) {
@@ -840,8 +915,9 @@ function navigateTextbook(textbookId) {
   void renderRoute();
 }
 
-function navigateChapter(textbookId, chapterId) {
+function navigateChapter(textbookId, chapterId, scrollToTop = false) {
   history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
+  if (scrollToTop) window.scrollTo({ top: 0, behavior: "auto" });
   void renderRoute();
 }
 

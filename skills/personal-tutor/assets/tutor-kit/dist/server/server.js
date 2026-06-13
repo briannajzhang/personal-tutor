@@ -117,11 +117,17 @@ async function handleRequest(cwd, request, response) {
             sendJson(response, 404, { error: `Chapter not found: ${textbookId}/${chapterId}` });
             return;
         }
+        const textbook = loaded.textbooks.find(({ textbook: candidate }) => candidate.id === textbookId)?.textbook;
+        const chapterIndex = textbook?.chapters.findIndex((chapter) => chapter.id === chapterId) ?? -1;
+        const previousChapter = chapterIndex > 0 ? textbook?.chapters[chapterIndex - 1] : undefined;
+        const nextChapter = textbook && chapterIndex >= 0 ? textbook.chapters[chapterIndex + 1] : undefined;
         const summary = summarizeChapter(found.chapter);
         sendJson(response, 200, {
             ...found.chapter,
             textbookId: found.textbookId,
             textbookTitle: found.textbookTitle,
+            previousChapter: previousChapter ? { id: previousChapter.id, title: previousChapter.title } : null,
+            nextChapter: nextChapter ? { id: nextChapter.id, title: nextChapter.title } : null,
             sectionCount: summary.sections,
             subsectionCount: summary.subsections,
             blockCount: summary.blocks
