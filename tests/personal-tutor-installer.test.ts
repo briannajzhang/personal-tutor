@@ -25,8 +25,11 @@ test("personal-tutor installer copies the skill into a skills directory", () => 
 
   const installedSkill = join(skillsDir, "personal-tutor");
   assert.match(output, /Installed personal-tutor skill/);
+  assert.match(output, /practice-heavy Tutor Kit lesson with quizzes and verified exercises/);
+  assert.doesNotMatch(output, /study plan/i);
   assert.ok(existsSync(join(installedSkill, "SKILL.md")));
   assert.ok(existsSync(join(installedSkill, "agents", "openai.yaml")));
+  assert.ok(existsSync(join(installedSkill, "scripts", "tutor-kit.mjs")));
   assert.ok(existsSync(join(installedSkill, "assets", "tutor-kit", "dist", "cli", "index.js")));
 });
 
@@ -80,6 +83,7 @@ test("personal-tutor installer refuses overwrite unless forced", () => {
   execFileSync(process.execPath, [cli, "--skills-dir", skillsDir, "--force", "--skip-deps"]);
   assert.equal(existsSync(join(installedSkill, "LOCAL_EDIT")), false);
   assert.ok(existsSync(join(installedSkill, "SKILL.md")));
+  assert.ok(existsSync(join(installedSkill, "scripts", "tutor-kit.mjs")));
 });
 
 test("personal-tutor installer supports dry runs", () => {
