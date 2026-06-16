@@ -1,0 +1,255 @@
+# Tutor Kit API
+
+Use this reference when setting up a Tutor Kit workspace, invoking the CLI, authoring TypeScript modules, choosing semantic block builders, or starting the local UI.
+
+## Contents
+
+- Command invocation
+- Core commands
+- Workspace layout
+- Textbook and chapter modules
+- Semantic block builders
+- Coding problem files
+- UI server
+- Troubleshooting
+
+## Command Invocation
+
+Prefer the workspace command when available:
+
+```bash
+tutor <command>
+```
+
+If `tutor` is not on PATH, use the skill wrapper:
+
+```bash
+node <skill-dir>/scripts/tutor-kit.mjs <command>
+```
+
+The wrapper delegates to the bundled Tutor Kit CLI at `assets/tutor-kit/dist/cli/index.js`.
+
+During local Tutor Kit development in this source repo, this is also valid:
+
+```bash
+npm run tutor -- <command>
+```
+
+Use `--cwd <path>` when the learner workspace is not the shell cwd.
+
+## Core Commands
+
+```bash
+tutor init
+tutor init --starter
+tutor add textbook <id> [title]
+tutor add chapter <textbook-id> <id> [title]
+tutor add block <p|heading|list|codeBlock|mathBlock|callout|transformation|quiz|codingProblem>
+tutor list textbooks
+tutor inspect textbook <id>
+tutor compile
+tutor compile --textbook <textbook-id>
+tutor doctor
+tutor doctor --textbook <textbook-id>
+tutor verify coding-problems
+tutor verify coding-problems --textbook <textbook-id>
+tutor dev
+```
+
+Use `tutor init` only when Tutor Kit files are missing. It creates an empty workspace by default. Use `--starter` only for demos, tests, or fixtures.
+
+## Workspace Layout
+
+```txt
+package.json
+tutor.config.ts
+textbooks/
+  <textbook-id>/
+    textbook.ts
+    prompt.md
+    curriculum-map.md
+    chapter-specs.md
+    review-notes.md
+    compile-result.md
+    chapters/
+      <chapter-id>.chapter.ts
+      problems/
+tutor/
+  registry.ts
+  blocks/
+tutor-data/
+  events.jsonl
+  drafts/
+  feedback/
+```
+
+Authored curriculum lives in `textbooks/<textbook-id>/textbook.ts` and chapter modules. Runtime learner activity lives under `tutor-data/`.
+
+## Textbook And Chapter Modules
+
+Textbooks are TypeScript modules:
+
+```ts
+import { textbook } from "tutor-kit";
+import foundations from "./chapters/foundations.chapter.js";
+
+export default textbook({
+  id: "sql-foundations",
+  title: "SQL Foundations",
+  description: "Beginner-friendly SQL querying practice.",
+  chapters: [foundations]
+});
+```
+
+Chapters are usually separate modules:
+
+```ts
+import { chapter, p, section } from "tutor-kit";
+
+export default chapter({
+  id: "filtering-rows",
+  title: "Chapter 1: Filtering Rows",
+  description: "Use WHERE clauses to keep only rows that match a condition.",
+  role: "instruction",
+  sections: [
+    section({
+      id: "why-filter",
+      title: "Filtering Answers One Question",
+      role: "instruction",
+      blocks: [
+        p({
+          id: "filtering-problem",
+          body: "A table usually contains more rows than the question needs. A `WHERE` clause states the condition a row must satisfy before it appears in the result."
+        })
+      ]
+    })
+  ]
+});
+```
+
+Use stable lowercase kebab-case IDs. Keep textbook IDs unique across the workspace, chapter IDs unique within a textbook, section IDs unique within a chapter, and block IDs unique within their section or subsection.
+
+Generated instructional chapters should normally set `role: "instruction"` and end with a final section whose `role` is `"review"`. Dedicated cumulative practice-test chapters should set `role: "cumulative-checkpoint"` and end with an `"assessment"` section.
+
+## Semantic Block Builders
+
+Import builders from `tutor-kit`:
+
+```ts
+import {
+  balancedQuiz,
+  callout,
+  chapter,
+  codeBlock,
+  codingProblem,
+  list,
+  mathBlock,
+  p,
+  projectFiles,
+  quiz,
+  section,
+  subsection,
+  textbook,
+  transformation
+} from "tutor-kit";
+```
+
+Use blocks by teaching purpose:
+
+- `p`: explanation, definition, transition, or example readout.
+- `heading`: local structure inside a section or subsection.
+- `list`: concrete tasks, comparisons, retrieval prompts, or scan-friendly points.
+- `codeBlock`: exact code, query, command, schema, or structured example.
+- `mathBlock`: displayed equation or notation.
+- `callout`: misconception, warning, boundary case, or key idea.
+- `transformation`: inspectable input -> operation -> output worked example.
+- `quiz` or `balancedQuiz`: local checks, chapter review, and practice tests.
+- `codingProblem`: runnable or checkable learner practice.
+
+Prefer `balancedQuiz(...)` for generated 4-choice quizzes unless answer order is meaningful. It returns a normal quiz block and mechanically balances correct-answer positions.
+
+`callout` tones are `note`, `caution`, and `key-idea`.
+
+`transformation` artifact formats are `markdown`, `code`, `math`, and `table`. Use `layout: "auto"` unless `flow` or `compare` is clearly better.
+
+## Coding Problem Files
+
+Use `projectFiles(import.meta.url, "./problems/<problem-id>")` to load real source files next to the chapter:
+
+```ts
+import { codingProblem, projectFiles } from "tutor-kit";
+
+const project = projectFiles(import.meta.url, "./problems/normalize-vector");
+
+codingProblem({
+  id: "normalize-vector",
+  title: "Normalize A Vector",
+  prompt: "Implement `normalize(xs)` so it returns numbers that sum to 1. Handle an empty list by returning an empty list.",
+  language: "python",
+  files: [
+    project.file("main.py", { editable: true }),
+    project.file("solution.py", { hidden: true }),
+    project.file("tests.py")
+  ],
+  test: "$PYTHON tests.py",
+  verification: {
+    actionId: "test",
+    referenceFiles: { "main.py": "solution.py" }
+  },
+  review: "Check normalization behavior, edge cases, and whether the learner can explain the sum-to-1 invariant."
+});
+```
+
+Recommended layout:
+
+```txt
+chapters/
+  vectors.chapter.ts
+  problems/
+    normalize-vector/
+      main.py
+      solution.py
+      tests.py
+```
+
+Configure runtime commands in `tutor.config.ts` when needed:
+
+```ts
+const config = {
+  codeRunner: {
+    runtimes: {
+      python: { command: "python3" }
+    }
+  }
+};
+```
+
+Use `$PYTHON`, `$NODE`, `$TSX`, or custom runtime env vars in commands when helpful.
+
+## UI Server
+
+Run the local UI only when requested:
+
+```bash
+tutor dev
+```
+
+The UI reads textbooks, renders semantic blocks, runs coding-problem actions in temporary local project directories, persists quiz state under `tutor-data/quiz-state/`, and appends learner activity to `tutor-data/events.jsonl`.
+
+Do not edit `events.jsonl` to fake progress.
+
+## Troubleshooting
+
+If unrelated existing material blocks full compile, use a targeted compile while repairing the selected textbook:
+
+```bash
+tutor compile --textbook <textbook-id>
+```
+
+A targeted compile proves the selected textbook is usable in isolation. Only a full `tutor doctor` or full `tutor compile` proves the whole workspace is healthy.
+
+If the bundled CLI reports missing packages after an installed skill copy, repair the bundled Tutor Kit asset:
+
+```bash
+npm install --prefix <skill-dir>/assets/tutor-kit --omit=dev --ignore-scripts --no-audit --fund=false
+```
