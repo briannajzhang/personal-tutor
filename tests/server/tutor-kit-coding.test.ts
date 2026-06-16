@@ -14,7 +14,7 @@ test.afterEach(() => {
 
 test("coding problems run commands and persist drafts", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir);
+  initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
 
   const problemDir = join(dir, "textbooks", "getting-started", "chapters", "problems", "add-one");

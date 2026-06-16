@@ -76,7 +76,7 @@ function verifiedWorkspace(options: {
   includeVerification?: boolean;
 } = {}): string {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-verify-"));
-  initWorkspace(dir);
+  initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
   writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), `import { chapter, codingProblem, section } from "tutor-kit";
 

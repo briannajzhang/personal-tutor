@@ -126,7 +126,7 @@ Use a small example where:
 - explanation of why that result follows:
 - misconception or boundary case revealed, if relevant:
 - representation: if the example has concrete input/context, a specific operation or reasoning move, and a visible result that the learner should inspect, default to `transformation(...)`; use normal semantic blocks only when they are clearer, and record why
-- transformation decision: if using `transformation(...)`, identify what must remain visible and what distinct teaching move the surrounding lesson adds; if not using `transformation(...)` for a transformation-suitable example, explain why ordinary blocks are clearer
+- transformation coherence and lesson role: if using `transformation(...)`, identify what must remain visible and what distinct teaching move the surrounding lesson adds; if not using `transformation(...)` for a transformation-suitable example, explain why ordinary blocks are clearer
 - post-example teaching move: readout / generalization / contrast / boundary / bridge to practice
 
 ## Practice Plan

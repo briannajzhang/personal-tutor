@@ -24,7 +24,7 @@ test("compile passes for the example workspace", async () => {
 
 test("compile reports duplicate block ids", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir);
+  initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
   writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "broken.chapter.ts"), `import { chapter, p, section } from "tutor-kit";
 
@@ -60,7 +60,7 @@ export default textbook({
 
 test("targeted compile ignores unrelated broken textbooks", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir);
+  initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
   mkdirSync(join(dir, "textbooks", "broken"), { recursive: true });
   writeFileSync(join(dir, "textbooks", "broken", "textbook.ts"), "import missing from './missing.js'; export default missing;\n");
@@ -73,7 +73,7 @@ test("targeted compile ignores unrelated broken textbooks", async () => {
 
 test("compile rejects textbooks that fail learning heuristics", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir);
+  initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
   writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), `import { chapter, p, section } from "tutor-kit";
 export default chapter({

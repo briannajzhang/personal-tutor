@@ -970,12 +970,14 @@ async function renderChapter(textbookId, chapterId) {
     </section>
   \`;
   bindCrumbs();
+  bindChapterIndex();
   bindChapterNavigation(textbookId);
   bindQuizzes(chapter);
   bindCodingProblems(chapter);
   scheduleTransformationLayouts();
   if (document.fonts?.ready) void document.fonts.ready.then(scheduleTransformationLayouts);
   finishRouteLoad(token);
+  scrollToHashTarget(window.location.hash, "auto");
 }
 
 function renderChapterNavigation(chapter) {
@@ -1004,6 +1006,45 @@ function bindChapterNavigation(textbookId) {
       navigateChapter(textbookId, button.dataset.chapterNavigation, true);
     });
   });
+}
+
+function bindChapterIndex() {
+  document.querySelectorAll(".index-link[href^='#']").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const hash = link.getAttribute("href") ?? "";
+      if (!hash || hash === "#") return;
+      const id = parseHashId(hash);
+      if (!id || !document.getElementById(id)) return;
+
+      event.preventDefault();
+      const nextUrl = window.location.pathname + window.location.search + hash;
+      if (window.location.hash === hash) {
+        history.replaceState(history.state, "", nextUrl);
+      } else {
+        history.pushState({}, "", nextUrl);
+      }
+      scrollToHashTarget(hash, "smooth");
+    });
+  });
+}
+
+function scrollToHashTarget(hash = window.location.hash, behavior = "auto") {
+  const id = parseHashId(hash);
+  if (!id) return false;
+  const target = document.getElementById(id);
+  if (!target) return false;
+  target.scrollIntoView({ block: "start", behavior });
+  return true;
+}
+
+function parseHashId(hash) {
+  const value = String(hash ?? "");
+  if (!value.startsWith("#") || value.length <= 1) return "";
+  try {
+    return decodeURIComponent(value.slice(1));
+  } catch {
+    return value.slice(1);
+  }
 }
 
 function renderSection(section) {

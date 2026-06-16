@@ -14,7 +14,7 @@ test.afterEach(() => {
 
 test("dev server exposes textbooks, chapters, and appends events", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir);
+  initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
   const chaptersDir = join(dir, "textbooks", "getting-started", "chapters");
   const welcomePath = join(chaptersDir, "welcome.chapter.ts");
@@ -52,6 +52,8 @@ export default textbook({
     assert.match(page, /chapter-navigation/);
     assert.match(page, /data-chapter-navigation/);
     assert.match(page, /bindChapterNavigation/);
+    assert.match(page, /bindChapterIndex/);
+    assert.match(page, /scrollToHashTarget/);
     assert.match(page, /grid-template-columns: 1fr/);
     assert.match(page, /renderTransformation/);
     assert.match(page, /transformation-stages/);

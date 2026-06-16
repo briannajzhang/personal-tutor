@@ -1,4 +1,4 @@
-export declare function packageJsonTemplate(packageSpec?: string): string;
+export declare function packageJsonTemplate(packageSpec: string): string;
 export declare function tsconfigTemplate(): string;
 export declare function configTemplate(): string;
 export declare function welcomeTextbookTemplate(): string;

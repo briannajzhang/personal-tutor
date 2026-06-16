@@ -1,6 +1,6 @@
 # Generation Workflow
 
-Use this workflow when generating new curriculum from a learner request. Do not jump straight from topic request to full textbook prose in one pass.
+Use this workflow when generating new curriculum from a learner request. Default to incremental publishing: plan the course arc, publish 1-2 learner-ready chapters, and leave the rest as a backlog until requested.
 
 ## Contents
 
@@ -17,17 +17,16 @@ Use this workflow when generating new curriculum from a learner request. Do not 
 
 1. Interpret the learner request.
 2. Infer or establish a learner profile.
-3. Draft a curriculum map before writing chapters and persist it in the textbook directory.
-4. Check the sequence for progression, scope, review coverage, and cumulative assessment opportunities.
-5. Draft chapter specs before writing full chapter prose and persist them in the textbook directory.
-6. In each chapter spec, plan assessment: local checks, chapter review, cumulative review targets, and the best block type for each.
-7. Generate chapters one at a time.
-8. Run concise authoring validation, then persist review notes.
-9. Revise weak chapters before moving on.
-10. Run the generated textbook acceptance gate and revise any blocking failures.
-11. Run `tutor compile` and persist compile evidence.
-12. Run `tutor verify coding-problems --textbook <textbook-id>` when the textbook contains coding problems and persist verification evidence.
-13. Start `tutor dev` when the user wants the interface.
+3. Draft a curriculum map for the full course arc and persist it in the textbook directory.
+4. Mark chapters as `Published now` or `Planned next`.
+5. Draft chapter specs only for chapters being published now, usually 1-2 chapters.
+6. In each active spec, plan assessment: local checks, chapter review, cumulative review targets, and the best block type for each.
+7. Generate published chapters one at a time.
+8. Run concise authoring validation, including the generated textbook acceptance gate, then persist review notes.
+9. Revise weak chapters or blocking acceptance-gate failures before publishing more.
+10. Run `tutor compile` and persist compile evidence.
+11. Run `tutor verify coding-problems --textbook <textbook-id>` when the textbook contains coding problems and persist verification evidence.
+12. Start `tutor dev` when the user wants the interface.
 
 ## Phase 1: Interpret The Request
 
@@ -35,9 +34,9 @@ Clarify the practical learning goal before authoring:
 
 - What is the learner trying to become able to do?
 - Is the goal conceptual understanding, interview prep, project fluency, academic support, workplace use, or another concrete use case?
-- Is the user asking for a full textbook, a short course, a cram plan, or a reference workbook?
+- Is the user asking for a seed course, continuation of an existing course, full textbook, cram plan, or reference workbook?
 
-Do not treat "learn X" as sufficient curriculum design by itself.
+Do not treat "learn X" as a request to publish an entire textbook in one turn.
 
 ## Phase 2: Infer A Learner Profile
 
@@ -132,9 +131,9 @@ For time-based plans, define:
 - review cadence
 - expected practice volume
 
-## Phase 7: Draft Chapter Specs Before Prose
+## Phase 7: Draft Specs For Published Chapters
 
-Before writing full chapter prose, draft a short spec for each chapter.
+Before writing full chapter prose, draft a short spec for each chapter being published now. Future chapters can stay as backlog notes in the curriculum map until the user asks to continue.
 
 Each chapter spec should include:
 
@@ -150,7 +149,7 @@ Each chapter spec should include:
 - cumulative review target, when relevant
 - mastery check
 
-For generated textbooks, reject incomplete or compressed chapter specs before prose generation. Every non-trivial chapter spec must include all required fields from `chapter-specs.md`, including the scope and depth plan, practice flow plan, and practice readiness. Do not treat a short paragraph that mentions several fields as a substitute for the required planning decisions.
+For chapters being published now, reject incomplete or compressed specs before prose generation. Every non-trivial active spec must include all required fields from `chapter-specs.md`, including the scope and depth plan, practice flow plan, and practice readiness. Do not treat a short paragraph that mentions several fields as a substitute for the required planning decisions.
 
 Generated chapters must use semantic roles:
 
@@ -191,11 +190,11 @@ A pedagogical audit is deeper and optional. It evaluates whether the textbook is
 
 Do not confuse passing authoring validation with being a strong textbook. Passing validation means the textbook is usable and internally consistent; it does not mean the textbook is pedagogically excellent.
 
-## Phase 9: Generate Chapters One At A Time
+## Phase 9: Publish Chapters One At A Time
 
 Do not compress the entire curriculum into one shallow pass.
 
-For each chapter:
+For each chapter being published:
 
 - state the learner-facing goal
 - build the chapter to satisfy the canonical learning contract in `lesson-authoring.md`
