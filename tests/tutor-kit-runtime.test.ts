@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import test from "node:test";
 import { addBlock, addChapter, addTextbook, initWorkspace } from "../packages/tutor-kit/dist/cli/workspace.js";
 import { clearWorkspaceCaches, invalidateWorkspaceCaches, loadTextbooks } from "../packages/tutor-kit/dist/compile/discover.js";
@@ -46,3 +46,38 @@ test("init and add commands create expected workspace files", () => {
   assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /coreBlocks/);
   assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /transformation/);
 });
+
+test("addTextbook creates durable authoring artifacts without touching runtime history", () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
+  initWorkspace(dir);
+  const eventsPath = join(dir, "tutor-data", "events.jsonl");
+  writeFileSync(eventsPath, "{\"type\":\"quiz_checked\"}\n");
+
+  const result = addTextbook(dir, "sql", "SQL Foundations");
+  const created = relativePaths(dir, result.created);
+
+  assert.deepEqual(created, [
+    "textbooks/sql/chapter-specs.md",
+    "textbooks/sql/compile-result.md",
+    "textbooks/sql/curriculum-map.md",
+    "textbooks/sql/prompt.md",
+    "textbooks/sql/review-notes.md",
+    "textbooks/sql/textbook.ts"
+  ]);
+  assert.deepEqual(readdirSync(join(dir, "textbooks", "sql", "chapters")), []);
+  assert.equal(readFileSync(eventsPath, "utf8"), "{\"type\":\"quiz_checked\"}\n");
+  assert.equal(result.created.some((path) => relative(dir, path).startsWith("tutor-data")), false);
+
+  writeFileSync(join(dir, "textbooks", "sql", "prompt.md"), "# Prompt\n\nLearner wants SQL for analytics.\n");
+  const repeated = addTextbook(dir, "sql", "SQL Foundations");
+  assert.equal(repeated.created.length, 0);
+  assert.deepEqual(relativePaths(dir, repeated.skipped), created);
+  assert.equal(
+    readFileSync(join(dir, "textbooks", "sql", "prompt.md"), "utf8"),
+    "# Prompt\n\nLearner wants SQL for analytics.\n"
+  );
+});
+
+function relativePaths(root: string, paths: string[]): string[] {
+  return paths.map((path) => relative(root, path)).sort();
+}

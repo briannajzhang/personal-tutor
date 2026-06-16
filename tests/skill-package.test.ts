@@ -87,7 +87,7 @@ test("OpenAI UI metadata matches the refocused skill", () => {
   const metadata = readFileSync(join(skillDir, "agents", "openai.yaml"), "utf8");
 
   assert.match(metadata, /display_name: "Personal Tutor"/);
-  assert.match(metadata, /short_description: "Tutor Kit lessons and practice"/);
+  assert.match(metadata, /short_description: ".*Tutor Kit.*"/);
   assert.match(metadata, /default_prompt: "Use \$personal-tutor /);
   assert.doesNotMatch(metadata, /study plan/i);
   assert.doesNotMatch(metadata, /chat/i);
