@@ -51,7 +51,6 @@ npm exec --package file:. -- personal-tutor --dry-run
 bin/personal-tutor.js       npx-friendly skill installer
 skills/personal-tutor/      installable skill
 packages/tutor-kit/         TypeScript SDK, CLI, compile checks, dev server
-examples/learner-workspace/ example workspace authored with Tutor Kit
 tests/                      scaffold and validation tests
 ```
 
@@ -70,13 +69,6 @@ Refresh the bundled Tutor Kit asset inside the skill:
 
 ```bash
 npm run build:skill
-```
-
-Try the example workspace:
-
-```bash
-npm run tutor -- --cwd examples/learner-workspace compile
-npm run tutor -- --cwd examples/learner-workspace dev
 ```
 
 Check the npm package contents before publishing:

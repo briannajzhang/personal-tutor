@@ -6,20 +6,24 @@ import test from "node:test";
 import { compileWorkspace } from "../packages/tutor-kit/dist/compile/compile.js";
 import { clearWorkspaceCaches } from "../packages/tutor-kit/dist/compile/discover.js";
 import { initWorkspace } from "../packages/tutor-kit/dist/cli/workspace.js";
-import { exampleWorkspace, linkTutorKit } from "./helpers/tutor-kit.ts";
+import { linkTutorKit } from "./helpers/tutor-kit.ts";
 
 test.afterEach(() => {
   clearWorkspaceCaches();
 });
 
-test("compile passes for the example workspace", async () => {
-  const result = await compileWorkspace(exampleWorkspace);
+test("compile passes for a generated starter workspace", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
+  initWorkspace(dir, { starter: true });
+  linkTutorKit(dir);
+
+  const result = await compileWorkspace(dir);
   assert.equal(result.ok, true, result.output);
   assert.equal(result.textbookCount, 1);
   assert.equal(result.chapterCount, 1);
   assert.equal(result.sectionCount, 2);
   assert.equal(result.subsectionCount, 1);
-  assert.equal(result.blockCount, 9);
+  assert.equal(result.blockCount, 8);
 });
 
 test("compile reports duplicate block ids", async () => {
