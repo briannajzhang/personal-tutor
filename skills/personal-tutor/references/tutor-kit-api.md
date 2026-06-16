@@ -228,11 +228,13 @@ Use `$PYTHON`, `$NODE`, `$TSX`, or custom runtime env vars in commands when help
 
 ## UI Server
 
-Run the local UI only when requested:
+After verified authoring work, start the local UI for the user unless they explicitly ask not to:
 
 ```bash
 tutor dev
 ```
+
+Keep the server running and report the localhost URL, normally `http://localhost:4177`. If that port is busy, use `tutor dev --port <port>` with another available port.
 
 The UI reads textbooks, renders semantic blocks, runs coding-problem actions in temporary local project directories, persists quiz state under `tutor-data/quiz-state/`, and appends learner activity to `tutor-data/events.jsonl`.
 

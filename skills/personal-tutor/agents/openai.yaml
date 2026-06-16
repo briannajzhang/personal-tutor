@@ -1,4 +1,4 @@
 interface:
   display_name: "Personal Tutor"
   short_description: "Tutor Kit lessons and practice"
-  default_prompt: "Use $personal-tutor to create a practice-heavy Tutor Kit lesson with quizzes and verified exercises."
+  default_prompt: "Use $personal-tutor to create a practice-heavy Tutor Kit lesson with quizzes and verified exercises, then start the local Tutor Kit app."

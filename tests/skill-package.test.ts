@@ -101,12 +101,24 @@ test("skill references focus on durable lesson authoring rather than live tutori
   assert.doesNotMatch(referenceText, /chat only/i);
 });
 
+test("skill instructs agents to start the Tutor Kit app after authoring", () => {
+  const skill = readFileSync(join(skillDir, "SKILL.md"), "utf8");
+  const apiReference = readFileSync(join(referencesDir, "tutor-kit-api.md"), "utf8");
+
+  assert.match(skill, /Start .*Tutor Kit app/i);
+  assert.match(skill, /tutor dev/);
+  assert.match(skill, /localhost URL|URL/i);
+  assert.match(apiReference, /start the local UI/i);
+  assert.match(apiReference, /tutor dev --port <port>/);
+});
+
 test("OpenAI UI metadata matches the refocused skill", () => {
   const metadata = readFileSync(join(skillDir, "agents", "openai.yaml"), "utf8");
 
   assert.match(metadata, /display_name: "Personal Tutor"/);
   assert.match(metadata, /short_description: ".*Tutor Kit.*"/);
   assert.match(metadata, /default_prompt: "Use \$personal-tutor /);
+  assert.match(metadata, /start the local Tutor Kit app/i);
   assert.doesNotMatch(metadata, /study plan/i);
   assert.doesNotMatch(metadata, /chat/i);
 });

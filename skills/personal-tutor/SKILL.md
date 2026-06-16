@@ -28,6 +28,7 @@ This skill is not for one-off conversational tutoring. If a request is about lea
 8. Use semantic blocks as teaching moves: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `callout`, `transformation`, `quiz`, `balancedQuiz`, and `codingProblem`.
 9. Verify before finalizing with `tutor doctor`, or with `tutor compile` plus `tutor verify coding-problems --textbook <textbook-id>` when coding problems exist.
 10. Record review, compile, and coding-problem verification evidence in the textbook directory.
+11. Start the local Tutor Kit app for the user with `tutor dev` unless they explicitly ask not to. Keep it running and report the localhost URL.
 
 ## Core Rules
 
@@ -39,7 +40,7 @@ This skill is not for one-off conversational tutoring. If a request is about lea
 - Use quizzes for fast diagnosis, retrieval, local checks, chapter review, and cumulative practice tests.
 - Use runnable `codingProblem(...)` blocks when the learner should implement, debug, refactor, query, transform, or test code or code-like artifacts.
 - Keep runtime learner history in `tutor-data/events.jsonl`; inspect it only when it helps choose review or continuation work. Do not edit it to fake progress.
-- Start `tutor dev` only when the user wants to open the local UI.
+- Start or keep the Tutor Kit app running after verified authoring work, unless the user explicitly opts out. Report the URL.
 
 ## Tutor Kit Command Wrapper
 
