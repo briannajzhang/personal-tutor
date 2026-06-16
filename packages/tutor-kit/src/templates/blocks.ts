@@ -15,6 +15,7 @@ export const coreBlocks = {
   codeBlock: { kind: "codeBlock", title: "Code Block" },
   mathBlock: { kind: "mathBlock", title: "Math Block" },
   callout: { kind: "callout", title: "Callout" },
+  transformation: { kind: "transformation", title: "Transformation" },
   codingProblem: { kind: "codingProblem", title: "Coding Problem" },
   quiz: { kind: "quiz", title: "Quiz" }
 };

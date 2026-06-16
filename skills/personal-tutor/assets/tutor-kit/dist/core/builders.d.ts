@@ -1,4 +1,4 @@
-import type { BlurbBlock, CalloutBlock, CalloutProps, CodingProblemBlock, CodingProblemFile, CodeBlock, HeadingBlock, HeadingProps, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, ChapterRole, SectionRole, Section, Subsection, Textbook, Chapter, TutorBlock } from "./types.js";
+import type { BlurbBlock, CalloutBlock, CalloutProps, CodingProblemBlock, CodingProblemFile, CodeBlock, HeadingBlock, HeadingProps, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, ChapterRole, SectionRole, Section, Subsection, Textbook, Chapter, TransformationArtifact, TransformationBlock, TransformationLayout, TutorBlock } from "./types.js";
 interface SubsectionInput {
     id: string;
     title: string;
@@ -50,6 +50,18 @@ interface CalloutInput extends BlockInput {
     tone?: CalloutProps["tone"];
     title?: string;
     body: string;
+}
+interface TransformationInput extends BlockInput {
+    title: string;
+    focus: string;
+    layout?: TransformationLayout;
+    inputLabel?: string;
+    operationLabel?: string;
+    outputLabel?: string;
+    input: TransformationArtifact[];
+    operation: TransformationArtifact;
+    output: TransformationArtifact[];
+    explanation: string;
 }
 interface CodingProblemFileOptions {
     editable?: boolean;
@@ -118,8 +130,10 @@ export declare function list(input: ListInput): ListBlock;
 export declare function codeBlock(input: CodeBlockInput): CodeBlock;
 export declare function mathBlock(input: MathBlockInput): MathBlock;
 export declare function callout(input: CalloutInput): CalloutBlock;
+export declare function transformation(input: TransformationInput): TransformationBlock;
 export declare function codingProblem(input: CodingProblemInput): CodingProblemBlock;
 export declare function quiz(input: QuizInput): QuizBlock;
+export declare function balancedQuiz(input: QuizInput): QuizBlock;
 export declare function projectFiles(baseUrl: string, dir: string): {
     file(path: string, options?: CodingProblemFileOptions): CodingProblemFile;
     inline(path: string, content: string, options?: CodingProblemFileOptions): CodingProblemFile;

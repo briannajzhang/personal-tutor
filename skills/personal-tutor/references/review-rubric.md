@@ -4,10 +4,35 @@ Use this rubric after drafting a chapter or curriculum map and before finalizing
 
 ## Contents
 
+- Review modes
 - Review questions
 - Minimum quality scores
 - Reject conditions
 - Revision rule
+
+## Review Modes
+
+Use authoring validation for ordinary generated textbooks. Use a pedagogical audit only when the user explicitly asks for a deeper learner-quality review.
+
+### Authoring Validation
+
+Authoring validation is required, fast, and gate-focused. Its job is to decide whether the generated textbook is safe to finalize, not to prove that every lesson is excellent.
+
+Default generated `review-notes.md` should include:
+
+- acceptance gate result
+- blocking issues found
+- revisions applied
+- remaining known issues
+- targeted notes only for chapters that required revision or still have risks
+
+Do not write full per-chapter score tables during ordinary generation unless the user explicitly asks for a pedagogical audit.
+
+### Pedagogical Audit
+
+A pedagogical audit is optional, slower, and quality-focused. Run it when the user asks for strict learner-quality review, such as "Audit this textbook strictly for learner quality."
+
+Use a pedagogical audit to judge explanation depth, pacing, example quality, quiz quality, repetition, and learner experience. Do not confuse passing authoring validation with being pedagogically excellent.
 
 ## Review Questions
 
@@ -47,6 +72,16 @@ Use this rubric after drafting a chapter or curriculum map and before finalizing
 - If the chapter spec promised a visible result, does the authored chapter display the actual result, output, or conclusion?
 - Does the prose explain why that result follows, instead of leaving the learner to infer the mechanism?
 - Are examples specific enough to make the concept visible without becoming unnecessarily large?
+- When a transformation block is used, does it show a genuinely inspectable relationship rather than wrapping an ordinary definition or explanation?
+- Does each transformation explanation account for its specific visible rows, values, symbols, textual changes, or claims?
+- Is the operation coherent with the shown input, with every baseline, temporary state, intermediate result, rejected input, or comparison output relied upon by the explanation visible?
+- Does surrounding content add a distinct teaching move rather than generic setup, bridge, or mastery padding?
+- Does the selected transformation layout make the intended relationship easy to inspect without unnecessary horizontal scrolling?
+- Are transformation blocks used selectively rather than as the default shape for examples?
+- For central worked examples with concrete input/context, a specific operation or reasoning move, and a visible result, did the chapter use `transformation(...)` unless ordinary semantic blocks were clearer?
+- If a transformation-suitable example used ordinary semantic blocks, does the review explain why that representation was clearer?
+- If no `transformation(...)` blocks are used in a generated textbook with data, code, math, revision, or evidence-to-claim examples, does the review justify why none of the worked examples were transformation-suitable?
+- After a central transformation, does nearby prose help the learner generalize the example, name the boundary, or prepare for the next task? Or does the chapter move directly from the widget into assessment or practice while leaving the transfer lesson implicit?
 
 ### Practice Quality
 
@@ -95,19 +130,23 @@ Use this rubric after drafting a chapter or curriculum map and before finalizing
 
 - Is too much of the curriculum reusing the same template or rhetorical rhythm?
 - Are the chapter openings, examples, checks, and recaps distinct enough from one another?
+- Does the textbook repeat stock openings, transition phrases, generic bridges, or identical mastery endings instead of responding to the specific material?
 
 ### Review Evidence
 
+- Review notes must begin with the generated textbook acceptance gate result. Do not start ordinary generation review with chapter scores.
+- Do review notes record blocking issues found, revisions applied, remaining known issues, and targeted notes for revised or risky chapters?
 - Do review notes cite concrete chapter content, examples, blocks, or questions as evidence?
 - Do scores of 4 or 5 identify specific generated content that satisfies the criterion?
 - Does the review flag missing visible results, weak distractors, sparse local checks, and under-specified practice when present?
 - Does the review flag missing required spec fields, unclear activity transitions, and role mismatches when present?
+- If a gate fails, record the blocking issue, revise the textbook, and then re-review.
 
-A score of 4 or 5 must cite specific chapter, section, or block evidence. A score of 5 means no meaningful gap was found for that category. If a reject condition applies, the affected category cannot score above 3 until revised. Review notes must record unresolved known issues rather than claiming none remain.
+When a user explicitly asks for a pedagogical audit, scores of 4 or 5 must cite specific chapter, section, or block evidence. A score of 5 means no meaningful gap was found for that category. If a reject condition applies, the affected category cannot score above 3 until revised. Review notes must record unresolved known issues rather than claiming none remain.
 
 ## Minimum Quality Scores
 
-Score each chapter from 1-5:
+Use full 1-5 chapter scores only for a requested pedagogical audit. Score each chapter on:
 
 - Teaching flow
 - Definition clarity
@@ -159,6 +198,7 @@ Reject and revise the chapter if any of these are true:
 - A coding problem was added without a planned central or cumulative learner move.
 - Repeated chapter shapes contradict their scope and depth plans.
 - An inspectable artifact's layout makes the intended comparison difficult to read.
+- A central worked example has concrete input/context, a specific operation or reasoning move, and a visible result, but the chapter uses scattered ordinary blocks without explaining why `transformation(...)` would be worse.
 
 ## Revision Rule
 

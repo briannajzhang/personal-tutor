@@ -23,6 +23,7 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace. Tu
 - A chapter is published only when it has a real `.chapter.ts` file, is imported by `textbook.ts`, appears in the `chapters` array, and passes verification.
 - Do not create placeholder future chapter files. Keep future chapters in `curriculum-map.md` or `chapter-specs.md` until they are ready to publish.
 - Published chapters may be practice-heavy: add quizzes, retrieval checks, exercises, projects, and coding problems when they serve the chapter goal.
+- Use semantic blocks: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `callout`, `transformation`, `quiz`, and `codingProblem`. Treat blocks as teaching moves, not decoration.
 - Keep runtime learning history in `tutor-data/events.jsonl`; inspect it when useful, but do not fake progress by editing it.
 - After changing content or blocks, run `tutor doctor`; `tutor compile` plus `tutor verify coding-problems --textbook <textbook-id>` is also acceptable.
 - If `tutor` is not on PATH, invoke `node <skill-dir>/assets/tutor-kit/dist/cli/index.js <command>`.
@@ -38,7 +39,7 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace. Tu
 6. Write a curriculum map for the whole course arc, marking `Published now` and `Planned next`.
 7. Write specs only for the chapters being published now, usually 1-2 chapters.
 8. Author and publish those chapters with complete teaching, examples, and practice.
-9. Compile, verify coding problems when present, record results, and leave concise continuation notes.
+9. Run concise authoring validation with `references/review-rubric.md`, revise blocking issues, compile, verify coding problems when present, record results, and leave concise continuation notes.
 
 ## Continuation Mode
 
@@ -46,7 +47,7 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace. Tu
 2. Choose the smallest useful next publication: improve the active chapter or publish the next 1-2 chapters.
 3. Update the curriculum map and chapter specs before authoring.
 4. Publish only learner-ready chapters.
-5. Compile, verify coding problems when present, record results, and summarize what changed plus the next suggested publication.
+5. Run concise authoring validation, compile, verify coding problems when present, record results, and summarize what changed plus the next suggested publication.
 
 ## References
 

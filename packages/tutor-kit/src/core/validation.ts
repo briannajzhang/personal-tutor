@@ -14,6 +14,8 @@ const quizModes = new Set(["check", "review", "practice-test"]);
 const quizDifficulties = new Set(["easy", "medium", "hard"]);
 const chapterRoles = new Set(["instruction", "cumulative-checkpoint"]);
 const sectionRoles = new Set(["instruction", "practice", "review", "assessment"]);
+const transformationFormats = new Set(["markdown", "code", "math", "table"]);
+const transformationLayouts = new Set(["auto", "flow", "compare"]);
 const taskVerbPattern = /^(write|predict|explain|compare|classify|debug|diagnose|fix|implement|solve|justify|design|create|trace|identify|rewrite|describe|test|name|build|apply|refactor|interpret|spot)\b/i;
 const reviewHintPattern = /\b(check|self-check|review|recall|retrieval|mastery|quiz|practice|try|exercise|explain|predict|compare|debug|apply|test)\b/i;
 
@@ -270,7 +272,7 @@ function validateChapterLearningHeuristics(chapter: Chapter, file?: string): Val
     block.kind === "codingProblem" ||
     block.kind === "quiz" ||
     looksLikeTaskList(block) ||
-    blockText(block).some((text) => reviewHintPattern.test(text))
+    (block.kind !== "transformation" && blockText(block).some((text) => reviewHintPattern.test(text)))
   ));
 
   if (!hasPracticeMove) {
@@ -284,7 +286,7 @@ function validateChapterLearningHeuristics(chapter: Chapter, file?: string): Val
   const hasReviewMove = blocks.some((block) => (
     block.kind === "quiz" ||
     looksLikeTaskList(block) ||
-    blockText(block).some((text) => reviewHintPattern.test(text))
+    (block.kind !== "transformation" && blockText(block).some((text) => reviewHintPattern.test(text)))
   ));
 
   if (!hasReviewMove) {
@@ -473,6 +475,11 @@ export function validateBlock(
     return;
   }
 
+  if (block.kind === "transformation") {
+    validateTransformation(block.props, `${path}.props`, file, issues);
+    return;
+  }
+
   if (block.kind === "codingProblem") {
     validateCodingProblem(block.props, `${path}.props`, file, issues);
     return;
@@ -481,6 +488,91 @@ export function validateBlock(
   if (block.kind === "quiz") {
     validateQuiz(block.props, `${path}.props`, file, issues);
   }
+}
+
+function validateTransformation(
+  props: Record<string, unknown>,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  validateTextProp(props.title, `${path}.title`, file, issues);
+  validateTextProp(props.focus, `${path}.focus`, file, issues);
+  if (!transformationLayouts.has(props.layout as string)) {
+    issues.push(issue("Transformation layout must be auto, flow, or compare.", `${path}.layout`, file));
+  }
+  validateTextProp(props.inputLabel, `${path}.inputLabel`, file, issues);
+  validateTextProp(props.operationLabel, `${path}.operationLabel`, file, issues);
+  validateTextProp(props.outputLabel, `${path}.outputLabel`, file, issues);
+  validateTextProp(props.explanation, `${path}.explanation`, file, issues);
+  validateTransformationArtifactList(props.input, `${path}.input`, file, issues);
+  validateTransformationArtifact(props.operation, `${path}.operation`, file, issues);
+  validateTransformationArtifactList(props.output, `${path}.output`, file, issues);
+}
+
+function validateTransformationArtifactList(
+  value: unknown,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  if (!Array.isArray(value) || value.length === 0) {
+    issues.push(issue("Transformation artifacts must be a non-empty array.", path, file));
+    return;
+  }
+  value.forEach((artifact, index) => validateTransformationArtifact(artifact, `${path}[${index}]`, file, issues));
+}
+
+function validateTransformationArtifact(
+  value: unknown,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  if (!isRecord(value)) {
+    issues.push(issue("Transformation artifact must be an object.", path, file));
+    return;
+  }
+  if (!transformationFormats.has(value.format as string)) {
+    issues.push(issue("Transformation artifact format must be markdown, code, math, or table.", `${path}.format`, file));
+    return;
+  }
+  if (value.label !== undefined) validateTextProp(value.label, `${path}.label`, file, issues);
+  if (value.format === "markdown" || value.format === "code" || value.format === "math") {
+    validateTextProp(value.body, `${path}.body`, file, issues);
+    if (value.format === "code" && value.language !== undefined && typeof value.language !== "string") {
+      issues.push(issue("Transformation code artifact language must be a string.", `${path}.language`, file));
+    }
+    return;
+  }
+  if (!Array.isArray(value.columns) || value.columns.length === 0) {
+    issues.push(issue("Transformation table columns must be a non-empty array.", `${path}.columns`, file));
+  } else {
+    value.columns.forEach((column, index) => {
+      if (typeof column !== "string") {
+        issues.push(issue("Transformation table columns must be strings.", `${path}.columns[${index}]`, file));
+      }
+    });
+  }
+  if (!Array.isArray(value.rows)) {
+    issues.push(issue("Transformation table rows must be an array.", `${path}.rows`, file));
+    return;
+  }
+  value.rows.forEach((row, rowIndex) => {
+    const rowPath = `${path}.rows[${rowIndex}]`;
+    if (!Array.isArray(row)) {
+      issues.push(issue("Transformation table row must be an array.", rowPath, file));
+      return;
+    }
+    if (Array.isArray(value.columns) && row.length !== value.columns.length) {
+      issues.push(issue("Transformation table row width must match its column count.", rowPath, file));
+    }
+    row.forEach((cell, cellIndex) => {
+      if (typeof cell !== "string") {
+        issues.push(issue("Transformation table cells must be strings.", `${rowPath}[${cellIndex}]`, file));
+      }
+    });
+  });
 }
 
 function validateCodingProblem(

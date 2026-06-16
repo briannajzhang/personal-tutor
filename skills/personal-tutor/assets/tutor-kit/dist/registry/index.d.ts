@@ -29,6 +29,11 @@ export declare const builtInBlockRegistry: {
         title: string;
         create: typeof import("../index.js").callout;
     };
+    transformation: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").transformation;
+    };
     codingProblem: {
         kind: string;
         title: string;
@@ -70,6 +75,11 @@ export declare const builtInWidgetRegistry: {
         kind: string;
         title: string;
         create: typeof import("../index.js").callout;
+    };
+    transformation: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").transformation;
     };
     codingProblem: {
         kind: string;

@@ -94,6 +94,105 @@ codingProblem({
 });
 ```
 
+## Transformation Block
+
+Use `transformation(...)` when the learner needs to inspect how a specific operation, rule, reasoning move, or revision connects a concrete starting artifact to a concrete result.
+
+Use it only when all four are true:
+
+1. There is a concrete starting artifact, context, or state.
+2. There is a specific operation, rule, reasoning move, or action.
+3. There is a visible result, output, conclusion, or changed artifact.
+4. The learner benefits from inspecting the relationship between them.
+
+The learner should be able to point to the input, follow the move, and account for the result. If not, use ordinary semantic blocks instead.
+
+Supported artifact formats are `markdown`, `code`, `math`, and `table`. A transformation may contain multiple input and output artifacts, but exactly one operation artifact. Custom stage labels let the same block represent state changes, derivations, revisions, and interpretations without implying that every relationship is deterministic.
+
+Every transformation requires a short `focus` that tells the learner which concrete relationship, value, row, textual change, symbol, or reasoning move to inspect.
+
+A transformation replaces scattered example artifacts; it does not replace the surrounding lesson. Nearby content should add a distinct teaching move that is not already inside the widget, such as mechanism setup, problem framing, artifact readout, generalization, implication, contrast, boundary case, check, or practice. Do not add generic setup, bridge, or mastery prose solely to satisfy a repeated lesson shape.
+
+The operation must be coherent with the shown input, and the explanation must account for the concrete visible artifacts. A transformation should not hide a state change or intermediate artifact it claims to teach. If the explanation relies on a baseline, temporary state, intermediate result, rejected input, or comparison output, that artifact should be visible.
+
+The optional `layout` is `auto`, `flow`, or `compare` and defaults to `auto`:
+
+- Use `auto` unless there is a clear reason to override it. It compares all three stages when they fit, lets a dense operation span full width while input and output remain side by side, and switches the whole block to full-width rows when input or output needs more width.
+- Use `flow` when the sequence should always receive full width.
+- Use `compare` only when keeping compact stages side by side is important. It still stacks on narrow screens.
+
+```ts
+transformation({
+  id: "left-join-preservation",
+  title: "Inspect: How LEFT JOIN Preserves Unmatched Rows",
+  focus: "Track what happens to the customer without a matching order.",
+  inputLabel: "Starting tables",
+  operationLabel: "Query",
+  outputLabel: "Result",
+  input: [
+    {
+      label: "customers",
+      format: "table",
+      columns: ["customer_id", "name"],
+      rows: [["1", "Ada"], ["2", "Lin"]]
+    },
+    {
+      label: "orders",
+      format: "table",
+      columns: ["customer_id", "total"],
+      rows: [["1", "40"]]
+    }
+  ],
+  operation: {
+    format: "code",
+    language: "sql",
+    body: "SELECT customers.customer_id, customers.name, orders.total\\nFROM customers\\nLEFT JOIN orders ON customers.customer_id = orders.customer_id;"
+  },
+  output: [
+    {
+      format: "table",
+      columns: ["customer_id", "name", "total"],
+      rows: [["1", "Ada", "40"], ["2", "Lin", "NULL"]]
+    }
+  ],
+  explanation: "Lin has no matching order, but LEFT JOIN preserves every customer row and fills the missing order value with NULL."
+});
+```
+
+```ts
+transformation({
+  id: "evidence-to-claim",
+  title: "Inspect: From Evidence To A Supported Claim",
+  focus: "Track how the source detail supports a limited claim without proving more than the evidence shows.",
+  inputLabel: "Evidence",
+  operationLabel: "Reasoning move",
+  outputLabel: "Supported claim",
+  input: [{
+    format: "markdown",
+    body: "A factory report from 1912 says workers were fined for arriving more than 3 minutes late."
+  }],
+  operation: {
+    format: "markdown",
+    body: "Connect the rule to what it suggests about workplace control."
+  },
+  output: [{
+    format: "markdown",
+    body: "The factory used strict time rules to control worker behavior."
+  }],
+  explanation: "The evidence directly supports a limited claim about time discipline, but it does not prove every aspect of factory life."
+});
+```
+
+Do not use `transformation(...)` for:
+
+- definitions, general explanations, summaries, or broad conceptual overviews
+- ordinary practice prompts or results such as "the learner understands X"
+- large multi-step workflows or whole projects
+- examples without a concrete starting artifact or meaningful visible result
+- every code, query, math, or example block by default
+
+A transformation is a modeled example, not practice. Its surrounding lesson content should add distinct teaching value rather than formulaic padding. Follow it with a quiz, concrete task, or coding problem when the learner needs to use the mechanism. Repeated transformations in one chapter should represent genuinely distinct inspectable relationships.
+
 ## Tones
 
 `callout` supports:
@@ -110,6 +209,7 @@ codingProblem({
 - Use `codeBlock` for exact code, never inline code longer than a phrase.
 - Use `mathBlock` for displayed equations; use inline `$LaTeX$` inside prose for small notation.
 - Use `callout` sparingly for misconceptions, warnings, or high-value takeaways.
+- Use `transformation` for focused, inspectable input-to-move-to-result relationships. It does not count as learner practice.
 - Use `quiz` for multiple-choice concept checks, chapter review, and cumulative practice tests.
 - Use `codingProblem` for runnable practice. See `coding-problems.md`.
 - For programming lessons, prefer `codingProblem` over prose-only exercise descriptions when the target skill requires writing, running, debugging, or refactoring code.
@@ -183,10 +283,14 @@ Do not place separate tables or parallel artifacts into one plain-text block whe
 
 ## Quiz Examples
 
+For generated quizzes, prefer `balancedQuiz(...)` when choice order is not pedagogically meaningful. It accepts the same input shape as `quiz(...)`, returns a normal quiz block, and deterministically reorders choices so correct rendered positions are balanced mechanically. The author should focus on clear prompts, plausible distractors, and useful explanations rather than manually arranging answer letters.
+
+Do not use `balancedQuiz(...)` when choice order teaches meaning, such as chronological choices, numeric scales, step ordering, "all of the above", or "both A and B". Use `quiz(...)` when the exact author-specified order matters.
+
 Concept check:
 
 ```ts
-quiz({
+balancedQuiz({
   id: "slope-check",
   title: "Check: Slope as Rate of Change",
   mode: "check",
@@ -212,7 +316,7 @@ quiz({
 Chapter review:
 
 ```ts
-quiz({
+balancedQuiz({
   id: "evidence-review",
   title: "Chapter Review: Evidence and Claims",
   mode: "review",
@@ -265,7 +369,7 @@ chapter({
             "Diagnose one scenario that combines two earlier ideas and explain the correction."
           ]
         }),
-        quiz({
+        balancedQuiz({
           id: "foundations-practice-test",
           title: "Practice Test: Foundations",
           mode: "practice-test",

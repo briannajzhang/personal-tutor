@@ -62,7 +62,7 @@ async function main() {
     if (command === "add" && (subcommand === "block" || subcommand === "widget")) {
         const kind = rest[0];
         if (!kind)
-            throw new Error("Usage: tutor add block <p|heading|list|codeBlock|mathBlock|callout|quiz|codingProblem>");
+            throw new Error("Usage: tutor add block <p|heading|list|codeBlock|mathBlock|callout|transformation|quiz|codingProblem>");
         console.log(printWriteResult(`Added block ${kind}`, addBlock(args.cwd, kind)));
         return;
     }
@@ -167,7 +167,7 @@ Usage:
   tutor [--cwd path] --package-spec file:/path/to/tutor-kit init [--starter]
   tutor [--cwd path] add textbook <id> [title]
   tutor [--cwd path] add chapter <textbook-id> <id> [title]
-  tutor [--cwd path] add block <p|heading|list|codeBlock|mathBlock|callout|quiz|codingProblem>
+  tutor [--cwd path] add block <p|heading|list|codeBlock|mathBlock|callout|transformation|quiz|codingProblem>
   tutor [--cwd path] list textbooks
   tutor [--cwd path] inspect textbook <id>
   tutor [--cwd path] compile [--textbook textbook-id]

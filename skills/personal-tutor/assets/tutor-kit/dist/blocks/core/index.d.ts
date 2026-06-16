@@ -1,4 +1,4 @@
-import { callout, codeBlock, codingProblem, heading, list, mathBlock, p, quiz } from "../../core/builders.js";
+import { callout, codeBlock, codingProblem, heading, list, mathBlock, p, quiz, transformation } from "../../core/builders.js";
 export declare const coreBlockDefinitions: {
     p: {
         kind: string;
@@ -29,6 +29,11 @@ export declare const coreBlockDefinitions: {
         kind: string;
         title: string;
         create: typeof callout;
+    };
+    transformation: {
+        kind: string;
+        title: string;
+        create: typeof transformation;
     };
     codingProblem: {
         kind: string;
