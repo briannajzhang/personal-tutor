@@ -111,6 +111,24 @@ export function callout(input) {
         }
     };
 }
+export function transformation(input) {
+    return {
+        kind: "transformation",
+        id: requireText(input.id, "transformation.id"),
+        props: {
+            title: requireText(input.title, "transformation.title"),
+            focus: requireText(input.focus, "transformation.focus"),
+            layout: input.layout ?? "auto",
+            inputLabel: requireText(input.inputLabel ?? "Input", "transformation.inputLabel"),
+            operationLabel: requireText(input.operationLabel ?? "Operation", "transformation.operationLabel"),
+            outputLabel: requireText(input.outputLabel ?? "Output", "transformation.outputLabel"),
+            input: requireArtifacts(input.input, "transformation.input"),
+            operation: normalizeTransformationArtifact(input.operation, "transformation.operation"),
+            output: requireArtifacts(input.output, "transformation.output"),
+            explanation: requireText(input.explanation, "transformation.explanation")
+        }
+    };
+}
 export function codingProblem(input) {
     return {
         kind: "codingProblem",
@@ -140,6 +158,12 @@ export function quiz(input) {
             questions: input.questions.map(normalizeQuizQuestion)
         }
     };
+}
+export function balancedQuiz(input) {
+    return quiz({
+        ...input,
+        questions: balanceQuizQuestions(input.id, input.questions)
+    });
 }
 export function projectFiles(baseUrl, dir) {
     const root = resolve(dirname(fileURLToPath(baseUrl)), dir);
@@ -178,6 +202,95 @@ function normalizeQuizChoice(input) {
         id: requireText(input.id, "quiz.questions[].choices[].id"),
         body: requireText(input.body, "quiz.questions[].choices[].body")
     };
+}
+function balanceQuizQuestions(quizId, questions) {
+    const offset = stableHash(quizId) % 4;
+    let eligibleIndex = 0;
+    return questions.map((question) => {
+        if (question.choices.length !== 4) {
+            return cloneQuizQuestion(question);
+        }
+        const answerIndex = question.choices.findIndex((choice) => choice.id === question.answer);
+        if (answerIndex < 0) {
+            return cloneQuizQuestion(question);
+        }
+        const targetPosition = (eligibleIndex + offset) % 4;
+        eligibleIndex += 1;
+        return {
+            ...question,
+            choices: reorderChoicesForAnswerPosition(question, quizId, targetPosition)
+        };
+    });
+}
+function cloneQuizQuestion(question) {
+    return {
+        ...question,
+        choices: question.choices.map((choice) => ({ ...choice })),
+        tags: question.tags === undefined ? undefined : [...question.tags]
+    };
+}
+function reorderChoicesForAnswerPosition(question, quizId, targetPosition) {
+    const correctChoice = question.choices.find((choice) => choice.id === question.answer);
+    if (correctChoice === undefined) {
+        return question.choices.map((choice) => ({ ...choice }));
+    }
+    const seed = `${quizId}:${question.id}`;
+    const distractors = question.choices
+        .filter((choice) => choice.id !== question.answer)
+        .map((choice) => ({ ...choice }))
+        .sort((left, right) => stableHash(`${seed}:${left.id}`) - stableHash(`${seed}:${right.id}`));
+    const reordered = [];
+    for (let index = 0; index < question.choices.length; index += 1) {
+        if (index === targetPosition) {
+            reordered.push({ ...correctChoice });
+        }
+        else {
+            const next = distractors.shift();
+            if (next !== undefined)
+                reordered.push(next);
+        }
+    }
+    return reordered;
+}
+function stableHash(value) {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+        hash ^= value.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+}
+function requireArtifacts(value, label) {
+    if (!Array.isArray(value) || value.length === 0) {
+        throw new Error(`${label} must contain at least one artifact`);
+    }
+    return value.map((artifact, index) => normalizeTransformationArtifact(artifact, `${label}[${index}]`));
+}
+function normalizeTransformationArtifact(artifact, label) {
+    if (typeof artifact !== "object" || artifact === null || Array.isArray(artifact)) {
+        throw new Error(`${label} must be an artifact`);
+    }
+    const artifactLabel = artifact.label === undefined ? undefined : requireText(artifact.label, `${label}.label`);
+    if (artifact.format === "markdown" || artifact.format === "math") {
+        return { label: artifactLabel, format: artifact.format, body: requireText(artifact.body, `${label}.body`) };
+    }
+    if (artifact.format === "code") {
+        return {
+            label: artifactLabel,
+            format: "code",
+            body: requireText(artifact.body, `${label}.body`),
+            language: artifact.language
+        };
+    }
+    if (artifact.format === "table") {
+        return {
+            label: artifactLabel,
+            format: "table",
+            columns: [...artifact.columns],
+            rows: artifact.rows.map((row) => [...row])
+        };
+    }
+    throw new Error(`${label}.format is invalid`);
 }
 export function explanation(input) {
     return {

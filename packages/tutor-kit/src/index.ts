@@ -1,4 +1,4 @@
-export { blurb, callout, chapter, codeBlock, codingProblem, explanation, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook } from "./core/builders.js";
+export { balancedQuiz, blurb, callout, chapter, codeBlock, codingProblem, explanation, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation } from "./core/builders.js";
 export {
   validateChapter,
   validateSection,
@@ -50,6 +50,14 @@ export type {
   Subsection,
   Textbook,
   TextbookModule,
+  TransformationArtifact,
+  TransformationBlock,
+  TransformationCodeArtifact,
+  TransformationLayout,
+  TransformationMarkdownArtifact,
+  TransformationMathArtifact,
+  TransformationProps,
+  TransformationTableArtifact,
   TutorBlock,
   TutorConfig,
   ValidationIssue,

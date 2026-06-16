@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { callout, chapter, codeBlock, codingProblem, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, validateTextbook } from "../packages/tutor-kit/dist/index.js";
+import { balancedQuiz, callout, chapter, codeBlock, codingProblem, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation, validateTextbook } from "../packages/tutor-kit/dist/index.js";
 import { clearWorkspaceCaches, discoverTextbookFiles, resolveWorkspace } from "../packages/tutor-kit/dist/compile/discover.js";
 
 test.afterEach(() => {
@@ -69,6 +69,18 @@ test("builders create valid textbooks", () => {
               codeBlock({ id: "code", language: "js", code: "const x = 1;" }),
               mathBlock({ id: "math", body: "x^2 + y^2 = z^2" }),
               callout({ id: "note", tone: "key-idea", body: "Blocks are semantic." }),
+              transformation({
+                id: "double-trace",
+                title: "Inspect: Doubling A Value",
+                focus: "Track how multiplying the input by 2 changes the result.",
+                input: [{ format: "markdown", body: "Start with `2`." }],
+                operation: { format: "math", body: "2 \\times 2" },
+                output: [
+                  { format: "code", language: "text", body: "4" },
+                  { format: "table", columns: ["input", "output"], rows: [["2", "4"]] }
+                ],
+                explanation: "Multiplying the input by 2 produces the doubled value."
+              }),
               codingProblem({
                 id: "double",
                 title: "Double",
@@ -174,6 +186,117 @@ test("builders create valid textbooks", () => {
   });
 
   assert.deepEqual(validateTextbook(built), []);
+});
+
+test("transformation builder applies defaults and preserves supported artifacts", () => {
+  const built = transformation({
+    id: "evidence-to-claim",
+    title: "Inspect: Evidence To Claim",
+    focus: "Track how the source detail supports a limited claim.",
+    input: [{ label: "Evidence", format: "markdown", body: "A dated source." }],
+    operation: { format: "code", body: "connect(source, claim)" },
+    output: [{ format: "table", columns: ["claim"], rows: [] }],
+    explanation: "The reasoning move supports a limited claim."
+  });
+
+  assert.equal(built.props.inputLabel, "Input");
+  assert.equal(built.props.operationLabel, "Operation");
+  assert.equal(built.props.outputLabel, "Output");
+  assert.equal(built.props.layout, "auto");
+  assert.equal(built.props.input[0]?.format, "markdown");
+  assert.equal(built.props.operation.format, "code");
+  assert.deepEqual(built.props.output[0], { label: undefined, format: "table", columns: ["claim"], rows: [] });
+});
+
+test("transformation builder accepts constrained layout overrides and requires focus", () => {
+  const base = {
+    title: "Inspect: One Change",
+    focus: "Track the changed value.",
+    input: [{ format: "markdown" as const, body: "Before" }],
+    operation: { format: "markdown" as const, body: "Change it" },
+    output: [{ format: "markdown" as const, body: "After" }],
+    explanation: "The operation changes the visible value."
+  };
+
+  assert.equal(transformation({ id: "flow", layout: "flow", ...base }).props.layout, "flow");
+  assert.equal(transformation({ id: "compare", layout: "compare", ...base }).props.layout, "compare");
+  assert.throws(() => transformation({ id: "missing-focus", ...base, focus: "" }), /transformation.focus is required/);
+});
+
+test("validation rejects malformed transformation artifacts", () => {
+  const built = textbook({
+    id: "transformations",
+    title: "Transformations",
+    chapters: [chapter({
+      id: "broken",
+      title: "Broken Transformations",
+      sections: [section({
+        id: "examples",
+        title: "Examples",
+        blocks: [{
+          kind: "transformation",
+          id: "broken-transformation",
+          props: {
+            title: "",
+            focus: "",
+            layout: "wide",
+            inputLabel: "Evidence",
+            operationLabel: "Move",
+            outputLabel: "Claim",
+            input: [],
+            operation: { format: "diagram", body: "unsupported" },
+            output: [{
+              format: "table",
+              columns: ["a", 2],
+              rows: [["one"], ["two", 3]]
+            }],
+            explanation: ""
+          }
+        }]
+      })]
+    })]
+  });
+
+  const messages = validateTextbook(built).map((problem) => problem.message).join("\n");
+  assert.match(messages, /Text is required/);
+  assert.match(messages, /layout must be auto, flow, or compare/);
+  assert.match(messages, /non-empty array/);
+  assert.match(messages, /format must be markdown, code, math, or table/);
+  assert.match(messages, /columns must be strings/);
+  assert.match(messages, /row width must match its column count/);
+  assert.match(messages, /cells must be strings/);
+});
+
+test("transformation blocks do not satisfy chapter practice requirements", () => {
+  const example = transformation({
+    id: "worked-example",
+    title: "Practice: Starting State To Result",
+    focus: "Track how the rule changes the starting state.",
+    input: [{ format: "markdown", body: "Starting state" }],
+    operation: { format: "markdown", body: "Apply the rule" },
+    output: [{ format: "markdown", body: "Visible result" }],
+    explanation: "The rule accounts for the visible result."
+  });
+  const built = textbook({
+    id: "transformation-only",
+    title: "Transformation Only",
+    chapters: [chapter({
+      id: "transformation-only",
+      title: "Transformation Only",
+      sections: [
+        section({
+          id: "examples",
+          title: "Examples",
+          blocks: [example, { ...example, id: "worked-example-two" }, { ...example, id: "worked-example-three" }, { ...example, id: "worked-example-four" }]
+        }),
+        section({ id: "ending", title: "Ending", blocks: [] })
+      ]
+    })]
+  });
+
+  const messages = validateTextbook(built).map((problem) => problem.message).join("\n");
+  assert.match(messages, /exposition-heavy/);
+  assert.match(messages, /missing a retrieval, review, or mastery-check move/);
 });
 
 test("validation rejects malformed quiz blocks", () => {
@@ -905,6 +1028,85 @@ test("validation rejects quiz answer-position bias", () => {
     validateTextbook(built).map((issue) => issue.message).join("\n"),
     /answer-position bias/
   );
+});
+
+test("balancedQuiz reorders choices to satisfy answer-position validation", () => {
+  const questions = Array.from({ length: 8 }, (_, index) => ({
+    id: `biased-${index + 1}`,
+    prompt: `Question ${index + 1}?`,
+    choices: [
+      { id: "a", body: `Correct body ${index + 1}` },
+      { id: "b", body: "Distractor B" },
+      { id: "c", body: "Distractor C" },
+      { id: "d", body: "Distractor D" }
+    ],
+    answer: "a",
+    explanation: "The first semantic choice is correct.",
+    tags: ["bias"],
+    difficulty: "easy" as const
+  }));
+  const unbalanced = textbookWithQuizzes([
+    quiz({ id: "unbalanced", title: "Unbalanced", mode: "review", questions })
+  ]);
+  const balanced = textbookWithQuizzes([
+    balancedQuiz({ id: "unbalanced", title: "Unbalanced", mode: "review", questions })
+  ]);
+
+  assert.match(
+    validateTextbook(unbalanced).map((issue) => issue.message).join("\n"),
+    /answer-position bias|at least 3 different choice positions/
+  );
+  assert.doesNotMatch(
+    validateTextbook(balanced).map((issue) => issue.message).join("\n"),
+    /answer-position bias|at least 3 different choice positions/
+  );
+});
+
+test("balancedQuiz preserves semantic answer identity and stable output", () => {
+  const input = {
+    id: "identity",
+    title: "Identity",
+    mode: "review" as const,
+    questions: [{
+      id: "q1",
+      prompt: "Which choice names the mechanism?",
+      choices: [
+        { id: "a", body: "Correct mechanism" },
+        { id: "b", body: "Tempting misconception" },
+        { id: "c", body: "Unrelated detail" },
+        { id: "d", body: "Overbroad claim" }
+      ],
+      answer: "a",
+      explanation: "The mechanism choice is correct.",
+      tags: ["identity"],
+      difficulty: "medium" as const
+    }, {
+      id: "q2",
+      prompt: "Which short answer is valid?",
+      choices: [
+        { id: "yes", body: "Yes" },
+        { id: "no", body: "No" }
+      ],
+      answer: "yes",
+      explanation: "The short answer is valid.",
+      tags: ["identity"],
+      difficulty: "easy" as const
+    }]
+  };
+  const original = structuredClone(input);
+  const first = balancedQuiz(input);
+  const second = balancedQuiz(input);
+  const firstQuestion = first.props.questions[0];
+  const correctChoice = firstQuestion.choices.find((choice) => choice.id === firstQuestion.answer);
+
+  assert.deepEqual(input, original);
+  assert.deepEqual(first, second);
+  assert.equal(firstQuestion.answer, "a");
+  assert.equal(correctChoice?.body, "Correct mechanism");
+  assert.deepEqual(new Set(firstQuestion.choices.map((choice) => choice.id)), new Set(["a", "b", "c", "d"]));
+  assert.deepEqual(first.props.questions[0].tags, ["identity"]);
+  assert.equal(first.props.questions[0].difficulty, "medium");
+  assert.deepEqual(first.props.questions[1].choices, input.questions[1].choices);
 });
 
 test("validation requires at least 10 practice-test questions", () => {

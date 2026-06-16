@@ -249,6 +249,7 @@ These moves do not have to appear as separate headings, but they should all be p
   - explanation of why that result follows
 
 For examples involving data, code, math, diagrams, text, evidence, or other artifacts, the input and result should usually be shown as inspectable artifacts, not only described in prose.
+When a central worked example has a concrete input, specific move, and visible result whose relationship the learner should inspect, prefer `transformation(...)` over scattering those parts across unrelated blocks. A transformation organizes the inspectable artifacts; surrounding content should add a distinct teaching move rather than repeat or pad the widget. A transformation is an example, not learner practice.
 - Local concept check: asks the learner to predict, classify, identify, compare, or apply the idea soon after it is introduced.
 - Guided practice: gives the learner a concrete task with support, scaffolding, prompts, partial setup, or a model to lean on.
 - Independent practice: asks the learner to perform the target move with less support.

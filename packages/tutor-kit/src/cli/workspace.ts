@@ -72,12 +72,12 @@ export function addBlock(cwd: string, kind: string): WriteResult {
   const result: WriteResult = { created: [], skipped: [] };
   ensureDir(join(cwd, "tutor", "blocks"));
 
-  if (["p", "heading", "list", "codeBlock", "mathBlock", "callout", "quiz", "codingProblem", "core"].includes(kind)) {
+  if (["p", "heading", "list", "codeBlock", "mathBlock", "callout", "transformation", "quiz", "codingProblem", "core"].includes(kind)) {
     writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);
     return result;
   }
 
-  throw new Error(`Unknown block "${kind}". Available blocks: p, heading, list, codeBlock, mathBlock, callout, quiz, codingProblem.`);
+  throw new Error(`Unknown block "${kind}". Available blocks: p, heading, list, codeBlock, mathBlock, callout, transformation, quiz, codingProblem.`);
 }
 
 export function addWidget(cwd: string, kind: string): WriteResult {

@@ -53,6 +53,21 @@ export default textbook({
     assert.match(page, /data-chapter-navigation/);
     assert.match(page, /bindChapterNavigation/);
     assert.match(page, /grid-template-columns: 1fr/);
+    assert.match(page, /renderTransformation/);
+    assert.match(page, /transformation-stages/);
+    assert.match(page, /transformation-table/);
+    assert.match(page, /transformation-focus/);
+    assert.match(page, /data-transformation-layout/);
+    assert.match(page, /updateTransformationLayouts/);
+    assert.match(page, /auto-hybrid/);
+    assert.match(page, /transformationStageOverflows/);
+    assert.match(page, /inputOverflow \|\| outputOverflow/);
+    assert.match(page, /operationOverflow/);
+    assert.match(page, /data-transformation-stage/);
+    assert.match(page, /renderInlineEmphasis/);
+    assert.match(page, /<strong>/);
+    assert.match(page, /<em>/);
+    assert.match(page, /document\.fonts\?\.ready/);
 
     const fontResponse = await fetch(`${server.url}/__tutor-assets/katex/fonts/KaTeX_Main-Regular.woff2`);
     assert.equal(fontResponse.status, 200);

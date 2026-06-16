@@ -125,6 +125,9 @@ Use a small example where:
 - visible result, output, or conclusion the chapter will show:
 - explanation of why that result follows:
 - misconception or boundary case revealed, if relevant:
+- representation: if the example has concrete input/context, a specific operation or reasoning move, and a visible result that the learner should inspect, default to `transformation(...)`; use normal semantic blocks only when they are clearer, and record why
+- transformation decision: if using `transformation(...)`, identify what must remain visible and what distinct teaching move the surrounding lesson adds; if not using `transformation(...)` for a transformation-suitable example, explain why ordinary blocks are clearer
+- post-example teaching move: readout / generalization / contrast / boundary / bridge to practice
 
 ## Practice Plan
 
@@ -169,6 +172,8 @@ For each independent task, coding problem, project, or mastery check, list the c
 
 A task is not ready when it requires a mechanism that appears for the first time only in the task prompt, starter files, tests, review focus, or answer explanation.
 
+A required move is not adequately scaffolded merely because the prompt mentions it. If the learner must write new syntax, use a new API, apply a new query clause, or reason through a new edge case, the chapter should teach it, demonstrate it, or provide it as starter structure.
+
 ## Check And Review Plan
 
 Local concept checks:
@@ -209,6 +214,7 @@ Likely Tutor Kit blocks:
 - `codeBlock`: ...
 - `mathBlock`: ...
 - `callout`: ...
+- `transformation`: ...
 - `list`: ...
 - `quiz`: ...
 - `codingProblem`: ...
@@ -391,6 +397,10 @@ Before writing the example, specify:
 * any mistake or boundary case the example reveals
 
 Do not treat a worked example as planned if it only names the kind of example to include or promises to "show the visible result." The spec should identify the actual input/context, operation, result/output/conclusion, and explanation the authored chapter will display.
+
+For central worked examples, plan what the learner should take away after the example. A strong post-example teaching move might read the visible artifacts, state the general rule, contrast a nearby mistake, name a boundary case, or prepare the learner for the next task.
+
+Do not move directly from a central example into assessment or independent practice if the transfer lesson is still implicit.
 
 Example:
 

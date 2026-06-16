@@ -142,6 +142,14 @@ For each planned coding problem, identify:
 - context supplied to reduce setup uncertainty
 - logic deliberately omitted from the starter
 
+Before finalizing, compare the prompt, starter files, visible tests, reference solution, review focus, and follow-up tasks against the taught material. If the solution or tests require a syntax pattern, API, query clause, edge case, or reasoning move that has not been taught, demonstrated, reviewed, or deliberately scaffolded, the problem is not ready.
+
+Do not introduce a required move for the first time only in the hidden reference solution, tests, review focus, or answer explanation.
+
+A required move includes any syntax, clause, function, operator, data-shape assumption, or reasoning step needed to solve the prompt or hidden reference solution.
+
+Do not require a move merely because it appeared in a review quiz, practice-test question, or answer explanation. Recognition after the task does not prepare the learner to use it independently.
+
 Starter files should reflect the learner profile. A placeholder such as `SELECT 1` or an empty function is insufficient when the learner must inspect tests to reconstruct the environment or discover how to begin. A nearly complete solution is also insufficient when the task claims to assess independent construction.
 
 Surrounding prose should explain why the learner is doing the problem and which mechanism it exercises. Do not merely restate the coding prompt.

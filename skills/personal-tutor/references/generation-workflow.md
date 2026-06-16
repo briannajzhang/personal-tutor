@@ -9,6 +9,7 @@ Use this workflow when generating new curriculum from a learner request. Do not 
 - Curriculum map and persisted planning artifacts
 - Sequence, duration, and pacing checks
 - Chapter specs, checks, and practice planning
+- Authoring validation vs pedagogical audit
 - Chapter generation, critique, revision, and compile evidence
 - Avoid list
 
@@ -21,11 +22,12 @@ Use this workflow when generating new curriculum from a learner request. Do not 
 5. Draft chapter specs before writing full chapter prose and persist them in the textbook directory.
 6. In each chapter spec, plan assessment: local checks, chapter review, cumulative review targets, and the best block type for each.
 7. Generate chapters one at a time.
-8. Review each chapter for structure, prose quality, practice quality, assessment quality, and repetition, then persist review notes.
+8. Run concise authoring validation, then persist review notes.
 9. Revise weak chapters before moving on.
-10. Run `tutor compile` and persist compile evidence.
-11. Run `tutor verify coding-problems --textbook <textbook-id>` when the textbook contains coding problems and persist verification evidence.
-12. Start `tutor dev` when the user wants the interface.
+10. Run the generated textbook acceptance gate and revise any blocking failures.
+11. Run `tutor compile` and persist compile evidence.
+12. Run `tutor verify coding-problems --textbook <textbook-id>` when the textbook contains coding problems and persist verification evidence.
+13. Start `tutor dev` when the user wants the interface.
 
 ## Phase 1: Interpret The Request
 
@@ -65,6 +67,19 @@ Before writing chapter prose, sketch the plan:
 The map can be brief, but it should be real. Do not skip directly to prose blocks if the sequence is still fuzzy.
 
 Prefer concept-based chapter names in the map. Do not label chapters as `Week 1`, `Phase 2`, or similar schedule containers unless the user explicitly asked for a time-based course plan.
+
+The curriculum map must declare a scope type:
+
+- complete beginner textbook
+- foundations module
+- focused skill module
+- cram guide
+- reference workbook
+- practice workbook
+
+For a broad vague prompt, default to `complete beginner textbook` unless the user asks for a short, compact, focused, or cram-style artifact.
+
+If choosing a narrower scope, explicitly label the textbook title or description as a scoped module and list deferred topics. Do not reduce broad-topic scope merely to make generation, compile, or verification easier.
 
 ## Phase 4: Persist Planning Artifacts
 
@@ -168,6 +183,14 @@ Do not assume one assessment format covers every need. When a likely misconcepti
 
 Use quiz modes, tags, and difficulty according to `lesson-authoring.md`.
 
+## Authoring Validation Vs Pedagogical Audit
+
+During ordinary generation, run authoring validation. Authoring validation is required and checks whether the textbook is safe to finalize: scope honesty, coverage claim honesty, runnable practice, prerequisite safety, transformation use/coherence, compile status, and coding verification.
+
+A pedagogical audit is deeper and optional. It evaluates whether the textbook is genuinely strong for learners: explanation depth, pacing, example quality, quiz quality, repetition, and learner experience. Do not perform a full pedagogical audit during every generation unless the user requests it.
+
+Do not confuse passing authoring validation with being a strong textbook. Passing validation means the textbook is usable and internally consistent; it does not mean the textbook is pedagogically excellent.
+
 ## Phase 9: Generate Chapters One At A Time
 
 Do not compress the entire curriculum into one shallow pass.
@@ -180,9 +203,9 @@ For each chapter:
 - match prose quality expectations in `writing-style.md`
 - rewrite any chapter that feels like an outline instead of a usable learning artifact
 
-## Phase 10: Critique And Revise
+## Phase 10: Authoring Validation And Revision
 
-After drafting each chapter, review it with the rubric in `review-rubric.md`.
+After drafting chapters, review them with the authoring validation mode in `review-rubric.md`.
 
 Compare the authored chapter against its spec's scope and depth, practice flow, practice readiness, worked-example, and assessment plans. Confirm that actual chapter and section roles match the planned teaching purpose. Reject chapters whose final tasks require untaught moves, whose promised inspectable examples were reduced to prose descriptions, or whose activity transitions are unclear.
 
@@ -202,7 +225,91 @@ Revise chapters that are:
 - repeating a uniform structure that contradicts materially different scope and depth plans
 - disconnected from the learner goal
 
-## Phase 11: Compile Evidence
+Persist concise review notes focused on acceptance-gate results, blocking issues, revisions applied, remaining known issues, and targeted chapter notes only for chapters that required revision or still have risks. Do not produce full per-chapter score tables during ordinary generation unless the user asks for a pedagogical audit.
+
+## Phase 11: Generated Textbook Acceptance Gate
+
+Before recording final compile evidence, run this blocking gate. If any item fails, revise the textbook before finalizing.
+
+### Scope Honesty
+
+If the original request is broad, such as "Teach me SQL", "Teach me statistics", or "Teach me databases", the generated artifact must either:
+
+- cover the expected beginner core scope for that subject, or
+- explicitly label itself as a scoped module, such as "SQL Querying Foundations, Part 1"
+
+If the textbook is a scoped module, record:
+
+- what scope it covers
+- what major topics it defers
+- why narrowing is appropriate for this request
+
+Do not silently narrow a broad request and then review it as a complete textbook.
+
+### Coverage Claim Honesty
+
+Do not claim that the textbook or chapter teaches a mechanism unless the authored material prepares the learner to use it.
+
+A mechanism counts as taught only if it is:
+
+* defined or framed plainly
+* demonstrated in a concrete example or transformation
+* checked, used in guided practice, or deliberately scaffolded before independent use
+
+If a topic is only named, previewed, used in a review question, or used inside an answer explanation, label it as introduced or previewed, not taught.
+
+If the curriculum map claims the textbook covers a mechanism, the chapter sequence should actually teach it. Otherwise, revise the curriculum claim, defer the topic explicitly, or add teaching material before requiring it.
+
+### Runnable Practice
+
+For practical technical topics where learners should produce executable or checkable artifacts, include runnable practice when appropriate.
+
+Missing direct runtime support is not an acceptable reason to downgrade to prose-only practice. Use an available harness when execution would improve feedback.
+
+If runnable practice is omitted, record the user-facing reason. Convenience, missing target runtime, or avoiding verification work are not valid reasons.
+
+### Prerequisite Safety
+
+Every independent task, coding problem, project, practice test, and mastery check must use only concepts, syntax, mechanisms, and edge cases that were:
+
+- taught earlier in the chapter
+- taught in a prerequisite chapter
+- deliberately scaffolded inside the task
+
+Check the prompt, starter files, tests, reference solution, review focus, and answer explanations.
+
+### Transformation Use And Coherence
+
+For each central worked example, check whether it has:
+
+- concrete input or starting context
+- a specific operation, rule, reasoning move, or action
+- a visible result, output, conclusion, or changed artifact
+- learner benefit from inspecting the relationship
+
+If yes, use `transformation(...)` unless ordinary semantic blocks are clearer.
+
+If no `transformation(...)` blocks are used in a generated textbook with data, code, math, revision, or evidence-to-claim examples, review notes must explicitly justify why none of the worked examples were transformation-suitable.
+
+"Not applicable" is not a valid review result merely because no transformations were authored.
+
+Every `transformation(...)` block must show a coherent input → move → result relationship. If the explanation relies on a baseline, intermediate result, temporary state, rejected input, or comparison output, that artifact must be visible. A transformation does not count as learner practice.
+
+### Review Honesty
+
+Review notes must begin with the acceptance gate result.
+
+Do not assign 5/5 or write "Known Issues: None" when there are scope limitations, prerequisite violations, missing runnable practice, missed transformation-suitable examples, unsupported examples, weak distractors, or unresolved readability issues.
+
+Review notes must record:
+
+- blocking issues found
+- revisions applied
+- remaining known issues
+
+If no revisions were applied, explain why the first draft passed every blocking gate.
+
+## Phase 12: Compile Evidence
 
 After running `tutor compile`, record the result in:
 

@@ -313,6 +313,127 @@ h1 {
   text-transform: uppercase;
   margin: 0 0 7px;
 }
+.transformation {
+  margin: 10px 0 22px;
+  border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
+  background: color-mix(in srgb, var(--panel) 34%, transparent);
+}
+.transformation-title {
+  margin: 0;
+  padding: 18px 18px 6px;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 560;
+}
+.transformation-focus {
+  padding: 0 18px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.transformation-stages {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.transformation.layout-flow .transformation-stages,
+.transformation.layout-auto.auto-flow .transformation-stages {
+  grid-template-columns: 1fr;
+}
+.transformation.layout-auto.auto-hybrid .transformation-stages {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.transformation.layout-auto.auto-hybrid .transformation-stage-operation {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+.transformation.layout-auto.auto-hybrid .transformation-stage-output {
+  grid-column: 2;
+  grid-row: 1;
+}
+.transformation-stage {
+  min-width: 0;
+  padding: 16px 18px 18px;
+  border-right: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+}
+.transformation-stage:last-child {
+  border-right: 0;
+}
+.transformation.layout-flow .transformation-stage,
+.transformation.layout-auto.auto-flow .transformation-stage {
+  border-right: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+}
+.transformation.layout-flow .transformation-stage:last-child,
+.transformation.layout-auto.auto-flow .transformation-stage:last-child {
+  border-bottom: 0;
+}
+.transformation.layout-auto.auto-hybrid .transformation-stage-input,
+.transformation.layout-auto.auto-hybrid .transformation-stage-output {
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+}
+.transformation.layout-auto.auto-hybrid .transformation-stage-output,
+.transformation.layout-auto.auto-hybrid .transformation-stage-operation {
+  border-right: 0;
+}
+.transformation-stage-label,
+.transformation-artifact-label,
+.transformation-explanation-label {
+  color: var(--accent-2);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.transformation-stage-label {
+  margin-bottom: 12px;
+}
+.transformation-artifacts {
+  display: grid;
+  gap: 12px;
+}
+.transformation-artifact {
+  min-width: 0;
+}
+.transformation-artifact-label {
+  margin-bottom: 6px;
+  color: var(--muted);
+  letter-spacing: .04em;
+  text-transform: none;
+}
+.transformation-artifact .code-block,
+.transformation-artifact .math-block,
+.transformation-artifact .markdown p {
+  margin-bottom: 0;
+}
+.transformation-table-scroll {
+  overflow-x: auto;
+}
+.transformation-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+.transformation-table th,
+.transformation-table td {
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 58%, transparent);
+  text-align: left;
+  white-space: nowrap;
+}
+.transformation-table th {
+  background: var(--panel-soft);
+  color: var(--ink);
+  font-weight: 600;
+}
+.transformation-explanation {
+  padding: 16px 18px 18px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+}
+.transformation-explanation-label {
+  margin-bottom: 8px;
+}
 .quiz {
   margin: 10px 0 22px;
   border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
@@ -617,6 +738,15 @@ h1 {
   border-radius: 5px;
   font-size: .92em;
 }
+.markdown strong,
+.transformation-focus strong {
+  color: var(--ink);
+  font-weight: 650;
+}
+.markdown em,
+.transformation-focus em {
+  font-style: italic;
+}
 .math {
   color: var(--accent-2);
   font-family: "Times New Roman", serif;
@@ -694,6 +824,22 @@ body.route-loading {
     grid-column: 1;
     text-align: left;
   }
+  .transformation-stages,
+  .transformation.layout-auto.auto-hybrid .transformation-stages {
+    grid-template-columns: 1fr;
+  }
+  .transformation.layout-auto.auto-hybrid .transformation-stage-operation,
+  .transformation.layout-auto.auto-hybrid .transformation-stage-output {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .transformation-stage {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+  }
+  .transformation-stage:last-child {
+    border-bottom: 0;
+  }
   .coding-workspace {
     grid-template-columns: 1fr;
   }
@@ -716,6 +862,7 @@ let routeToken = 0;
 async function load() {
   textbooks = await fetchJson("/api/textbooks");
   window.addEventListener("popstate", () => { void renderRoute(); });
+  window.addEventListener("resize", scheduleTransformationLayouts);
   await renderRoute();
 }
 
@@ -828,6 +975,8 @@ async function renderChapter(textbookId, chapterId) {
   bindChapterNavigation(textbookId);
   bindQuizzes(chapter);
   bindCodingProblems(chapter);
+  scheduleTransformationLayouts();
+  if (document.fonts?.ready) void document.fonts.ready.then(scheduleTransformationLayouts);
   finishRouteLoad(token);
 }
 
@@ -946,6 +1095,9 @@ function renderBlock(block) {
     const title = block.props.title ? block.props.title : block.props.tone.replace("-", " ");
     return \`<aside class="callout \${escapeAttr(block.props.tone)}"><div class="callout-title">\${escapeHtml(title)}</div><div class="markdown">\${renderMarkdown(block.props.body)}</div></aside>\`;
   }
+  if (block.kind === "transformation") {
+    return renderTransformation(block);
+  }
   if (block.kind === "codingProblem") {
     return renderCodingProblem(block);
   }
@@ -953,6 +1105,89 @@ function renderBlock(block) {
     return renderQuiz(block);
   }
   return \`<article class="block"><div class="markdown"><p>Unsupported block: \${escapeHtml(block.kind)}</p></div></article>\`;
+}
+
+function renderTransformation(block) {
+  return \`
+    <article class="block transformation layout-\${escapeAttr(block.props.layout)}" data-transformation="\${escapeAttr(block.id)}" data-transformation-layout="\${escapeAttr(block.props.layout)}">
+      <h4 class="transformation-title">\${escapeHtml(block.props.title)}</h4>
+      <div class="transformation-focus">\${renderInlineMarkdown(block.props.focus)}</div>
+      <div class="transformation-stages">
+        \${renderTransformationStage("input", block.props.inputLabel, block.props.input)}
+        \${renderTransformationStage("operation", block.props.operationLabel, [block.props.operation])}
+        \${renderTransformationStage("output", block.props.outputLabel, block.props.output)}
+      </div>
+      <div class="transformation-explanation">
+        <div class="transformation-explanation-label">Explanation</div>
+        <div class="markdown">\${renderMarkdown(block.props.explanation)}</div>
+      </div>
+    </article>
+  \`;
+}
+
+let transformationLayoutFrame = null;
+
+function scheduleTransformationLayouts() {
+  if (transformationLayoutFrame !== null) cancelAnimationFrame(transformationLayoutFrame);
+  transformationLayoutFrame = requestAnimationFrame(() => {
+    transformationLayoutFrame = null;
+    updateTransformationLayouts();
+  });
+}
+
+function updateTransformationLayouts() {
+  document.querySelectorAll('[data-transformation-layout="auto"]').forEach((element) => {
+    element.classList.remove("auto-flow", "auto-hybrid");
+    const inputOverflow = transformationStageOverflows(element, "input");
+    const operationOverflow = transformationStageOverflows(element, "operation");
+    const outputOverflow = transformationStageOverflows(element, "output");
+    if (inputOverflow || outputOverflow) {
+      element.classList.add("auto-flow");
+    } else if (operationOverflow) {
+      element.classList.add("auto-hybrid");
+    }
+  });
+}
+
+function transformationStageOverflows(element, stage) {
+  const artifacts = element.querySelectorAll(
+    \`[data-transformation-stage="\${stage}"] .code-block, [data-transformation-stage="\${stage}"] .math-block, [data-transformation-stage="\${stage}"] .markdown, [data-transformation-stage="\${stage}"] .transformation-table-scroll\`
+  );
+  return [...artifacts].some((artifact) => artifact.scrollWidth > artifact.clientWidth + 1);
+}
+
+function renderTransformationStage(stage, label, artifacts) {
+  return \`
+    <section class="transformation-stage transformation-stage-\${escapeAttr(stage)}" data-transformation-stage="\${escapeAttr(stage)}">
+      <div class="transformation-stage-label">\${escapeHtml(label)}</div>
+      <div class="transformation-artifacts">\${artifacts.map(renderTransformationArtifact).join("")}</div>
+    </section>
+  \`;
+}
+
+function renderTransformationArtifact(artifact) {
+  const label = artifact.label
+    ? \`<div class="transformation-artifact-label">\${escapeHtml(artifact.label)}</div>\`
+    : "";
+  let content = "";
+  if (artifact.format === "markdown") {
+    content = \`<div class="markdown">\${renderMarkdown(artifact.body)}</div>\`;
+  } else if (artifact.format === "code") {
+    const language = artifact.language ? \` data-language="\${escapeAttr(artifact.language)}"\` : "";
+    content = \`<pre class="code-block"\${language}><code>\${escapeHtml(artifact.body)}</code></pre>\`;
+  } else if (artifact.format === "math") {
+    content = \`<div class="math-block">\${renderMath(artifact.body, true)}</div>\`;
+  } else if (artifact.format === "table") {
+    content = \`
+      <div class="transformation-table-scroll">
+        <table class="transformation-table">
+          <thead><tr>\${artifact.columns.map((column) => \`<th>\${escapeHtml(column)}</th>\`).join("")}</tr></thead>
+          <tbody>\${artifact.rows.map((row) => \`<tr>\${row.map((cell) => \`<td>\${escapeHtml(cell)}</td>\`).join("")}</tr>\`).join("")}</tbody>
+        </table>
+      </div>
+    \`;
+  }
+  return \`<div class="transformation-artifact">\${label}\${content}</div>\`;
 }
 
 function renderQuiz(block) {
@@ -1636,12 +1871,31 @@ function renderInlineMarkdown(value) {
   let cursor = 0;
   const pattern = /(\`[^\`]*\`|\\$[^$\\n]+\\$)/g;
   for (const match of source.matchAll(pattern)) {
-    html += escapeHtml(source.slice(cursor, match.index));
+    html += renderInlineEmphasis(source.slice(cursor, match.index));
     const token = match[0];
     if (token.startsWith("\`")) {
       html += \`<code>\${escapeHtml(token.slice(1, -1))}</code>\`;
     } else {
       html += \`<span class="math">\${renderMath(token.slice(1, -1), false)}</span>\`;
+    }
+    cursor = match.index + token.length;
+  }
+  html += renderInlineEmphasis(source.slice(cursor));
+  return html;
+}
+
+function renderInlineEmphasis(value) {
+  const source = String(value ?? "");
+  let html = "";
+  let cursor = 0;
+  const pattern = /(\\*\\*[^*\\n]+\\*\\*|\\*[^*\\n]+\\*)/g;
+  for (const match of source.matchAll(pattern)) {
+    html += escapeHtml(source.slice(cursor, match.index));
+    const token = match[0];
+    if (token.startsWith("**")) {
+      html += \`<strong>\${escapeHtml(token.slice(2, -2))}</strong>\`;
+    } else {
+      html += \`<em>\${escapeHtml(token.slice(1, -1))}</em>\`;
     }
     cursor = match.index + token.length;
   }

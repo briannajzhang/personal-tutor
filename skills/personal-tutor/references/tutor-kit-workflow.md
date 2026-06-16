@@ -29,7 +29,7 @@ tutor init
 tutor --package-spec file:/path/to/tutor-kit init
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
-tutor add block <p|heading|list|codeBlock|mathBlock|callout|quiz|codingProblem>
+tutor add block <p|heading|list|codeBlock|mathBlock|callout|transformation|quiz|codingProblem>
 tutor list textbooks
 tutor inspect textbook <id>
 tutor compile

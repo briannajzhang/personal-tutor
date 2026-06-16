@@ -36,10 +36,10 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace.
 7. Draft chapter specs before writing full chapter prose. Save them to `textbooks/<textbook-id>/chapter-specs.md`. Use `references/chapter-specs.md`.
 8. Add or edit `textbooks/<textbook>/textbook.ts` and `textbooks/<textbook>/chapters/*.chapter.ts`.
 9. Keep each textbook's `chapters` array in the intended order.
-10. Use semantic blocks: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `callout`, `quiz`, and `codingProblem`. Treat blocks as teaching moves, not decoration. Follow `references/lesson-authoring.md` for block placement and `references/coding-problems.md` for runnable coding practice.
+10. Use semantic blocks: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `callout`, `transformation`, `quiz`, and `codingProblem`. Treat blocks as teaching moves, not decoration. Follow `references/lesson-authoring.md` for block placement and `references/coding-problems.md` for runnable coding practice.
 11. Build non-trivial chapters with the canonical learning contract in `references/lesson-authoring.md`.
 12. Ensure each chapter ends after the learner has been asked to use the material, not immediately after explanation.
-13. Before finalizing a chapter, review it with `references/review-rubric.md` and save review notes to `textbooks/<textbook-id>/review-notes.md`.
+13. Before finalizing generated material, run concise authoring validation with `references/review-rubric.md` and save review notes to `textbooks/<textbook-id>/review-notes.md`.
 14. Run `tutor compile`, fix all issues, and record the result in `textbooks/<textbook-id>/compile-result.md`.
 15. When the textbook contains coding problems, run `tutor verify coding-problems --textbook <textbook-id>`, fix any verification issues, and record the result.
 16. Run `tutor dev` to serve the UI when useful.
