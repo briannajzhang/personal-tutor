@@ -6,6 +6,7 @@ Use this reference when creating a new Tutor Kit course/module, continuing an ex
 
 - Default output
 - Generation modes
+- Tailoring intake
 - Learner defaults
 - Curriculum maps
 - Chapter specs
@@ -45,9 +46,38 @@ Use focused material mode when the user asks for a specific durable artifact, su
 
 If the user asks for a complete textbook or large batch, still publish incrementally in verified batches. A plan can be broad; the current publication should be learner-ready.
 
+## Tailoring Intake
+
+Inspect the workspace first, then ask a concise intake before authoring. Ask only questions whose answers will change the lesson design, practice, difficulty, or sequencing.
+
+For a new course/module, ask 3-5 of:
+
+- What should you be able to do with this subject?
+- What background should the material assume?
+- Do you want practical fluency, conceptual depth, interview/exam prep, academic support, or project-building?
+- Should the pace feel gentle, normal, or intensive?
+- Which practice mix do you want: quizzes, written exercises, runnable/checkable tasks, projects, or a blend?
+- Is there a time horizon or chapter size to target?
+
+For continuation, ask 2-4 of:
+
+- Should the next publication introduce new material, add practice, add review, or repair a weak chapter?
+- What felt too easy, too hard, or unclear in the existing material?
+- Do you want more conceptual checks, runnable practice, cumulative review, or project-style work next?
+- Is there a specific chapter, skill, or upcoming use case to prioritize?
+
+For focused quizzes/practice, ask only what is missing:
+
+- target concept or skill
+- difficulty
+- number of questions/tasks
+- desired format and feedback style
+
+If the user declines intake or asks the agent to choose, use the defaults below and record them in `prompt.md` or `curriculum-map.md`.
+
 ## Learner Defaults
 
-When the user is vague, infer a reasonable learner profile instead of asking for every preference.
+After intake, infer any remaining profile fields instead of asking for every preference.
 
 Minimum profile fields:
 

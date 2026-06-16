@@ -22,6 +22,24 @@ test("skill folder has UI metadata, wrapper script, and no macOS packaging artif
   assert.deepEqual(readdirSync(skillDir).filter((name) => name === ".DS_Store"), []);
 });
 
+test("SKILL.md frontmatter stays within the supported YAML subset", () => {
+  const skill = readFileSync(join(skillDir, "SKILL.md"), "utf8");
+  const frontmatter = skill.match(/^---\n([\s\S]*?)\n---/);
+  assert.ok(frontmatter, "SKILL.md should start with YAML frontmatter");
+
+  const fields = new Map<string, string>();
+  for (const line of frontmatter[1].split("\n")) {
+    const match = line.match(/^([a-z_]+): (.+)$/);
+    assert.ok(match, `unsupported frontmatter line: ${line}`);
+    fields.set(match[1], match[2]);
+  }
+
+  assert.equal(fields.get("name"), "personal-tutor");
+  const description = fields.get("description") ?? "";
+  assert.ok(description.length > 0);
+  assert.doesNotMatch(description, /:\s/, "plain YAML description must not contain unquoted colon-space");
+});
+
 test("bundled Tutor Kit asset exposes the documented CLI surface", () => {
   assert.ok(existsSync(join(assetDir, "dist", "compile", "verify-coding.js")));
 

@@ -1,6 +1,6 @@
 ---
 name: personal-tutor
-description: Creates and continues durable Tutor Kit learning material: lessons, course modules, textbook chapters, examples, exercises, quizzes, review sets, practice tests, coding problems, and verified learner practice. Use when the user asks to learn, study, practice, master, build skill, generate curriculum, create lessons, write practice questions, make quizzes, add coding practice, review progress through authored material, maintain a learning workspace, use Tutor Kit, or continue existing Tutor Kit study content.
+description: Create and continue durable Tutor Kit lessons, course modules, examples, exercises, quizzes, review sets, practice tests, and coding problems. Use when the user asks to learn, study, practice, master a topic, build a curriculum, write lessons, make quizzes or exercises, add coding practice, use Tutor Kit, or continue existing study content.
 ---
 
 # Personal Tutor
@@ -18,21 +18,23 @@ This skill is not for one-off conversational tutoring. If a request is about lea
    - `textbooks/*/chapters/*.chapter.ts`
    - authoring artifacts such as `prompt.md`, `curriculum-map.md`, `chapter-specs.md`, `review-notes.md`, and `compile-result.md`
 3. If Tutor Kit files are missing, initialize the workspace with `tutor init` or `node <skill-dir>/scripts/tutor-kit.mjs init`.
-4. Decide the smallest durable publication:
+4. Run a short tailoring intake before authoring unless the request and existing artifacts already answer it. Ask 3-5 questions that change the material: learner background, concrete goal, desired depth/pace, preferred practice style, time horizon, and whether runnable/checkable exercises are wanted. Do not ask about facts discoverable from the workspace. Record answers in `prompt.md` or `curriculum-map.md`.
+5. Decide the smallest durable publication:
    - **Seed course/module**: create a new textbook and publish the first 1-2 learner-ready chapters.
    - **Continuation**: improve the active chapter or publish the next 1-2 planned chapters.
    - **Focused material**: add or revise a lesson section, practice set, quiz, review set, practice-test chapter, or coding problem inside an existing textbook.
-5. Plan before authoring. Keep future chapters in `curriculum-map.md` or `chapter-specs.md` until they are ready.
-6. Author Tutor Kit TypeScript modules, not hand-edited JSON.
-7. Use semantic blocks as teaching moves: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `callout`, `transformation`, `quiz`, `balancedQuiz`, and `codingProblem`.
-8. Verify before finalizing with `tutor doctor`, or with `tutor compile` plus `tutor verify coding-problems --textbook <textbook-id>` when coding problems exist.
-9. Record review, compile, and coding-problem verification evidence in the textbook directory.
+6. Plan before authoring. Keep future chapters in `curriculum-map.md` or `chapter-specs.md` until they are ready.
+7. Author Tutor Kit TypeScript modules, not hand-edited JSON.
+8. Use semantic blocks as teaching moves: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `callout`, `transformation`, `quiz`, `balancedQuiz`, and `codingProblem`.
+9. Verify before finalizing with `tutor doctor`, or with `tutor compile` plus `tutor verify coding-problems --textbook <textbook-id>` when coding problems exist.
+10. Record review, compile, and coding-problem verification evidence in the textbook directory.
 
 ## Core Rules
 
 - A published chapter must have a real `.chapter.ts` file, be imported by `textbook.ts`, appear in the ordered `chapters` array, and pass verification.
 - Do not create placeholder future chapter files.
 - Do not answer broad learning requests with only a roadmap. Create or continue a Tutor Kit course/module with learner-ready material now.
+- Do not silently use generic defaults before intake. If the user skips intake or asks the agent to choose, record the chosen defaults.
 - Do not make exposition-only chapters. Every non-trivial lesson needs examples, checks, practice, and review.
 - Use quizzes for fast diagnosis, retrieval, local checks, chapter review, and cumulative practice tests.
 - Use runnable `codingProblem(...)` blocks when the learner should implement, debug, refactor, query, transform, or test code or code-like artifacts.
