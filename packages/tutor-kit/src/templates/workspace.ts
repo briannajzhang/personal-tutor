@@ -1,4 +1,4 @@
-export function packageJsonTemplate(packageSpec = "^0.1.0"): string {
+export function packageJsonTemplate(packageSpec: string): string {
   return `${JSON.stringify({
     type: "module",
     scripts: {
@@ -32,6 +32,10 @@ export function tsconfigTemplate(): string {
       "textbooks/**/*.tsx",
       "tutor/**/*.ts",
       "tutor/**/*.tsx"
+    ],
+    exclude: [
+      "textbooks/**/chapters/problems/**",
+      "textbooks/**/problems/**"
     ]
   }, null, 2)}\n`;
 }

@@ -26,6 +26,7 @@ During local Tutor Kit development in this source repo, `npm run tutor -- <comma
 
 ```bash
 tutor init
+tutor init --starter
 tutor --package-spec file:/path/to/tutor-kit init
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
@@ -34,13 +35,17 @@ tutor list textbooks
 tutor inspect textbook <id>
 tutor compile
 tutor compile --textbook <textbook-id>
+tutor doctor
+tutor doctor --textbook <textbook-id>
 tutor verify coding-problems
 tutor verify coding-problems --textbook <textbook-id>
 tutor dev
 ```
 
 Use `--cwd <path>` when operating on a workspace that is not the shell cwd.
-Use `--package-spec` during local dogfooding when Tutor Kit is installed from a source checkout instead of npm.
+`tutor init` is agent-oriented and creates an empty workspace by default. Use `--starter` only for demos, tests, or fixtures.
+
+By default, `tutor init` writes a local `file:` dependency pointing at the Tutor Kit package that provided the CLI. Use `--package-spec` only when overriding that source.
 
 ## Workflow
 
@@ -50,14 +55,14 @@ Use `--package-spec` during local dogfooding when Tutor Kit is installed from a 
 4. Add chapter files under `textbooks/<textbook-id>/chapters/`.
 5. Import each new chapter in `textbooks/<textbook-id>/textbook.ts` and add it to the ordered `chapters` array.
 6. Put content in chapter `sections` and `subsections` using semantic `blocks`.
-7. Run `tutor compile`.
+7. Run `tutor compile` or `tutor doctor`.
 8. Fix TypeScript or Tutor Kit validation errors.
 
    If unrelated incomplete textbooks block full workspace compile, use `tutor compile --textbook <textbook-id>` while repairing the generated textbook. Record that result as targeted compile evidence only. A targeted compile proves the selected textbook is usable in isolation; it does not prove the whole workspace is healthy.
 
 9. When the textbook contains coding problems, run `tutor verify coding-problems --textbook <textbook-id>` and fix any verification issues.
 
-10. Before claiming the workspace is fully healthy, run full `tutor compile`.
+10. Before claiming the workspace is fully healthy, run full `tutor doctor` or `tutor compile` plus coding-problem verification.
 
 11. Run `tutor dev` when the user wants the local UI.
 

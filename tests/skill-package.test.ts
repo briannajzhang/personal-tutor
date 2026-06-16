@@ -19,7 +19,9 @@ test("bundled Tutor Kit asset exposes the documented CLI surface", () => {
     encoding: "utf8"
   });
 
+  assert.match(help, /init \[--starter\]/);
   assert.match(help, /add block <p\|heading\|list\|codeBlock\|mathBlock\|callout\|quiz\|codingProblem>/);
   assert.match(help, /compile \[--textbook textbook-id\]/);
+  assert.match(help, /doctor \[--textbook textbook-id\]/);
   assert.match(help, /verify coding-problems \[--textbook textbook-id\]/);
 });

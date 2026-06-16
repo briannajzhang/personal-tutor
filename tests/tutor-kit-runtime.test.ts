@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -13,7 +13,7 @@ test.afterEach(() => {
 
 test("loadTextbooks cache can be invalidated after file edits", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir);
+  initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
 
   const textbookPath = join(dir, "textbooks", "getting-started", "textbook.ts");
@@ -38,6 +38,8 @@ test("init and add commands create expected workspace files", () => {
   addBlock(dir, "quiz");
 
   assert.match(readFileSync(join(dir, "package.json"), "utf8"), /file:\/tmp\/tutor-kit/);
+  assert.equal(existsSync(join(dir, "textbooks", "getting-started")), false);
+  assert.match(readFileSync(join(dir, "tsconfig.json"), "utf8"), /textbooks\/\*\*\/chapters\/problems\/\*\*/);
   assert.match(readFileSync(join(dir, "textbooks", "mlx", "textbook.ts"), "utf8"), /id: "mlx"/);
   assert.match(readFileSync(join(dir, "textbooks", "mlx", "chapters", "arrays.chapter.ts"), "utf8"), /id: "arrays"/);
   assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /coreBlocks/);

@@ -4,6 +4,7 @@ export interface WriteResult {
 }
 export interface InitWorkspaceOptions {
     packageSpec?: string;
+    starter?: boolean;
 }
 export declare function initWorkspace(cwd: string, options?: InitWorkspaceOptions): WriteResult;
 export declare function addTextbook(cwd: string, id: string, title: string): WriteResult;

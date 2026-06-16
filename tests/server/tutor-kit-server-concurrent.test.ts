@@ -14,7 +14,7 @@ test.afterEach(() => {
 
 test("dev server handles concurrent root and textbooks requests", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir);
+  initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
 
   const server = await startDevServer({ cwd: dir, port: 0 });

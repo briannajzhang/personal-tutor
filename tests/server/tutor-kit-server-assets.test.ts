@@ -14,7 +14,7 @@ test.afterEach(() => {
 
 test("dev server exposes textbooks, chapters, and appends events", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir);
+  initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
   const chaptersDir = join(dir, "textbooks", "getting-started", "chapters");
   const welcomePath = join(chaptersDir, "welcome.chapter.ts");

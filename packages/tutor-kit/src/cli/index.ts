@@ -10,6 +10,7 @@ interface ParsedArgs {
   cwd: string;
   port: number;
   packageSpec?: string;
+  starter: boolean;
   textbookId?: string;
   command: string[];
 }
@@ -25,7 +26,8 @@ async function main(): Promise<void> {
 
   if (command === "init") {
     console.log(printWriteResult("Initialized Tutor Kit workspace", initWorkspace(args.cwd, {
-      packageSpec: args.packageSpec
+      packageSpec: args.packageSpec,
+      starter: args.starter
     })));
     return;
   }
@@ -84,6 +86,26 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (command === "doctor") {
+    const compile = await compileWorkspace(args.cwd, { textbookId: args.textbookId });
+    const output = ["Tutor doctor", "", compile.output];
+    let ok = compile.ok;
+    if (compile.ok) {
+      const verification = await verifyCodingProblems(args.cwd, { textbookId: args.textbookId });
+      output.push("", verification.problemCount === 0
+        ? [
+          "Coding problem verification skipped",
+          `- scope: ${args.textbookId ? `textbook ${args.textbookId}` : "full workspace"}`,
+          "- no coding problems found"
+        ].join("\n")
+        : verification.output);
+      ok = verification.ok;
+    }
+    console.log(output.join("\n"));
+    process.exitCode = ok ? 0 : 1;
+    return;
+  }
+
   if (command === "verify" && subcommand === "coding-problems") {
     const result = await verifyCodingProblems(args.cwd, { textbookId: args.textbookId });
     console.log(result.output);
@@ -105,6 +127,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   let cwd = process.cwd();
   let port = 4177;
   let packageSpec: string | undefined = process.env.TUTOR_KIT_PACKAGE_SPEC;
+  let starter = false;
   let textbookId: string | undefined;
   const command: string[] = [];
 
@@ -129,6 +152,10 @@ function parseArgs(argv: string[]): ParsedArgs {
       packageSpec = value;
       continue;
     }
+    if (arg === "--starter") {
+      starter = true;
+      continue;
+    }
     if (arg === "--textbook") {
       const value = argv[++i];
       if (!value) throw new Error("--textbook requires an id");
@@ -138,7 +165,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     command.push(arg);
   }
 
-  return { cwd: resolve(cwd), port, packageSpec, textbookId, command };
+  return { cwd: resolve(cwd), port, packageSpec, starter, textbookId, command };
 }
 
 function titleFromId(id: string): string {
@@ -153,14 +180,15 @@ function help(): string {
   return `Tutor Kit
 
 Usage:
-  tutor [--cwd path] init
-  tutor [--cwd path] --package-spec file:/path/to/tutor-kit init
+  tutor [--cwd path] init [--starter]
+  tutor [--cwd path] --package-spec file:/path/to/tutor-kit init [--starter]
   tutor [--cwd path] add textbook <id> [title]
   tutor [--cwd path] add chapter <textbook-id> <id> [title]
   tutor [--cwd path] add block <p|heading|list|codeBlock|mathBlock|callout|quiz|codingProblem>
   tutor [--cwd path] list textbooks
   tutor [--cwd path] inspect textbook <id>
   tutor [--cwd path] compile [--textbook textbook-id]
+  tutor [--cwd path] doctor [--textbook textbook-id]
   tutor [--cwd path] verify coding-problems [--textbook textbook-id]
   tutor [--cwd path] dev [--port 4177]
 `;
