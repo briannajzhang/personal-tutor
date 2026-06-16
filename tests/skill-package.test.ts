@@ -1,14 +1,24 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { execFileSync } from "node:child_process";
 import test from "node:test";
 
 const skillDir = join(process.cwd(), "skills", "personal-tutor");
+const referencesDir = join(skillDir, "references");
 const assetDir = join(skillDir, "assets", "tutor-kit");
 
-test("skill folder has UI metadata and no macOS packaging artifacts", () => {
+const expectedReferences = [
+  "lesson-authoring.md",
+  "lesson-generation.md",
+  "practice-and-assessment.md",
+  "review-and-verification.md",
+  "tutor-kit-api.md"
+].sort();
+
+test("skill folder has UI metadata, wrapper script, and no macOS packaging artifacts", () => {
   assert.ok(existsSync(join(skillDir, "agents", "openai.yaml")));
+  assert.ok(existsSync(join(skillDir, "scripts", "tutor-kit.mjs")));
   assert.deepEqual(readdirSync(skillDir).filter((name) => name === ".DS_Store"), []);
 });
 
@@ -26,15 +36,59 @@ test("bundled Tutor Kit asset exposes the documented CLI surface", () => {
   assert.match(help, /verify coding-problems \[--textbook textbook-id\]/);
 });
 
-test("transformation guidance uses one coherence prompt and avoids formulaic adjacency rules", () => {
-  const chapterSpecs = readFileSync(join(skillDir, "references", "chapter-specs.md"), "utf8");
-  const blockAuthoring = readFileSync(join(skillDir, "references", "block-authoring.md"), "utf8");
-  const reviewRubric = readFileSync(join(skillDir, "references", "review-rubric.md"), "utf8");
+test("Tutor Kit wrapper delegates to the bundled CLI", () => {
+  const help = execFileSync("node", [join(skillDir, "scripts", "tutor-kit.mjs"), "--help"], {
+    encoding: "utf8"
+  });
 
-  assert.match(chapterSpecs, /coherence and lesson role/);
-  assert.doesNotMatch(chapterSpecs, /necessary framing before the block/);
-  assert.doesNotMatch(chapterSpecs, /generalization, implication, trap, or learner action after the block/);
-  assert.match(blockAuthoring, /distinct teaching move/);
-  assert.match(blockAuthoring, /baseline, temporary state, intermediate result, rejected input, or comparison output/);
-  assert.match(reviewRubric, /stock openings, transition phrases, generic bridges, or identical mastery endings/);
+  assert.match(help, /Tutor Kit/);
+  assert.match(help, /doctor \[--textbook textbook-id\]/);
+});
+
+test("SKILL.md references the consolidated one-level reference set", () => {
+  const skill = readFileSync(join(skillDir, "SKILL.md"), "utf8");
+  const actualReferences = readdirSync(referencesDir).filter((name) => name.endsWith(".md")).sort();
+  const referenced = [...new Set(skill.match(/references\/[a-z0-9-]+\.md/g) ?? [])]
+    .map((path) => path.replace("references/", ""))
+    .sort();
+
+  assert.deepEqual(actualReferences, expectedReferences);
+  assert.deepEqual(referenced, expectedReferences);
+  for (const reference of referenced) {
+    assert.ok(existsSync(join(referencesDir, reference)), `missing referenced file ${reference}`);
+  }
+});
+
+test("long references have contents and do not create nested reference paths", () => {
+  for (const reference of expectedReferences) {
+    const file = join(referencesDir, reference);
+    const contents = readFileSync(file, "utf8");
+    const lineCount = contents.split("\n").length;
+
+    if (lineCount > 100) {
+      assert.match(contents, /^## Contents$/m, `${reference} should include a contents section`);
+    }
+
+    assert.doesNotMatch(contents, /\[[^\]]+\]\([^)]*\.md\)/, `${reference} should not link to nested markdown references`);
+  }
+});
+
+test("skill references focus on durable lesson authoring rather than live tutoring mode", () => {
+  const referenceText = expectedReferences
+    .map((reference) => readFileSync(join(referencesDir, reference), "utf8"))
+    .join("\n");
+
+  assert.doesNotMatch(referenceText, /live tutoring/i);
+  assert.doesNotMatch(referenceText, /chat-only/i);
+  assert.doesNotMatch(referenceText, /chat only/i);
+});
+
+test("OpenAI UI metadata matches the refocused skill", () => {
+  const metadata = readFileSync(join(skillDir, "agents", "openai.yaml"), "utf8");
+
+  assert.match(metadata, /display_name: "Personal Tutor"/);
+  assert.match(metadata, /short_description: "Tutor Kit lessons and practice"/);
+  assert.match(metadata, /default_prompt: "Use \$personal-tutor /);
+  assert.doesNotMatch(metadata, /study plan/i);
+  assert.doesNotMatch(metadata, /chat/i);
 });
