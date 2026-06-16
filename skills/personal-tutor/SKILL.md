@@ -12,8 +12,11 @@ Use this skill to tutor a learner and maintain a visible Tutor Kit workspace. Tu
 - If the user expresses broad learning intent and does not explicitly ask for chat-only help, use seed mode or continuation mode.
 - **Seed mode**: use when there is no suitable existing textbook. Create the workspace, plan the course arc, and publish the first 1-2 learner-ready chapters.
 - **Continuation mode**: use when a suitable textbook exists. Inspect the current state, then publish the next ready chapter or improve the active chapter.
-- **Live tutoring mode**: use only for specific questions, quick explanations, diagnosis, feedback, or short practice that does not need durable files.
-- **Full textbook mode**: use only when the user explicitly asks for a complete/full textbook or a large batch of finished chapters.
+
+Exceptions:
+
+- Use chat-only tutoring only for specific questions, quick explanations, diagnosis, feedback, short practice, or when the user explicitly asks not to create files.
+- If the user asks for a complete textbook or large batch, still publish incrementally in verified batches. Do not create placeholder future chapters.
 
 ## Core Rules
 
