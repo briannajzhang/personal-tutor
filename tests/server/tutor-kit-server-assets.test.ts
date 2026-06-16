@@ -52,6 +52,8 @@ export default textbook({
     assert.match(page, /chapter-navigation/);
     assert.match(page, /data-chapter-navigation/);
     assert.match(page, /bindChapterNavigation/);
+    assert.match(page, /bindChapterIndex/);
+    assert.match(page, /scrollToHashTarget/);
     assert.match(page, /grid-template-columns: 1fr/);
 
     const fontResponse = await fetch(`${server.url}/__tutor-assets/katex/fonts/KaTeX_Main-Regular.woff2`);
