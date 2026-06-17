@@ -70,6 +70,19 @@ export default textbook({
     assert.match(page, /<strong>/);
     assert.match(page, /<em>/);
     assert.match(page, /document\.fonts\?\.ready/);
+    assert.match(page, /renderNotFoundPage/);
+    assert.match(page, /Page not found/);
+    assert.match(page, /Generate your first textbook/);
+
+    const missingPageResponse = await fetch(`${server.url}/missing-route`);
+    const missingPage = await missingPageResponse.text();
+    assert.equal(missingPageResponse.status, 404);
+    assert.match(missingPage, /renderNotFoundPage/);
+    assert.match(missingPage, /404 not found/);
+
+    const malformedPathResponse = await fetch(`${server.url}/textbooks/%E0%A4%A`);
+    await malformedPathResponse.text();
+    assert.equal(malformedPathResponse.status, 404);
 
     const fontResponse = await fetch(`${server.url}/__tutor-assets/katex/fonts/KaTeX_Main-Regular.woff2`);
     assert.equal(fontResponse.status, 200);
@@ -114,6 +127,26 @@ export default textbook({
       body: JSON.stringify({ type: "test_event" })
     });
     assert.equal(eventResponse.ok, true);
+  } finally {
+    await server.close();
+  }
+});
+
+test("dev server includes concise empty state for workspaces without textbooks", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
+  initWorkspace(dir);
+  linkTutorKit(dir);
+
+  const server = await startDevServer({ cwd: dir, port: 0 });
+  try {
+    const textbooks = await fetchJson(`${server.url}/api/textbooks`);
+    assert.deepEqual(textbooks, []);
+
+    const page = await fetchText(`${server.url}/`);
+    assert.match(page, /Library is empty/);
+    assert.match(page, /Generate your first textbook/);
+    assert.match(page, /This workspace has no registered Tutor Kit textbooks yet/);
+    assert.match(page, /textbooks\/&lt;textbook-id&gt;\/textbook\.ts/);
   } finally {
     await server.close();
   }

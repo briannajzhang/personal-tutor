@@ -754,6 +754,98 @@ h1 {
 body.route-loading {
   cursor: progress;
 }
+.empty-state {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.45fr);
+  gap: 34px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 30px 0;
+}
+.empty-kicker,
+.not-found-kicker {
+  color: var(--accent-2);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.empty-title {
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-size: 23px;
+  font-weight: 560;
+  letter-spacing: 0;
+  line-height: 1.22;
+}
+.empty-copy,
+.not-found-copy {
+  max-width: 640px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+.empty-prompt {
+  display: grid;
+  gap: 9px;
+  border-left: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  padding-left: 20px;
+}
+.empty-prompt-label {
+  color: var(--muted-2);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.empty-prompt code {
+  color: var(--ink-soft);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.not-found {
+  min-height: calc(100vh - 188px);
+}
+.not-found-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 52px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 42px 0;
+}
+.not-found-panel h1 {
+  margin-top: 8px;
+}
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+.not-found-action {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 9px 13px;
+}
+.not-found-action:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+.not-found-code {
+  color: color-mix(in srgb, var(--accent) 48%, var(--line));
+  font-size: 92px;
+  font-weight: 620;
+  letter-spacing: 0;
+  line-height: 1;
+}
 .loading-shell {
   min-height: 240px;
 }
@@ -807,6 +899,21 @@ body.route-loading {
   }
   .row-title {
     font-size: 21px;
+  }
+  .empty-state,
+  .not-found-panel {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .empty-prompt {
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+    padding-left: 0;
+    padding-top: 16px;
+  }
+  .not-found-code {
+    font-size: 58px;
+    justify-self: start;
   }
   .chapter-layout {
     grid-template-columns: 1fr;
@@ -866,18 +973,35 @@ async function load() {
 
 async function fetchJson(url, options) {
   const response = await fetch(url, options);
-  if (!response.ok) throw new Error(await response.text());
+  if (!response.ok) {
+    const body = await response.text();
+    const error = new Error(parseResponseError(body) || response.statusText || "Request failed");
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
   return response.json();
 }
 
 function renderHome() {
   const totalChapters = textbooks.reduce((sum, textbook) => sum + textbook.chapterCount, 0);
+  const meta = textbooks.length === 0 ? "No textbooks yet" : \`\${textbooks.length} textbooks / \${totalChapters} chapters\`;
   document.querySelector("#main").innerHTML = \`
     <section>
       <div class="page-head">
         <h1>\${escapeHtml(document.title)}</h1>
-        <div class="meta">\${textbooks.length} textbooks / \${totalChapters} chapters</div>
+        <div class="meta">\${escapeHtml(meta)}</div>
       </div>
+      \${textbooks.length === 0 ? renderEmptyTextbooks() : renderTextbookRows()}
+    </section>
+  \`;
+  document.querySelectorAll("[data-textbook]").forEach((button) => {
+    button.addEventListener("click", () => navigateTextbook(button.dataset.textbook));
+  });
+}
+
+function renderTextbookRows() {
+  return \`
       <div class="rows">
         \${textbooks.map((textbook) => \`
           <button class="row" data-textbook="\${escapeAttr(textbook.id)}">
@@ -889,11 +1013,23 @@ function renderHome() {
           </button>
         \`).join("")}
       </div>
-    </section>
   \`;
-  document.querySelectorAll("[data-textbook]").forEach((button) => {
-    button.addEventListener("click", () => navigateTextbook(button.dataset.textbook));
-  });
+}
+
+function renderEmptyTextbooks() {
+  return \`
+    <div class="empty-state">
+      <div>
+        <div class="empty-kicker">Library is empty</div>
+        <h2 class="empty-title">Generate your first textbook</h2>
+        <p class="empty-copy">This workspace has no registered Tutor Kit textbooks yet. Published chapters will appear here once a textbook module is added.</p>
+      </div>
+      <div class="empty-prompt" aria-label="Expected textbook source">
+        <span class="empty-prompt-label">Expected source</span>
+        <code>textbooks/&lt;textbook-id&gt;/textbook.ts</code>
+      </div>
+    </div>
+  \`;
 }
 
 async function renderTextbook(textbookId) {
@@ -1075,24 +1211,45 @@ async function renderRoute() {
       await renderTextbook(route.textbookId);
       return;
     }
+    if (route.kind === "notFound") {
+      routeToken += 1;
+      finishRouteLoad(routeToken);
+      renderNotFoundPage({
+        title: "Page not found",
+        message: \`No route matches \${route.path}. Return to your textbook library to keep studying.\`
+      });
+      return;
+    }
     routeToken += 1;
     finishRouteLoad(routeToken);
     renderHome();
   } catch (error) {
     finishRouteLoad();
+    if (isNotFoundError(error)) {
+      renderNotFoundPage(notFoundDetails(route));
+      return;
+    }
     renderRouteError(error);
   }
 }
 
 function parseRoute(pathname) {
-  const parts = pathname.split("/").filter(Boolean).map(decodeURIComponent);
-  if (parts[0] === "textbooks" && parts[1] && parts[2] === "chapters" && parts[3]) {
+  let parts;
+  try {
+    parts = pathname.split("/").filter(Boolean).map(decodeURIComponent);
+  } catch {
+    return { kind: "notFound", path: pathname };
+  }
+  if (parts.length === 0 || (parts.length === 1 && parts[0] === "textbooks")) {
+    return { kind: "home" };
+  }
+  if (parts.length === 4 && parts[0] === "textbooks" && parts[1] && parts[2] === "chapters" && parts[3]) {
     return { kind: "chapter", textbookId: parts[1], chapterId: parts[3] };
   }
-  if (parts[0] === "textbooks" && parts[1]) {
+  if (parts.length === 2 && parts[0] === "textbooks" && parts[1]) {
     return { kind: "textbook", textbookId: parts[1] };
   }
-  return { kind: "home" };
+  return { kind: "notFound", path: pathname };
 }
 
 function navigateHome() {
@@ -1859,6 +2016,66 @@ function bindCrumbs() {
       }
     });
   });
+}
+
+function renderNotFoundPage(details = {}) {
+  const title = details.title ?? "Page not found";
+  const message = details.message ?? "That page does not exist in this Tutor Kit workspace.";
+  const actionLabel = textbooks.length === 0 ? "Go home" : "Back to textbooks";
+  document.querySelector("#main").innerHTML = \`
+    <section class="not-found">
+      \${renderCrumbs([
+        { label: document.title, action: "home" },
+        { label: "Not found" }
+      ])}
+      <div class="not-found-panel">
+        <div>
+          <div class="not-found-kicker">404 not found</div>
+          <h1>\${escapeHtml(title)}</h1>
+          <p class="not-found-copy">\${escapeHtml(message)}</p>
+          <div class="not-found-actions">
+            <button class="not-found-action" data-nav="home">\${escapeHtml(actionLabel)}</button>
+          </div>
+        </div>
+        <div class="not-found-code" aria-hidden="true">404</div>
+      </div>
+    </section>
+  \`;
+  bindCrumbs();
+}
+
+function notFoundDetails(route) {
+  if (route.kind === "chapter") {
+    return {
+      title: "Chapter not found",
+      message: \`No chapter matches \${route.textbookId}/\${route.chapterId}. It may have been renamed, removed, or not generated yet.\`
+    };
+  }
+  if (route.kind === "textbook") {
+    return {
+      title: "Textbook not found",
+      message: \`No textbook matches \${route.textbookId}. It may have been renamed, removed, or not generated yet.\`
+    };
+  }
+  return {
+    title: "Page not found",
+    message: \`No route matches \${route.path ?? window.location.pathname}. Return to your textbook library to keep studying.\`
+  };
+}
+
+function isNotFoundError(error) {
+  return error?.status === 404;
+}
+
+function parseResponseError(body) {
+  try {
+    const parsed = JSON.parse(body);
+    if (typeof parsed.error === "string") return parsed.error;
+    if (Array.isArray(parsed.issues)) return parsed.issues.map((issue) => issue.message ?? String(issue)).join("\\n");
+  } catch {
+    // Use the plain response body below.
+  }
+  return String(body ?? "").trim();
 }
 
 function beginRouteLoad(message) {

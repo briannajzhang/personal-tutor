@@ -204,11 +204,29 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
 
   if (request.method === "GET" && !url.pathname.startsWith("/api/")) {
     const workspace = await resolveWorkspace(cwd);
-    send(response, 200, "text/html; charset=utf-8", html(workspace.title));
+    const status = isKnownAppPath(url.pathname) ? 200 : 404;
+    send(response, status, "text/html; charset=utf-8", html(workspace.title));
     return;
   }
 
   sendJson(response, 404, { error: "Not found" });
+}
+
+function isKnownAppPath(pathname: string): boolean {
+  const parts = decodePathParts(pathname);
+  if (!parts) return false;
+  if (parts.length === 0 || (parts.length === 1 && parts[0] === "textbooks")) return true;
+  if (parts.length === 2 && parts[0] === "textbooks" && Boolean(parts[1])) return true;
+  if (parts.length === 4 && parts[0] === "textbooks" && Boolean(parts[1]) && parts[2] === "chapters" && Boolean(parts[3])) return true;
+  return false;
+}
+
+function decodePathParts(pathname: string): string[] | null {
+  try {
+    return pathname.split("/").filter(Boolean).map(decodeURIComponent);
+  } catch {
+    return null;
+  }
 }
 
 function send(response: ServerResponse, status: number, contentType: string, body: string): void {
