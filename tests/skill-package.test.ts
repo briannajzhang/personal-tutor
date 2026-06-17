@@ -7,8 +7,12 @@ import test from "node:test";
 const skillDir = join(process.cwd(), "skills", "personal-tutor");
 const referencesDir = join(skillDir, "references");
 const assetDir = join(skillDir, "assets", "tutor-kit");
+const corpusDir = join(skillDir, "assets", "karpathy-corpus");
 
 const expectedReferences = [
+  "karpathy-corpus.md",
+  "karpathy-source-index.md",
+  "karpathy-teaching-taste.md",
   "lesson-authoring.md",
   "lesson-generation.md",
   "practice-and-assessment.md",
@@ -99,6 +103,55 @@ test("skill references focus on durable lesson authoring rather than live tutori
   assert.doesNotMatch(referenceText, /live tutoring/i);
   assert.doesNotMatch(referenceText, /chat-only/i);
   assert.doesNotMatch(referenceText, /chat only/i);
+});
+
+test("Karpathy corpus manifest ships primary sources, transcripts, and cards", () => {
+  const manifestPath = join(corpusDir, "manifest.json");
+  assert.ok(existsSync(manifestPath), "Karpathy corpus manifest should exist");
+
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  assert.equal(manifest.version, 1);
+  assert.equal(manifest.updated_at, "2026-06-17");
+  assert.ok(Array.isArray(manifest.sources));
+  assert.ok(Array.isArray(manifest.cards));
+  assert.ok(manifest.sources.length >= 25);
+  assert.ok(manifest.cards.length >= 5);
+
+  const ids = new Set<string>();
+  for (const source of manifest.sources) {
+    assert.equal(source.provenance, "primary", `${source.id} should be a primary-source entry`);
+    assert.match(source.id, /^[a-z0-9-]+$/);
+    assert.match(source.url, /^https:\/\//);
+    assert.equal(typeof source.license, "string");
+    assert.equal(typeof source.fetched_at, "string");
+    assert.equal(ids.has(source.id), false, `duplicate source id ${source.id}`);
+    ids.add(source.id);
+
+    if (source.kind === "video") {
+      assert.equal(source.status, "transcript-fetched");
+      assert.match(source.youtube_id, /^[A-Za-z0-9_-]+$/);
+      assert.match(source.transcript_file, /^[a-z0-9-]+\.jsonl$/);
+      const transcriptPath = join(corpusDir, "transcripts", source.transcript_file);
+      assert.ok(existsSync(transcriptPath), `missing transcript ${source.transcript_file}`);
+      const firstRow = JSON.parse(readFileSync(transcriptPath, "utf8").split("\n")[0]);
+      assert.equal(firstRow.source_id, source.id);
+      assert.equal(firstRow.video_id, source.youtube_id);
+      assert.equal(firstRow.title, source.title);
+      assert.equal(typeof firstRow.start_sec, "number");
+      assert.equal(typeof firstRow.duration_sec, "number");
+      assert.equal(typeof firstRow.text, "string");
+    }
+  }
+
+  for (const card of manifest.cards) {
+    assert.match(card.id, /^[a-z0-9-]+$/);
+    assert.match(card.file, /^cards\/[a-z0-9-]+\.md$/);
+    assert.ok(existsSync(join(corpusDir, card.file)), `missing card ${card.file}`);
+    assert.ok(card.source_ids.length > 0, `${card.id} should cite source ids`);
+    for (const sourceId of card.source_ids) {
+      assert.ok(ids.has(sourceId), `${card.id} cites unknown source ${sourceId}`);
+    }
+  }
 });
 
 test("skill instructs agents to start the Tutor Kit app after authoring", () => {
