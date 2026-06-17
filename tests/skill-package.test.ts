@@ -116,6 +116,11 @@ test("Karpathy corpus manifest ships primary sources, transcripts, and cards", (
   assert.ok(Array.isArray(manifest.cards));
   assert.ok(manifest.sources.length >= 25);
   assert.ok(manifest.cards.length >= 5);
+  assert.deepEqual(
+    readdirSync(join(corpusDir, "transcripts")).filter((name) => name.endsWith(".jsonl")),
+    [],
+    "transcripts should ship as plain text, not JSONL"
+  );
 
   const ids = new Set<string>();
   for (const source of manifest.sources) {
@@ -130,16 +135,17 @@ test("Karpathy corpus manifest ships primary sources, transcripts, and cards", (
     if (source.kind === "video") {
       assert.equal(source.status, "transcript-fetched");
       assert.match(source.youtube_id, /^[A-Za-z0-9_-]+$/);
-      assert.match(source.transcript_file, /^[a-z0-9-]+\.jsonl$/);
+      assert.match(source.transcript_file, /^[a-z0-9-]+\.txt$/);
       const transcriptPath = join(corpusDir, "transcripts", source.transcript_file);
       assert.ok(existsSync(transcriptPath), `missing transcript ${source.transcript_file}`);
-      const firstRow = JSON.parse(readFileSync(transcriptPath, "utf8").split("\n")[0]);
-      assert.equal(firstRow.source_id, source.id);
-      assert.equal(firstRow.video_id, source.youtube_id);
-      assert.equal(firstRow.title, source.title);
-      assert.equal(typeof firstRow.start_sec, "number");
-      assert.equal(typeof firstRow.duration_sec, "number");
-      assert.equal(typeof firstRow.text, "string");
+      const transcript = readFileSync(transcriptPath, "utf8");
+      const lines = transcript.split("\n");
+      assert.equal(lines[0], `Title: ${source.title}`);
+      assert.equal(lines[1], `Source ID: ${source.id}`);
+      assert.equal(lines[2], `URL: ${source.url}`);
+      assert.equal(lines[3], `Video ID: ${source.youtube_id}`);
+      assert.ok(transcript.split(/\s+/).length > 100, `${source.transcript_file} should contain transcript text`);
+      assert.doesNotMatch(transcript, /"start_sec"|"duration_sec"|"source_id"|"video_id"/);
     }
   }
 

@@ -6,27 +6,49 @@
     {
       "id": "build-the-smallest-real-thing",
       "file": "cards/build-the-smallest-real-thing.md",
-      "source_ids": ["zero-to-hero-micrograd", "zero-to-hero-makemore-bigram", "llm101n", "microgpt"]
+      "source_ids": [
+        "zero-to-hero-micrograd",
+        "zero-to-hero-makemore-bigram",
+        "llm101n",
+        "microgpt"
+      ]
     },
     {
       "id": "make-state-visible",
       "file": "cards/make-state-visible.md",
-      "source_ids": ["zero-to-hero-makemore-activations", "zero-to-hero-gpt", "recipe-training-nn"]
+      "source_ids": [
+        "zero-to-hero-makemore-activations",
+        "zero-to-hero-gpt",
+        "recipe-training-nn"
+      ]
     },
     {
       "id": "casual-precision",
       "file": "cards/casual-precision.md",
-      "source_ids": ["zero-to-hero-tokenizer", "intro-to-llms", "rnn-effectiveness"]
+      "source_ids": [
+        "zero-to-hero-tokenizer",
+        "intro-to-llms",
+        "rnn-effectiveness"
+      ]
     },
     {
       "id": "from-toy-to-real",
       "file": "cards/from-toy-to-real.md",
-      "source_ids": ["zero-to-hero-makemore-bigram", "zero-to-hero-gpt", "nanogpt", "llm-c"]
+      "source_ids": [
+        "zero-to-hero-makemore-bigram",
+        "zero-to-hero-gpt",
+        "nanogpt",
+        "llm-c"
+      ]
     },
     {
       "id": "practice-by-mutation",
       "file": "cards/practice-by-mutation.md",
-      "source_ids": ["zero-to-hero-backprop-ninja", "zero-to-hero-wavenet", "minbpe"]
+      "source_ids": [
+        "zero-to-hero-backprop-ninja",
+        "zero-to-hero-wavenet",
+        "minbpe"
+      ]
     }
   ],
   "sources": [
@@ -230,7 +252,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "VMj-3S1tku0",
-      "transcript_file": "zero-to-hero-micrograd.jsonl",
+      "transcript_file": "zero-to-hero-micrograd.txt",
       "duration_hint": "2h25m"
     },
     {
@@ -243,7 +265,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "PaCmpygFfXo",
-      "transcript_file": "zero-to-hero-makemore-bigram.jsonl",
+      "transcript_file": "zero-to-hero-makemore-bigram.txt",
       "duration_hint": "1h57m"
     },
     {
@@ -256,7 +278,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "TCH_1BHY58I",
-      "transcript_file": "zero-to-hero-makemore-mlp.jsonl",
+      "transcript_file": "zero-to-hero-makemore-mlp.txt",
       "duration_hint": "1h45m"
     },
     {
@@ -269,7 +291,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "P6sfmUTpUmc",
-      "transcript_file": "zero-to-hero-makemore-activations.jsonl",
+      "transcript_file": "zero-to-hero-makemore-activations.txt",
       "duration_hint": "1h56m"
     },
     {
@@ -282,7 +304,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "q8SA3rM6ckI",
-      "transcript_file": "zero-to-hero-backprop-ninja.jsonl",
+      "transcript_file": "zero-to-hero-backprop-ninja.txt",
       "duration_hint": "2h22m"
     },
     {
@@ -295,7 +317,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "t3YJ5hKiMQ0",
-      "transcript_file": "zero-to-hero-wavenet.jsonl",
+      "transcript_file": "zero-to-hero-wavenet.txt",
       "duration_hint": "1h56m"
     },
     {
@@ -308,7 +330,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "kCc8FmEb1nY",
-      "transcript_file": "zero-to-hero-gpt.jsonl",
+      "transcript_file": "zero-to-hero-gpt.txt",
       "duration_hint": "2h13m"
     },
     {
@@ -321,7 +343,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "zduSFxRajkE",
-      "transcript_file": "zero-to-hero-tokenizer.jsonl",
+      "transcript_file": "zero-to-hero-tokenizer.txt",
       "duration_hint": "2h13m"
     },
     {
@@ -334,7 +356,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "zjkBMFhNj_g",
-      "transcript_file": "intro-to-llms.jsonl",
+      "transcript_file": "intro-to-llms.txt",
       "duration_hint": "59m"
     },
     {
@@ -347,7 +369,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "7xTGNNLPyMI",
-      "transcript_file": "deep-dive-llms.jsonl",
+      "transcript_file": "deep-dive-llms.txt",
       "duration_hint": "3h31m"
     },
     {
@@ -360,7 +382,7 @@
       "status": "transcript-fetched",
       "fetched_at": "2026-06-17",
       "youtube_id": "EWvNQjAaOHw",
-      "transcript_file": "how-i-use-llms.jsonl",
+      "transcript_file": "how-i-use-llms.txt",
       "duration_hint": "1h20m"
     }
   ]

@@ -21,7 +21,7 @@ Do not make every lesson mention Karpathy. Do not claim that Karpathy authored, 
 The corpus lives in `assets/karpathy-corpus/`:
 
 - `manifest.json`: primary-source metadata, URLs, licenses/provenance, transcript status, and file pointers.
-- `transcripts/*.jsonl`: normalized transcript rows for public YouTube lectures and talks.
+- `transcripts/*.txt`: readable transcript text for public YouTube lectures and talks, with a tiny source header.
 - `cards/*.md`: distilled teaching observations with source pointers and timestamp hints.
 
 The corpus intentionally avoids fan notes and broad web summaries in v1. Prefer primary-source material.
@@ -45,10 +45,10 @@ Prefer targeted `rg` searches over loading full transcripts:
 ```bash
 rg -n "from scratch|spelled out|exercise|debug|shape|gradient|loss|sample|inspect" <skill-dir>/assets/karpathy-corpus
 rg -n "tiny|simple|manual|under the hood|build" <skill-dir>/assets/karpathy-corpus/cards
-rg -n "source_id.*zero-to-hero-gpt|self-attention|token" <skill-dir>/assets/karpathy-corpus/transcripts
+rg -n "self-attention|token|probabilistic system" <skill-dir>/assets/karpathy-corpus/transcripts
 ```
 
-When using transcript rows, read nearby rows around the timestamp instead of copying large passages. Summarize patterns in your own words.
+When using transcripts, read only the matching local passage instead of loading a full long transcript. Summarize patterns in your own words.
 
 ## Attribution Guardrails
 
