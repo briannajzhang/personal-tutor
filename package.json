@@ -29,6 +29,7 @@
   "scripts": {
     "build": "rm -rf packages/tutor-kit/dist && tsc -b packages/tutor-kit --force && chmod +x packages/tutor-kit/dist/cli/index.js",
     "build:skill": "npm run build && node scripts/build-skill.mjs",
+    "build:skill:check": "npm run build && node scripts/build-skill.mjs --check",
     "prepack": "npm run build:skill",
     "test": "npm run build && node --import tsx --test tests/*.test.ts tests/server/*.test.ts",
     "tutor": "tsx packages/tutor-kit/src/cli/index.ts"

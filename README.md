@@ -5,6 +5,9 @@ adaptive tutors.
 
 The first package in this repo is `personal-tutor`: a Claude/Codex-compatible
 skill plus **Tutor Kit**, a TypeScript SDK/CLI/UI for authoring textbooks as code.
+Tutor Kit is intentionally bundled as skill runtime assets rather than installed
+as a separate global tool, so the agent follows one skill workflow and gets the
+matching SDK, CLI, and local UI.
 
 ## Install The Skill
 
@@ -32,8 +35,9 @@ Use `--force` to replace an existing installed copy. Without `--force`, the
 installer refuses to overwrite local changes.
 
 The installer also installs and verifies the bundled Tutor Kit runtime
-dependencies so the skill works without a separate setup step. Use `--skip-deps`
-only when you intentionally want to copy the skill without preparing Tutor Kit:
+dependencies from the shipped lockfile, so the skill works without a separate
+setup step and avoids version skew. Use `--skip-deps` only when you intentionally
+want to copy the skill without preparing Tutor Kit:
 
 ```bash
 npx personal-tutor@latest --skip-deps
@@ -69,6 +73,12 @@ Refresh the bundled Tutor Kit asset inside the skill:
 
 ```bash
 npm run build:skill
+```
+
+Check that the checked-in bundled asset is fresh:
+
+```bash
+npm run build:skill:check
 ```
 
 Check the npm package contents before publishing:

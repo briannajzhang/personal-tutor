@@ -17,7 +17,7 @@ This skill is not for one-off conversational tutoring. If a request is about lea
    - `textbooks/*/textbook.ts`
    - `textbooks/*/chapters/*.chapter.ts`
    - authoring artifacts such as `prompt.md`, `curriculum-map.md`, `chapter-specs.md`, `review-notes.md`, and `compile-result.md`
-3. If Tutor Kit files are missing, initialize the workspace with `tutor init` or `node <skill-dir>/scripts/tutor-kit.mjs init`.
+3. If Tutor Kit files are missing, initialize the workspace with `node <skill-dir>/scripts/tutor-kit.mjs init`.
 4. Run a short tailoring intake before authoring unless the request and existing artifacts already answer it. Ask 3-5 questions that change the material: learner background, concrete goal, desired depth/pace, preferred practice style, time horizon, and whether runnable/checkable exercises are wanted. Do not ask about facts discoverable from the workspace. Record answers in `prompt.md` or `curriculum-map.md`.
 5. Decide the smallest durable publication:
    - **Seed course/module**: create a new textbook and publish the first 1-2 learner-ready chapters.
@@ -44,13 +44,13 @@ This skill is not for one-off conversational tutoring. If a request is about lea
 
 ## Tutor Kit Command Wrapper
 
-Prefer `tutor <command>` when it works in the learner workspace.
-
-If `tutor` is not on PATH, run the bundled command through this skill:
+Use the bundled Tutor Kit wrapper by default so generated material matches the skill's shipped runtime:
 
 ```bash
 node <skill-dir>/scripts/tutor-kit.mjs <command>
 ```
+
+Use a workspace `tutor <command>` only when the user explicitly wants a separately installed Tutor Kit CLI.
 
 Examples:
 

@@ -15,19 +15,19 @@ Use this reference when setting up a Tutor Kit workspace, invoking the CLI, auth
 
 ## Command Invocation
 
-Prefer the workspace command when available:
-
-```bash
-tutor <command>
-```
-
-If `tutor` is not on PATH, use the skill wrapper:
+Use the skill wrapper by default:
 
 ```bash
 node <skill-dir>/scripts/tutor-kit.mjs <command>
 ```
 
-The wrapper delegates to the bundled Tutor Kit CLI at `assets/tutor-kit/dist/cli/index.js`.
+The wrapper delegates to the bundled Tutor Kit CLI at `assets/tutor-kit/dist/cli/index.js`, which keeps the SDK, CLI, and UI aligned with the installed skill.
+
+Use a workspace command only when the user explicitly wants a separately installed Tutor Kit CLI:
+
+```bash
+tutor <command>
+```
 
 During local Tutor Kit development in this source repo, this is also valid:
 
@@ -253,5 +253,5 @@ A targeted compile proves the selected textbook is usable in isolation. Only a f
 If the bundled CLI reports missing packages after an installed skill copy, repair the bundled Tutor Kit asset:
 
 ```bash
-npm install --prefix <skill-dir>/assets/tutor-kit --omit=dev --ignore-scripts --no-audit --fund=false
+cd <skill-dir>/assets/tutor-kit && npm ci --omit=dev --ignore-scripts --no-audit --fund=false
 ```

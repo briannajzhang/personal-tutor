@@ -31,6 +31,7 @@ test("personal-tutor installer copies the skill into a skills directory", () => 
   assert.ok(existsSync(join(installedSkill, "agents", "openai.yaml")));
   assert.ok(existsSync(join(installedSkill, "scripts", "tutor-kit.mjs")));
   assert.ok(existsSync(join(installedSkill, "assets", "tutor-kit", "dist", "cli", "index.js")));
+  assert.ok(existsSync(join(installedSkill, "assets", "tutor-kit", "package-lock.json")));
 });
 
 test("personal-tutor installer installs bundled Tutor Kit dependencies", () => {
@@ -53,7 +54,8 @@ test("personal-tutor installer installs bundled Tutor Kit dependencies", () => {
   const args = readFileSync(npmArgsPath, "utf8");
   assert.match(output, /Tutor Kit dependencies installed/);
   assert.match(output, /bundled Tutor Kit CLI: verified/);
-  assert.match(args, /--prefix/);
+  assert.match(args, /^ci$/m);
+  assert.doesNotMatch(args, /--prefix/);
   assert.match(args, /--omit=dev/);
   assert.ok(existsSync(join(installedSkill, "assets", "tutor-kit", "node_modules", "tsx", "package.json")));
 });
@@ -104,8 +106,7 @@ import { join } from "node:path";
 
 const args = process.argv.slice(2);
 writeFileSync(process.env.PERSONAL_TUTOR_FAKE_NPM_ARGS, args.join("\\n"));
-const prefix = args[args.indexOf("--prefix") + 1];
-if (!prefix) process.exit(2);
+const prefix = process.cwd();
 
 function write(path, contents) {
   mkdirSync(path.split("/").slice(0, -1).join("/"), { recursive: true });

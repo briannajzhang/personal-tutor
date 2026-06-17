@@ -45,6 +45,7 @@ test("SKILL.md frontmatter stays within the supported YAML subset", () => {
 });
 
 test("bundled Tutor Kit asset exposes the documented CLI surface", () => {
+  assert.ok(existsSync(join(assetDir, "package-lock.json")));
   assert.ok(existsSync(join(assetDir, "dist", "compile", "verify-coding.js")));
 
   const help = execFileSync("node", [join(assetDir, "dist", "cli", "index.js"), "--help"], {

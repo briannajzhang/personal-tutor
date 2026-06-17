@@ -141,17 +141,16 @@ function installTutorKitDependencies(skillDir) {
 
   console.log("Installing Tutor Kit runtime dependencies...");
   const npm = npmInvocation();
+  const installCommand = existsSync(join(kitDir, "package-lock.json")) ? "ci" : "install";
   const args = [
     ...npm.args,
-    "install",
-    "--prefix",
-    kitDir,
+    installCommand,
     "--omit=dev",
     "--ignore-scripts",
     "--no-audit",
     "--fund=false"
   ];
-  const result = spawnSync(npm.command, args, { encoding: "utf8" });
+  const result = spawnSync(npm.command, args, { cwd: kitDir, encoding: "utf8" });
 
   if (result.status !== 0) {
     fail([
@@ -201,7 +200,9 @@ function npmInvocation() {
 }
 
 function tutorKitInstallCommand(skillDir) {
-  return `npm install --prefix ${shellQuote(tutorKitDir(skillDir))} --omit=dev --ignore-scripts --no-audit --fund=false`;
+  const kitDir = tutorKitDir(skillDir);
+  const installCommand = existsSync(join(kitDir, "package-lock.json")) ? "ci" : "install";
+  return `cd ${shellQuote(kitDir)} && npm ${installCommand} --omit=dev --ignore-scripts --no-audit --fund=false`;
 }
 
 function formatCommandFailure(command, args, result) {
