@@ -1,0 +1,367 @@
+{
+  "version": 1,
+  "description": "Primary-source Karpathy homage corpus for Personal Tutor. Use as a light-touch taste layer for lesson, project, and tutorial writing quality.",
+  "updated_at": "2026-06-17",
+  "cards": [
+    {
+      "id": "build-the-smallest-real-thing",
+      "file": "cards/build-the-smallest-real-thing.md",
+      "source_ids": ["zero-to-hero-micrograd", "zero-to-hero-makemore-bigram", "llm101n", "microgpt"]
+    },
+    {
+      "id": "make-state-visible",
+      "file": "cards/make-state-visible.md",
+      "source_ids": ["zero-to-hero-makemore-activations", "zero-to-hero-gpt", "recipe-training-nn"]
+    },
+    {
+      "id": "casual-precision",
+      "file": "cards/casual-precision.md",
+      "source_ids": ["zero-to-hero-tokenizer", "intro-to-llms", "rnn-effectiveness"]
+    },
+    {
+      "id": "from-toy-to-real",
+      "file": "cards/from-toy-to-real.md",
+      "source_ids": ["zero-to-hero-makemore-bigram", "zero-to-hero-gpt", "nanogpt", "llm-c"]
+    },
+    {
+      "id": "practice-by-mutation",
+      "file": "cards/practice-by-mutation.md",
+      "source_ids": ["zero-to-hero-backprop-ninja", "zero-to-hero-wavenet", "minbpe"]
+    }
+  ],
+  "sources": [
+    {
+      "id": "karpathy-site",
+      "kind": "site",
+      "title": "Andrej Karpathy",
+      "url": "https://karpathy.ai/",
+      "license": "public website",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "zero-to-hero-page",
+      "kind": "course",
+      "title": "Neural Networks: Zero to Hero",
+      "url": "https://karpathy.ai/zero-to-hero.html",
+      "license": "public course page",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "nn-zero-to-hero",
+      "kind": "repo",
+      "title": "Neural Networks: Zero to Hero",
+      "url": "https://github.com/karpathy/nn-zero-to-hero",
+      "license": "MIT",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "micrograd",
+      "kind": "repo",
+      "title": "micrograd",
+      "url": "https://github.com/karpathy/micrograd",
+      "license": "MIT",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "makemore",
+      "kind": "repo",
+      "title": "makemore",
+      "url": "https://github.com/karpathy/makemore",
+      "license": "MIT",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "minbpe",
+      "kind": "repo",
+      "title": "minbpe",
+      "url": "https://github.com/karpathy/minbpe",
+      "license": "MIT",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "nanogpt",
+      "kind": "repo",
+      "title": "nanoGPT",
+      "url": "https://github.com/karpathy/nanoGPT",
+      "license": "MIT",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "nanochat",
+      "kind": "repo",
+      "title": "nanochat",
+      "url": "https://github.com/karpathy/nanochat",
+      "license": "MIT",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "llama2-c",
+      "kind": "repo",
+      "title": "llama2.c",
+      "url": "https://github.com/karpathy/llama2.c",
+      "license": "MIT",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "llm-c",
+      "kind": "repo",
+      "title": "llm.c",
+      "url": "https://github.com/karpathy/llm.c",
+      "license": "MIT",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "llm101n",
+      "kind": "course",
+      "title": "LLM101n: Let's build a Storyteller",
+      "url": "https://github.com/karpathy/LLM101n",
+      "license": "public archived repo",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "cs231n-notes",
+      "kind": "course",
+      "title": "CS231n Deep Learning for Computer Vision Notes",
+      "url": "https://cs231n.github.io/",
+      "license": "MIT",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "cs231n-course",
+      "kind": "course",
+      "title": "Stanford CS231n",
+      "url": "https://cs231n.stanford.edu/",
+      "license": "public course page",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "recipe-training-nn",
+      "kind": "blog",
+      "title": "A Recipe for Training Neural Networks",
+      "url": "https://karpathy.github.io/2019/04/25/recipe/",
+      "license": "public blog post",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "microgpt",
+      "kind": "blog",
+      "title": "microgpt",
+      "url": "https://karpathy.github.io/2026/02/12/microgpt/",
+      "license": "public blog post",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "rnn-effectiveness",
+      "kind": "blog",
+      "title": "The Unreasonable Effectiveness of Recurrent Neural Networks",
+      "url": "https://karpathy.github.io/2015/05/21/rnn-effectiveness/",
+      "license": "public blog post",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "software-2",
+      "kind": "blog",
+      "title": "Software 2.0",
+      "url": "https://karpathy.medium.com/software-2-0-a64152b37c35",
+      "license": "public Medium post",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "bitcoin-python",
+      "kind": "blog",
+      "title": "A from-scratch tour of Bitcoin in Python",
+      "url": "https://karpathy.github.io/2021/06/21/blockchain/",
+      "license": "public blog post",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "phd-survival",
+      "kind": "blog",
+      "title": "A Survival Guide to a PhD",
+      "url": "https://karpathy.github.io/2016/09/07/phd/",
+      "license": "public blog post",
+      "provenance": "primary",
+      "status": "indexed",
+      "fetched_at": "2026-06-17"
+    },
+    {
+      "id": "zero-to-hero-micrograd",
+      "kind": "video",
+      "title": "The spelled-out intro to neural networks and backpropagation: building micrograd",
+      "url": "https://www.youtube.com/watch?v=VMj-3S1tku0",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "VMj-3S1tku0",
+      "transcript_file": "zero-to-hero-micrograd.jsonl",
+      "duration_hint": "2h25m"
+    },
+    {
+      "id": "zero-to-hero-makemore-bigram",
+      "kind": "video",
+      "title": "The spelled-out intro to language modeling: building makemore",
+      "url": "https://www.youtube.com/watch?v=PaCmpygFfXo",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "PaCmpygFfXo",
+      "transcript_file": "zero-to-hero-makemore-bigram.jsonl",
+      "duration_hint": "1h57m"
+    },
+    {
+      "id": "zero-to-hero-makemore-mlp",
+      "kind": "video",
+      "title": "Building makemore Part 2: MLP",
+      "url": "https://www.youtube.com/watch?v=TCH_1BHY58I",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "TCH_1BHY58I",
+      "transcript_file": "zero-to-hero-makemore-mlp.jsonl",
+      "duration_hint": "1h45m"
+    },
+    {
+      "id": "zero-to-hero-makemore-activations",
+      "kind": "video",
+      "title": "Building makemore Part 3: Activations and Gradients, BatchNorm",
+      "url": "https://www.youtube.com/watch?v=P6sfmUTpUmc",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "P6sfmUTpUmc",
+      "transcript_file": "zero-to-hero-makemore-activations.jsonl",
+      "duration_hint": "1h56m"
+    },
+    {
+      "id": "zero-to-hero-backprop-ninja",
+      "kind": "video",
+      "title": "Building makemore Part 4: Becoming a Backprop Ninja",
+      "url": "https://www.youtube.com/watch?v=q8SA3rM6ckI",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "q8SA3rM6ckI",
+      "transcript_file": "zero-to-hero-backprop-ninja.jsonl",
+      "duration_hint": "2h22m"
+    },
+    {
+      "id": "zero-to-hero-wavenet",
+      "kind": "video",
+      "title": "Building makemore Part 5: Building WaveNet",
+      "url": "https://www.youtube.com/watch?v=t3YJ5hKiMQ0",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "t3YJ5hKiMQ0",
+      "transcript_file": "zero-to-hero-wavenet.jsonl",
+      "duration_hint": "1h56m"
+    },
+    {
+      "id": "zero-to-hero-gpt",
+      "kind": "video",
+      "title": "Let's build GPT: from scratch, in code, spelled out",
+      "url": "https://www.youtube.com/watch?v=kCc8FmEb1nY",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "kCc8FmEb1nY",
+      "transcript_file": "zero-to-hero-gpt.jsonl",
+      "duration_hint": "2h13m"
+    },
+    {
+      "id": "zero-to-hero-tokenizer",
+      "kind": "video",
+      "title": "Let's build the GPT Tokenizer",
+      "url": "https://www.youtube.com/watch?v=zduSFxRajkE",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "zduSFxRajkE",
+      "transcript_file": "zero-to-hero-tokenizer.jsonl",
+      "duration_hint": "2h13m"
+    },
+    {
+      "id": "intro-to-llms",
+      "kind": "video",
+      "title": "Intro to Large Language Models",
+      "url": "https://www.youtube.com/watch?v=zjkBMFhNj_g",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "zjkBMFhNj_g",
+      "transcript_file": "intro-to-llms.jsonl",
+      "duration_hint": "59m"
+    },
+    {
+      "id": "deep-dive-llms",
+      "kind": "video",
+      "title": "Deep Dive into LLMs like ChatGPT",
+      "url": "https://www.youtube.com/watch?v=7xTGNNLPyMI",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "7xTGNNLPyMI",
+      "transcript_file": "deep-dive-llms.jsonl",
+      "duration_hint": "3h31m"
+    },
+    {
+      "id": "how-i-use-llms",
+      "kind": "video",
+      "title": "How I use LLMs",
+      "url": "https://www.youtube.com/watch?v=EWvNQjAaOHw",
+      "license": "public YouTube video transcript",
+      "provenance": "primary",
+      "status": "transcript-fetched",
+      "fetched_at": "2026-06-17",
+      "youtube_id": "EWvNQjAaOHw",
+      "transcript_file": "how-i-use-llms.jsonl",
+      "duration_hint": "1h20m"
+    }
+  ]
+}
