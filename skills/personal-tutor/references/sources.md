@@ -30,6 +30,8 @@ textbooks/<textbook-id>/
 
 `materials-index.md` records source identity, role, availability, and location.
 
+Keep this artifact name; it is the source registry for Tutor Kit textbooks.
+
 Use `path` for local files and `url` for web sources. Reference raw sources in place by default.
 
 `source-notes.md` stores concise teaching notes grouped by topic.
@@ -51,10 +53,10 @@ Do not summarize every page by default.
 Before authoring from sources:
 
 - Read existing `materials-index.md` and relevant `source-notes.md` sections
-- Add new source entries with stable lowercase kebab-case IDs.
-- Extract only notes that are useful for the next publication or planned course arc.
-- Reflect source-driven scope, terminology, examples, or practice in curriculum-map.md.
-- Write or update specs only for chapters being published now.
+- Add new source entries with stable lowercase kebab-case IDs
+- Extract only notes that are useful for the next publication or planned course arc
+- Reflect source-driven scope, terminology, examples, or practice in `curriculum-map.md`
+- Write or update specs only for chapters being published now
 
 When continuing a textbook, use existing source notes first. Reopen raw sources only when the notes are insufficient for the next small publication and the path or URL is available.
 

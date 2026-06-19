@@ -17,7 +17,7 @@ const expectedReferences = [
   "lesson-generation.md",
   "practice-and-assessment.md",
   "review-and-verification.md",
-  "source-materials.md",
+  "sources.md",
   "tutor-kit-api.md"
 ].sort();
 
