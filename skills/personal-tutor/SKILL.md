@@ -67,7 +67,7 @@ Read only the reference files needed for the current job:
 
 - `references/tutor-kit-api.md`: commands, workspace layout, builders, block API, and UI server behavior.
 - `references/lesson-generation.md`: seed course, continuation, focused material, learner defaults, curriculum maps, and chapter specs.
-- `references/source-materials.md`: material intake, source notes, and material-grounded generation.
+- `references/source-materials.md`: source intake, source notes, and source-grounded generation.
 - `references/lesson-authoring.md`: learning contract, prose style, semantic blocks, examples, transformations, and chapter structure.
 - `references/practice-and-assessment.md`: quizzes, exercises, review questions, practice-test chapters, coding problems, and verification metadata.
 - `references/review-and-verification.md`: acceptance gate, authoring review, compile evidence, doctor, coding verification, and revision loop.
@@ -79,7 +79,7 @@ Default read path for new or continued material:
 
 1. `references/tutor-kit-api.md`
 2. `references/lesson-generation.md`
-3. `references/source-materials.md` when source materials are involved
+3. `references/source-materials.md` when sources are involved
 4. `references/lesson-authoring.md`
 5. `references/practice-and-assessment.md`
 6. `references/review-and-verification.md`
