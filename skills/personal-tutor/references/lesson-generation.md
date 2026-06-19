@@ -25,6 +25,7 @@ For broad learning requests, publish a small verified slice now and leave the re
 - Plan the whole course/module arc in `curriculum-map.md`.
 - Publish the first or next 1-2 learner-ready chapters.
 - Persist `prompt.md`, `chapter-specs.md`, `review-notes.md`, and `compile-result.md`.
+- When source materials are provided, persist `materials-index.md` and `source-notes.md`.
 - Do not create placeholder future `.chapter.ts` files.
 
 For narrow requests, add or revise durable material inside the closest existing textbook: a section, quiz, exercise set, review set, coding problem, practice-test chapter, or focused chapter.
@@ -49,6 +50,8 @@ If the user asks for a complete textbook or large batch, still publish increment
 ## Tailoring Intake
 
 Inspect the workspace first, then ask a concise intake before authoring. Ask only questions whose answers will change the lesson design, practice, difficulty, or sequencing.
+
+If source materials are involved, inspect existing material artifacts before intake and ask only unresolved choices that affect generation.
 
 For a new course/module, ask 3-5 of:
 
@@ -111,6 +114,7 @@ A good curriculum map includes:
 - final learner outcome
 - ordered chapters/modules
 - prerequisite flow
+- source basis when materials affect scope, order, examples, or practice
 - planned review points
 - cumulative tasks or checkpoints
 - `Published now` and `Planned next` markers
@@ -206,18 +210,19 @@ Reject vague specs before writing prose. A spec should instantiate examples and 
 1. Initialize the workspace if needed.
 2. Run `tutor list textbooks` and inspect existing candidates.
 3. Add one textbook for the requested subject if no suitable textbook exists.
-4. Save the original request in `prompt.md`.
-5. Draft `curriculum-map.md`.
-6. Draft specs only for chapters being published now, usually 1-2 chapters.
-7. Author complete learner-ready chapters.
-8. Add purposeful practice, quizzes, review, and coding problems where they fit the learner outcome.
-9. Run the acceptance gate and revise blocking issues.
-10. Run compile/doctor and coding-problem verification when present.
-11. Record evidence and next-publication notes.
+4. If materials are provided, create or update `materials-index.md` and `source-notes.md`.
+5. Save the original request in `prompt.md`.
+6. Draft `curriculum-map.md`.
+7. Draft specs only for chapters being published now, usually 1-2 chapters.
+8. Author complete learner-ready chapters.
+9. Add purposeful practice, quizzes, review, and coding problems where they fit the learner outcome.
+10. Run the acceptance gate and revise blocking issues.
+11. Run compile/doctor and coding-problem verification when present.
+12. Record evidence and next-publication notes.
 
 ## Continuation Workflow
 
-1. Inspect `tutor.config.ts`, the relevant `textbook.ts`, existing chapter files, planning artifacts, and recent events if they inform review needs.
+1. Inspect `tutor.config.ts`, the relevant `textbook.ts`, existing chapter files, planning artifacts, material artifacts when present, and recent events if they inform review needs.
 2. Choose the smallest useful publication:
    - improve the active chapter
    - add focused practice/review material

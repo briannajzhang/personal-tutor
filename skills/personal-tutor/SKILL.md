@@ -16,7 +16,7 @@ This skill is not for one-off conversational tutoring. If a request is about lea
    - `tutor.config.ts`
    - `textbooks/*/textbook.ts`
    - `textbooks/*/chapters/*.chapter.ts`
-   - authoring artifacts such as `prompt.md`, `curriculum-map.md`, `chapter-specs.md`, `review-notes.md`, and `compile-result.md`
+   - authoring artifacts such as `prompt.md`, `curriculum-map.md`, `chapter-specs.md`, `materials-index.md`, `source-notes.md`, `review-notes.md`, and `compile-result.md`
 3. If Tutor Kit files are missing, initialize the workspace with `node <skill-dir>/scripts/tutor-kit.mjs init`.
 4. Run a short tailoring intake before authoring unless the request and existing artifacts already answer it. Ask 3-5 questions that change the material: learner background, concrete goal, desired depth/pace, preferred practice style, time horizon, and whether runnable/checkable exercises are wanted. Do not ask about facts discoverable from the workspace. Record answers in `prompt.md` or `curriculum-map.md`.
 5. Decide the smallest durable publication:
@@ -67,6 +67,7 @@ Read only the reference files needed for the current job:
 
 - `references/tutor-kit-api.md`: commands, workspace layout, builders, block API, and UI server behavior.
 - `references/lesson-generation.md`: seed course, continuation, focused material, learner defaults, curriculum maps, and chapter specs.
+- `references/source-materials.md`: material intake, source notes, and material-grounded generation.
 - `references/lesson-authoring.md`: learning contract, prose style, semantic blocks, examples, transformations, and chapter structure.
 - `references/practice-and-assessment.md`: quizzes, exercises, review questions, practice-test chapters, coding problems, and verification metadata.
 - `references/review-and-verification.md`: acceptance gate, authoring review, compile evidence, doctor, coding verification, and revision loop.
@@ -78,6 +79,7 @@ Default read path for new or continued material:
 
 1. `references/tutor-kit-api.md`
 2. `references/lesson-generation.md`
-3. `references/lesson-authoring.md`
-4. `references/practice-and-assessment.md`
-5. `references/review-and-verification.md`
+3. `references/source-materials.md` when source materials are involved
+4. `references/lesson-authoring.md`
+5. `references/practice-and-assessment.md`
+6. `references/review-and-verification.md`

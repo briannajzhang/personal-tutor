@@ -69,6 +69,8 @@ textbooks/
     prompt.md
     curriculum-map.md
     chapter-specs.md
+    materials-index.md
+    source-notes.md
     review-notes.md
     compile-result.md
     chapters/
@@ -83,7 +85,7 @@ tutor-data/
   feedback/
 ```
 
-Authored curriculum lives in `textbooks/<textbook-id>/textbook.ts` and chapter modules. Runtime learner activity lives under `tutor-data/`.
+Authored curriculum lives in `textbooks/<textbook-id>/textbook.ts` and chapter modules. Optional material artifacts such as `materials-index.md` and `source-notes.md` preserve source context for future generation. Runtime learner activity lives under `tutor-data/`.
 
 ## Textbook And Chapter Modules
 
