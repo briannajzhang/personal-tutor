@@ -43,16 +43,30 @@ const scenarios = [
       "Includes verification metadata mapping editable files to hidden reference files",
       "Runs coding-problem verification and records starter-fails/reference-passes evidence"
     ]
+  },
+  {
+    id: "seed-course-from-materials",
+    query: "Use $personal-tutor to create a SQL textbook from these database class PDFs.",
+    expectedBehavior: [
+      "Clarifies how the provided materials should influence the textbook when needed",
+      "Records material locations in materials-index without copying raw files by default",
+      "Distills useful teaching context into source-notes",
+      "Publishes a small learner-ready slice and leaves the rest planned"
+    ]
   }
 ];
 
 test("skill eval scenarios cover the refocused lesson-authoring workflows", () => {
-  assert.equal(scenarios.length, 4);
+  assert.equal(scenarios.length, 8);
   assert.deepEqual(scenarios.map((scenario) => scenario.id), [
     "seed-beginner-course",
     "continue-existing-textbook",
     "generate-review-quiz",
-    "coding-practice-verification"
+    "coding-practice-verification",
+    "seed-course-from-materials",
+    "add-materials-to-existing-textbook",
+    "continue-from-source-notes",
+    "material-edge-cases"
   ]);
 
   for (const scenario of scenarios) {
