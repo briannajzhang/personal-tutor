@@ -328,26 +328,28 @@ h1 {
 }
 .glossary-list {
   display: grid;
-  gap: 12px;
+  gap: 0;
   margin: 0;
 }
 .glossary-entry {
   display: grid;
-  grid-template-columns: minmax(130px, .36fr) minmax(0, 1fr);
-  gap: 14px;
-  padding: 0 0 12px;
+  grid-template-columns: minmax(118px, 190px) minmax(0, 1fr);
+  column-gap: 14px;
+  padding: 10px 0;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
 }
 .glossary-entry:last-child {
   border-bottom: 0;
 }
 .glossary-term {
+  margin: 0;
   color: var(--accent-2);
   font-size: 14px;
   font-weight: 650;
   line-height: 1.45;
 }
 .glossary-definition {
+  margin: 0;
   color: var(--ink-soft);
   font-size: 14px;
   line-height: 1.55;
