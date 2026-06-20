@@ -5,7 +5,7 @@ description: Create and continue durable Tutor Kit lessons, course modules, exam
 
 # Personal Tutor
 
-Use this skill to author durable Tutor Kit lessons and practice. Center every task on files the learner can keep studying: chapters, examples, quizzes, exercises, review material, coding problems, and verification notes.
+Use this skill to author durable Tutor Kit lessons and practice. Center every task on files the learner can keep studying: chapters, examples, glossary references, quizzes, exercises, review material, coding problems, and verification notes.
 
 This skill is not for one-off conversational tutoring. If a request is about learning, turn it into maintained Tutor Kit material unless the user explicitly asks not to create or edit files.
 
@@ -25,7 +25,7 @@ This skill is not for one-off conversational tutoring. If a request is about lea
    - **Focused material**: add or revise a lesson section, practice set, quiz, review set, practice-test chapter, or coding problem inside an existing textbook.
 6. Plan before authoring. Keep future chapters in `curriculum-map.md` or `chapter-specs.md` until they are ready.
 7. Author Tutor Kit TypeScript modules, not hand-edited JSON.
-8. Use semantic blocks as teaching moves: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `callout`, `transformation`, `quiz`, `balancedQuiz`, and `codingProblem`.
+8. Use semantic blocks as teaching moves: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `callout`, `transformation`, `glossary`, `quiz`, `balancedQuiz`, and `codingProblem`.
 9. Verify before finalizing with `tutor doctor`, or with `tutor compile` plus `tutor verify coding-problems --textbook <textbook-id>` when coding problems exist.
 10. Record review, compile, and coding-problem verification evidence in the textbook directory.
 11. Start the local Tutor Kit app for the user with `tutor dev` unless they explicitly ask not to. Keep it running and report the localhost URL.

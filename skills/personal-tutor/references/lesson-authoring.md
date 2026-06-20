@@ -9,6 +9,7 @@ Use this reference when writing learner-facing Tutor Kit chapters, sections, exa
 - Teaching prose
 - Worked examples
 - Semantic blocks
+- Glossaries
 - Transformation blocks
 - Quizzes in lessons
 - Titles and descriptions
@@ -112,6 +113,7 @@ Use semantic blocks as teaching moves:
 - `mathBlock`: show displayed equations or formal notation.
 - `callout`: protect the learner from a misconception, warning, boundary, or key idea.
 - `transformation`: model an inspectable input-to-result relationship.
+- `glossary`: give compact retrieval support for important terms already introduced in prose.
 - `quiz` and `balancedQuiz`: create local checks, review, and cumulative assessment.
 - `codingProblem`: create runnable or checkable practice.
 
@@ -120,6 +122,18 @@ Prefer several semantic blocks over one giant Markdown string.
 Before a `codeBlock`, `mathBlock`, table, diagram, formal notation, or example, tell the learner what to inspect. After it, explain what it showed.
 
 `explanation` and `blurb` are legacy aliases. Do not use them in new material.
+
+## Glossaries
+
+Use `glossary(...)` only when the learner has already met a meaningful cluster of terms they will benefit from retrieving later. Prefer durable, reused, central, or easily confused terms; skip incidental labels or vocabulary the chapter does not build on.
+
+Treat glossary terms as retrieval handles. Use the exact form the learner saw in the lesson, with inline code formatting for code-like terms.
+
+Teach concepts first with prose, examples, mechanisms, boundary cases, and checks. A glossary should not be the first or only teaching move for a concept.
+
+Many good chapters do not need a glossary.
+
+Do not place visible definitions immediately before definition-recall questions unless the section is intentionally guided.
 
 ## Transformation Blocks
 
@@ -221,6 +235,9 @@ Avoid:
 - practice that appears only as a vague list at the end
 - examples without visible input and result
 - code, notation, or tables without surrounding interpretation
+- glossaries used as first teaching
+- glossaries that preview untaught vocabulary
+- visible definitions immediately before unguided definition recall
 - quizzes used as decoration
 - chapter review questions copied from local checks without new context
 - identical chapter shapes reused regardless of topic complexity

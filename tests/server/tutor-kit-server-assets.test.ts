@@ -38,6 +38,21 @@ function assertMatchingQuizAssets(page: string) {
   }
 }
 
+function assertGlossaryAssets(page: string) {
+  for (const pattern of [
+    /renderGlossary/,
+    /glossary-list/,
+    /glossary-term/,
+    /glossary-definition/,
+    /\.glossary-term code/,
+    /\.glossary-definition code/
+  ]) {
+    assert.match(page, pattern);
+  }
+
+  assert.doesNotMatch(page, /data-glossary/);
+}
+
 test("dev server exposes textbooks, chapters, and appends events", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
   initWorkspace(dir, { starter: true });
@@ -96,6 +111,7 @@ export default textbook({
     assert.match(page, /<strong>/);
     assert.match(page, /<em>/);
     assertMatchingQuizAssets(page);
+    assertGlossaryAssets(page);
     assert.match(page, /document\.fonts\?\.ready/);
     assert.match(page, /renderNotFoundPage/);
     assert.match(page, /Page not found/);

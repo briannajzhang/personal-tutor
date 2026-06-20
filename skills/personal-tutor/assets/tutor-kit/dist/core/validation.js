@@ -313,6 +313,10 @@ export function validateBlock(block, path, file, issues) {
         validateTextProp(block.props.body, `${path}.props.body`, file, issues);
         return;
     }
+    if (block.kind === "glossary") {
+        validateGlossary(block.props, `${path}.props`, file, issues);
+        return;
+    }
     if (block.kind === "transformation") {
         validateTransformation(block.props, `${path}.props`, file, issues);
         return;
@@ -324,6 +328,23 @@ export function validateBlock(block, path, file, issues) {
     if (block.kind === "quiz") {
         validateQuiz(block.props, `${path}.props`, file, issues);
     }
+}
+function validateGlossary(props, path, file, issues) {
+    if (props.title !== undefined)
+        validateTextProp(props.title, `${path}.title`, file, issues);
+    if (!Array.isArray(props.entries) || props.entries.length === 0) {
+        issues.push(issue("Glossary entries must be a non-empty array.", `${path}.entries`, file));
+        return;
+    }
+    props.entries.forEach((entry, index) => {
+        const entryPath = `${path}.entries[${index}]`;
+        if (!isRecord(entry)) {
+            issues.push(issue("Glossary entry must be an object.", entryPath, file));
+            return;
+        }
+        validateTextProp(entry.term, `${entryPath}.term`, file, issues);
+        validateTextProp(entry.definition, `${entryPath}.definition`, file, issues);
+    });
 }
 function validateTransformation(props, path, file, issues) {
     validateTextProp(props.title, `${path}.title`, file, issues);
@@ -782,6 +803,16 @@ function blockText(block) {
         texts.push(block.props.body);
     if (typeof block.props.prompt === "string")
         texts.push(block.props.prompt);
+    if (Array.isArray(block.props.entries)) {
+        for (const entry of block.props.entries) {
+            if (!isRecord(entry))
+                continue;
+            if (typeof entry.term === "string")
+                texts.push(entry.term);
+            if (typeof entry.definition === "string")
+                texts.push(entry.definition);
+        }
+    }
     if (Array.isArray(block.props.items)) {
         for (const item of block.props.items) {
             if (typeof item === "string")

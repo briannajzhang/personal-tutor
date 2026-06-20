@@ -111,6 +111,16 @@ export function callout(input) {
         }
     };
 }
+export function glossary(input) {
+    return {
+        kind: "glossary",
+        id: requireText(input.id, "glossary.id"),
+        props: {
+            title: requireText(input.title ?? "Glossary", "glossary.title"),
+            entries: requireGlossaryEntries(input.entries, "glossary.entries")
+        }
+    };
+}
 export function transformation(input) {
     return {
         kind: "transformation",
@@ -230,6 +240,15 @@ function normalizeQuizChoice(input) {
         id: requireText(input.id, "quiz.questions[].choices[].id"),
         body: requireText(input.body, "quiz.questions[].choices[].body")
     };
+}
+function requireGlossaryEntries(value, label) {
+    if (!Array.isArray(value) || value.length === 0) {
+        throw new Error(`${label} must contain at least one entry`);
+    }
+    return value.map((entry, index) => ({
+        term: requireText(entry.term, `${label}[${index}].term`),
+        definition: requireText(entry.definition, `${label}[${index}].definition`)
+    }));
 }
 function balanceQuizQuestions(quizId, questions) {
     const offset = stableHash(quizId) % 4;

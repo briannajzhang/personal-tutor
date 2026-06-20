@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { balancedQuiz, callout, chapter, codeBlock, codingProblem, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation, validateTextbook } from "../packages/tutor-kit/dist/index.js";
+import { balancedQuiz, callout, chapter, codeBlock, codingProblem, glossary, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation, validateTextbook } from "../packages/tutor-kit/dist/index.js";
 import { clearWorkspaceCaches, discoverTextbookFiles, resolveWorkspace } from "../packages/tutor-kit/dist/compile/discover.js";
 
 test.afterEach(() => {
@@ -95,6 +95,14 @@ test("builders create valid textbooks", () => {
               codeBlock({ id: "code", language: "js", code: "const x = 1;" }),
               mathBlock({ id: "math", body: "x^2 + y^2 = z^2" }),
               callout({ id: "note", tone: "key-idea", body: "Blocks are semantic." }),
+              glossary({
+                id: "core-terms",
+                title: "Core Terms",
+                entries: [
+                  { term: "Semantic block", definition: "A block whose kind names its teaching purpose." },
+                  { term: "Review quiz", definition: "A quiz that checks chapter mastery after instruction and practice." }
+                ]
+              }),
               transformation({
                 id: "double-trace",
                 title: "Inspect: Doubling A Value",
@@ -216,6 +224,50 @@ test("builders create valid textbooks", () => {
   });
 
   assert.deepEqual(validateTextbook(built), []);
+});
+
+test("glossary builder normalizes compact term references", () => {
+  const built = glossary({
+    id: "join-terms",
+    entries: [
+      { term: "LEFT JOIN", definition: "Keeps every left row and fills missing right-side values with NULL." }
+    ]
+  });
+
+  assert.equal(built.kind, "glossary");
+  assert.equal(built.props.title, "Glossary");
+  assert.deepEqual(built.props.entries, [
+    { term: "LEFT JOIN", definition: "Keeps every left row and fills missing right-side values with NULL." }
+  ]);
+});
+
+test("validation rejects malformed glossary blocks", () => {
+  const built = textbook({
+    id: "glossary-validation",
+    title: "Glossary Validation",
+    chapters: [chapter({
+      id: "glossary-validation",
+      title: "Glossary Validation",
+      sections: [section({
+        id: "terms",
+        title: "Terms",
+        blocks: [{
+          kind: "glossary",
+          id: "broken-terms",
+          props: {
+            entries: [
+              { term: "Durable term", definition: "" },
+              { term: "", definition: "A definition without a visible term." }
+            ]
+          }
+        }]
+      })]
+    })]
+  });
+
+  const messages = validateTextbook(built).map((validationIssue) => validationIssue.message).join("\n");
+
+  assert.match(messages, /Text is required/);
 });
 
 test("transformation builder applies defaults and preserves supported artifacts", () => {

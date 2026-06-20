@@ -8,6 +8,7 @@ export type BlockKind =
   | "transformation"
   | "codingProblem"
   | "quiz"
+  | "glossary"
   | "explanation"
   | "blurb"
   | (string & {});
@@ -197,6 +198,16 @@ export interface QuizProps {
   questions: QuizQuestion[];
 }
 
+export interface GlossaryEntry {
+  term: string;
+  definition: string;
+}
+
+export interface GlossaryProps {
+  title: string;
+  entries: GlossaryEntry[];
+}
+
 export type ParagraphBlock = BaseBlock<"p", ParagraphProps>;
 export type HeadingBlock = BaseBlock<"heading", HeadingProps>;
 export type ListBlock = BaseBlock<"list", ListProps>;
@@ -206,6 +217,7 @@ export type CalloutBlock = BaseBlock<"callout", CalloutProps>;
 export type TransformationBlock = BaseBlock<"transformation", TransformationProps>;
 export type CodingProblemBlock = BaseBlock<"codingProblem", CodingProblemProps>;
 export type QuizBlock = BaseBlock<"quiz", QuizProps>;
+export type GlossaryBlock = BaseBlock<"glossary", GlossaryProps>;
 
 export type ExplanationBlock = BaseBlock<"explanation", ParagraphProps & { title?: string }>;
 export type BlurbBlock = ExplanationBlock;
@@ -220,6 +232,7 @@ export type TutorBlock =
   | TransformationBlock
   | CodingProblemBlock
   | QuizBlock
+  | GlossaryBlock
   | ExplanationBlock
   | BaseBlock;
 
