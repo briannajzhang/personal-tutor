@@ -118,7 +118,8 @@ export interface QuizChoice {
     id: string;
     body: string;
 }
-export interface QuizQuestion {
+export interface MultipleChoiceQuizQuestion {
+    kind: "multiple-choice";
     id: string;
     prompt: string;
     choices: QuizChoice[];
@@ -127,6 +128,24 @@ export interface QuizQuestion {
     tags?: string[];
     difficulty?: QuizDifficulty;
 }
+export interface MatchingQuizPair {
+    id: string;
+    left: string;
+    right: string;
+    explanation?: string;
+}
+export interface MatchingQuizQuestion {
+    kind: "matching";
+    id: string;
+    prompt: string;
+    leftLabel: string;
+    rightLabel: string;
+    pairs: MatchingQuizPair[];
+    explanation: string;
+    tags?: string[];
+    difficulty?: QuizDifficulty;
+}
+export type QuizQuestion = MultipleChoiceQuizQuestion | MatchingQuizQuestion;
 export interface QuizProps {
     title: string;
     mode: QuizMode;

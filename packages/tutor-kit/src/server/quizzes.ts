@@ -17,14 +17,16 @@ interface QuizAttemptRequest extends QuizStateRequest {
 
 interface QuizAttempt {
   attempt: number;
-  responses: Array<{ questionId: string; selectedAnswer: string; correct: boolean }>;
+  responses: Array<{ questionId: string; selectedAnswer: QuizAnswer; correct: boolean }>;
   score: number;
   total: number;
   submittedAt: string;
 }
 
+type QuizAnswer = string | Record<string, string>;
+
 interface QuizState {
-  selectedAnswers: Record<string, string>;
+  selectedAnswers: Record<string, QuizAnswer>;
   submitted: boolean;
   score: number | null;
   total: number | null;
@@ -59,7 +61,7 @@ export async function saveQuizState(cwd: string, body: QuizStateRequest): Promis
   const previous = readState(paths.absolutePath);
   const next: QuizState = {
     ...previous,
-    selectedAnswers: stringRecord(body.selectedAnswers),
+    selectedAnswers: quizAnswerRecord(body.selectedAnswers),
     submitted: false,
     score: null,
     total: null,
@@ -81,7 +83,7 @@ export async function submitQuizAttempt(cwd: string, body: QuizAttemptRequest): 
     submittedAt: new Date().toISOString()
   };
   const next: QuizState = {
-    selectedAnswers: stringRecord(body.selectedAnswers),
+    selectedAnswers: quizAnswerRecord(body.selectedAnswers),
     submitted: true,
     score: attempt.score,
     total: attempt.total,
@@ -118,7 +120,7 @@ function readState(path: string): QuizState {
   if (!existsSync(path)) return emptyState();
   const parsed = JSON.parse(readFileSync(path, "utf8")) as Partial<QuizState>;
   return {
-    selectedAnswers: stringRecord(parsed.selectedAnswers),
+    selectedAnswers: quizAnswerRecord(parsed.selectedAnswers),
     submitted: parsed.submitted === true,
     score: Number.isInteger(parsed.score) ? parsed.score as number : null,
     total: Number.isInteger(parsed.total) ? parsed.total as number : null,
@@ -142,15 +144,36 @@ function responseList(value: unknown): QuizAttempt["responses"] {
     const record = response as Record<string, unknown>;
     return {
       questionId: requireString(record.questionId, `responses[${index}].questionId`),
-      selectedAnswer: requireString(record.selectedAnswer, `responses[${index}].selectedAnswer`),
+      selectedAnswer: requireQuizAnswer(record.selectedAnswer, `responses[${index}].selectedAnswer`),
       correct: record.correct === true
     };
   });
 }
 
-function stringRecord(value: unknown): Record<string, string> {
+function quizAnswerRecord(value: unknown): Record<string, QuizAnswer> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
-  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+  const entries: Array<[string, QuizAnswer]> = [];
+  for (const [key, answer] of Object.entries(value)) {
+    if (typeof answer === "string") {
+      entries.push([key, answer]);
+    } else if (isStringRecord(answer)) {
+      entries.push([key, { ...answer }]);
+    }
+  }
+  return Object.fromEntries(entries);
+}
+
+function requireQuizAnswer(value: unknown, label: string): QuizAnswer {
+  if (typeof value === "string") return value;
+  if (isStringRecord(value)) return { ...value };
+  throw new Error(`${label} must be a string or string record`);
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.values(value).every((entry) => typeof entry === "string");
 }
 
 function requireString(value: unknown, label: string): string {

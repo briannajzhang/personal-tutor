@@ -156,6 +156,7 @@ export default chapter({
           mode: "review",
           questions: [
             {
+              kind: "multiple-choice",
               id: "source-file-location",
               prompt: "Which path pattern stores authored chapter source?",
               choices: [
@@ -170,6 +171,7 @@ export default chapter({
               difficulty: "easy"
             },
             {
+              kind: "multiple-choice",
               id: "runtime-history-location",
               prompt: "What should \`tutor-data/events.jsonl\` represent?",
               choices: [
@@ -184,6 +186,7 @@ export default chapter({
               difficulty: "easy"
             },
             {
+              kind: "multiple-choice",
               id: "compile-purpose",
               prompt: "Why should an author run \`tutor compile\` after editing lesson content?",
               choices: [
@@ -198,6 +201,7 @@ export default chapter({
               difficulty: "medium"
             },
             {
+              kind: "multiple-choice",
               id: "semantic-block-purpose",
               prompt: "Why does Tutor Kit prefer semantic blocks like \`p\`, \`callout\`, \`quiz\`, and \`codingProblem\` instead of one giant Markdown string?",
               choices: [

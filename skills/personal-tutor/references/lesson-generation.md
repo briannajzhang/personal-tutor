@@ -196,7 +196,7 @@ For each independent task, list the required concepts and where each was taught 
 ## Blocks To Author
 - `p`:
 - `transformation`:
-- `balancedQuiz`:
+- `quiz` / `balancedQuiz`:
 - `codingProblem`:
 
 ## Mastery Check
@@ -240,7 +240,7 @@ For a request to add practice questions, quizzes, exercises, or coding practice:
 1. Inspect the target chapter or nearest relevant chapter.
 2. Identify the learner outcome and concepts already taught.
 3. Add material where it fits the teaching sequence.
-4. Use `balancedQuiz(...)` for generated multiple-choice checks unless answer order matters.
+4. Use `balancedQuiz(...)` for generated multiple-choice checks unless answer order matters or matching is a better fit.
 5. Add concrete tasks or coding problems when the learner must produce, debug, design, transform, or implement.
 6. Verify that practice does not require untaught moves.
 7. Compile and record evidence.

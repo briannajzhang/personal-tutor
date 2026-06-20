@@ -69,6 +69,10 @@ export default textbook({
     assert.match(page, /renderInlineEmphasis/);
     assert.match(page, /<strong>/);
     assert.match(page, /<em>/);
+    assert.match(page, /quiz-matching/);
+    assert.match(page, /data-quiz-match-select/);
+    assert.match(page, /checkMatchingQuestion/);
+    assert.match(page, /stableHash/);
     assert.match(page, /document\.fonts\?\.ready/);
     assert.match(page, /renderNotFoundPage/);
     assert.match(page, /Page not found/);

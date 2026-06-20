@@ -65,7 +65,7 @@ Examples by subject:
 
 Use `balancedQuiz(...)` for generated 4-choice quizzes unless choice order is meaningful.
 
-Use `quiz(...)` when order teaches meaning, such as chronology, numeric scales, step order, "all of the above", or "both A and B".
+Use `quiz(...)` when order teaches meaning, such as chronology, numeric scales, step order, "all of the above", "both A and B", or one prompt that pairs several concise terms, examples, or patterns.
 
 Quiz modes:
 
@@ -91,13 +91,16 @@ Each question should include:
 
 - stable question ID
 - concrete prompt
-- 2 or more choices, usually 4
-- answer ID that matches a choice
+- `kind`: `"multiple-choice"` with choices and an answer ID, or `"matching"` with one-to-one pairs
 - explanation that teaches the mechanism
 - tags
 - difficulty when useful: `easy`, `medium`, or `hard`
 
 Distractors should represent realistic learner mistakes. If no plausible learner reasoning leads to a choice, replace it.
+
+For matching questions, keep both sides short and one-to-one. Avoid many-to-many relationships unless the question is split into simpler checks.
+
+For matching explanations, explain the shared sorting rule or decision test.
 
 ## Review Sets
 

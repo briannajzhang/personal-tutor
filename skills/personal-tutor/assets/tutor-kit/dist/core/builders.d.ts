@@ -104,7 +104,8 @@ interface QuizChoiceInput {
     id: string;
     body: string;
 }
-interface QuizQuestionInput extends BlockInput {
+interface MultipleChoiceQuizQuestionInput extends BlockInput {
+    kind: "multiple-choice";
     prompt: string;
     choices: QuizChoiceInput[];
     answer: string;
@@ -112,6 +113,23 @@ interface QuizQuestionInput extends BlockInput {
     tags?: string[];
     difficulty?: QuizDifficulty;
 }
+interface MatchingQuizPairInput {
+    id: string;
+    left: string;
+    right: string;
+    explanation?: string;
+}
+interface MatchingQuizQuestionInput extends BlockInput {
+    kind: "matching";
+    prompt: string;
+    leftLabel?: string;
+    rightLabel?: string;
+    pairs: MatchingQuizPairInput[];
+    explanation: string;
+    tags?: string[];
+    difficulty?: QuizDifficulty;
+}
+type QuizQuestionInput = MultipleChoiceQuizQuestionInput | MatchingQuizQuestionInput;
 interface QuizInput extends BlockInput {
     title: string;
     mode?: QuizMode;
