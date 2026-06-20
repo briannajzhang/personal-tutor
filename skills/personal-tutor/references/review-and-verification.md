@@ -6,7 +6,7 @@ Use this reference before finalizing Tutor Kit lesson material.
 
 - Review loop
 - Acceptance gate
-- Source material claims
+- Source claims
 - Authoring validation notes
 - Pedagogical audit
 - Compile evidence
@@ -50,14 +50,14 @@ Do not claim a chapter teaches a mechanism unless it:
 
 If something is only named, previewed, or used in an answer explanation, label it as introduced or previewed.
 
-### Source Material Claims
+### Source Claims
 
-Do not claim material alignment unless the relevant source notes support it.
+Do not claim source alignment unless the relevant source notes support it.
 
 Reject when:
 
-- missing or unreadable material is used as a source basis
-- material-grounded claims have no corresponding source note
+- missing or unreadable sources are used as a source basis
+- source-grounded claims have no corresponding source note
 
 ### Practice And Review
 
@@ -220,7 +220,7 @@ Revise before finalizing when material is:
 - repetitive in chapter shape or voice
 - requiring untaught moves in independent tasks
 - claiming compile or verification evidence that was not actually run
-- claiming material alignment without source notes
+- claiming source alignment without source notes
 
 ## Static Skill Validation
 

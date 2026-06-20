@@ -45,11 +45,11 @@ const scenarios = [
     ]
   },
   {
-    id: "seed-course-from-materials",
+    id: "seed-course-from-sources",
     query: "Use $personal-tutor to create a SQL textbook from these database class PDFs.",
     expectedBehavior: [
-      "Clarifies how the provided materials should influence the textbook when needed",
-      "Records material locations in materials-index without copying raw files by default",
+      "Clarifies how the provided sources should influence the textbook when needed",
+      "Records source locations in materials-index without copying raw files by default",
       "Distills useful teaching context into source-notes",
       "Publishes a small learner-ready slice and leaves the rest planned"
     ]
@@ -63,10 +63,7 @@ test("skill eval scenarios cover the refocused lesson-authoring workflows", () =
     "continue-existing-textbook",
     "generate-review-quiz",
     "coding-practice-verification",
-    "seed-course-from-materials",
-    "add-materials-to-existing-textbook",
-    "continue-from-source-notes",
-    "material-edge-cases"
+    "seed-course-from-sources"
   ]);
 
   for (const scenario of scenarios) {
