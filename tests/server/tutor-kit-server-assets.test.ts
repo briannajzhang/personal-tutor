@@ -12,6 +12,32 @@ test.afterEach(() => {
   clearWorkspaceCaches();
 });
 
+function assertMatchingQuizAssets(page: string) {
+  for (const pattern of [
+    /quiz-matching/,
+    /data-quiz-match-select/,
+    /data-quiz-match-result/,
+    /renderQuizQuestionTitle/,
+    /normalizeMatchingSelections/,
+    /updateMatchingSelectOptions/,
+    /checkMatchingQuestion/,
+    /stableHash/
+  ]) {
+    assert.match(page, pattern);
+  }
+
+  for (const pattern of [
+    /data-quiz-match-correct/,
+    /Correct: /,
+    /data-quiz-match-explanation/,
+    /data-quiz-match-slot/,
+    /data-quiz-match-bank/,
+    /data-quiz-match-option/
+  ]) {
+    assert.doesNotMatch(page, pattern);
+  }
+}
+
 test("dev server exposes textbooks, chapters, and appends events", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
   initWorkspace(dir, { starter: true });
@@ -69,10 +95,7 @@ export default textbook({
     assert.match(page, /renderInlineEmphasis/);
     assert.match(page, /<strong>/);
     assert.match(page, /<em>/);
-    assert.match(page, /quiz-matching/);
-    assert.match(page, /data-quiz-match-select/);
-    assert.match(page, /checkMatchingQuestion/);
-    assert.match(page, /stableHash/);
+    assertMatchingQuizAssets(page);
     assert.match(page, /document\.fonts\?\.ready/);
     assert.match(page, /renderNotFoundPage/);
     assert.match(page, /Page not found/);
