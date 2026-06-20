@@ -178,9 +178,7 @@ Surrounding content should add a distinct teaching move: problem framing, readou
 
 Use quizzes for fast conceptual diagnosis, retrieval, misconception checks, prediction, classification, chapter review, and cumulative mixed review.
 
-Use multiple choice when the learner must make one decision, choose the best explanation, diagnose one scenario, or reason through one misconception.
-
-Use matching when the learner should connect several terms, examples, cases, or patterns to concise one-to-one distinctions.
+Choose quiz format and builder from the assessment purpose. Keep each quiz close to the concept, example, trap, or review target it checks.
 
 Use:
 
@@ -189,8 +187,6 @@ Use:
 - `mode: "practice-test"` only in dedicated cumulative checkpoint chapters. Use at least 10 questions.
 
 Quiz explanations should teach the mechanism. Do not merely restate the answer.
-
-For matching questions, write the explanation as a correction frame for the whole set: name the distinction that separates the pairs and give the learner a quick test they can apply when retrying. Do not rely on per-pair explanations.
 
 Choices should include plausible distractors based on realistic mistakes. Avoid joke answers, obviously impossible answers, and choices where more than one answer could reasonably be defended.
 

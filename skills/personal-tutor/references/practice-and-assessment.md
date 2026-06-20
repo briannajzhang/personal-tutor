@@ -63,9 +63,9 @@ Examples by subject:
 
 ## Quiz Authoring
 
-Use `balancedQuiz(...)` for generated 4-choice quizzes unless choice order is meaningful.
+Choose the question format by the learner move. Use multiple choice when one prompt asks for one decision, prediction, diagnosis, or best answer. Use matching when the check is about distinguishing several related items along the same one-to-one relationship.
 
-Use `quiz(...)` when order teaches meaning, such as chronology, numeric scales, step order, "all of the above", "both A and B", or one prompt that pairs several concise terms, examples, or patterns.
+Use `balancedQuiz(...)` for generated multiple-choice quizzes when answer order does not matter. Use `quiz(...)` when the quiz includes matching or when answer order or question structure should be preserved.
 
 Quiz modes:
 
