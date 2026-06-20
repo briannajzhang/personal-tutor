@@ -25,7 +25,7 @@ export async function saveQuizState(cwd, body) {
     const previous = readState(paths.absolutePath);
     const next = {
         ...previous,
-        selectedAnswers: stringRecord(body.selectedAnswers),
+        selectedAnswers: quizAnswerRecord(body.selectedAnswers),
         submitted: false,
         score: null,
         total: null,
@@ -46,7 +46,7 @@ export async function submitQuizAttempt(cwd, body) {
         submittedAt: new Date().toISOString()
     };
     const next = {
-        selectedAnswers: stringRecord(body.selectedAnswers),
+        selectedAnswers: quizAnswerRecord(body.selectedAnswers),
         submitted: true,
         score: attempt.score,
         total: attempt.total,
@@ -76,7 +76,7 @@ function readState(path) {
         return emptyState();
     const parsed = JSON.parse(readFileSync(path, "utf8"));
     return {
-        selectedAnswers: stringRecord(parsed.selectedAnswers),
+        selectedAnswers: quizAnswerRecord(parsed.selectedAnswers),
         submitted: parsed.submitted === true,
         score: Number.isInteger(parsed.score) ? parsed.score : null,
         total: Number.isInteger(parsed.total) ? parsed.total : null,
@@ -99,15 +99,37 @@ function responseList(value) {
         const record = response;
         return {
             questionId: requireString(record.questionId, `responses[${index}].questionId`),
-            selectedAnswer: requireString(record.selectedAnswer, `responses[${index}].selectedAnswer`),
+            selectedAnswer: requireQuizAnswer(record.selectedAnswer, `responses[${index}].selectedAnswer`),
             correct: record.correct === true
         };
     });
 }
-function stringRecord(value) {
+function quizAnswerRecord(value) {
     if (typeof value !== "object" || value === null || Array.isArray(value))
         return {};
-    return Object.fromEntries(Object.entries(value).filter((entry) => typeof entry[1] === "string"));
+    const entries = [];
+    for (const [key, answer] of Object.entries(value)) {
+        if (typeof answer === "string") {
+            entries.push([key, answer]);
+        }
+        else if (isStringRecord(answer)) {
+            entries.push([key, { ...answer }]);
+        }
+    }
+    return Object.fromEntries(entries);
+}
+function requireQuizAnswer(value, label) {
+    if (typeof value === "string")
+        return value;
+    if (isStringRecord(value))
+        return { ...value };
+    throw new Error(`${label} must be a string or string record`);
+}
+function isStringRecord(value) {
+    return typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value) &&
+        Object.values(value).every((entry) => typeof entry === "string");
 }
 function requireString(value, label) {
     if (typeof value !== "string" || value.trim().length === 0)

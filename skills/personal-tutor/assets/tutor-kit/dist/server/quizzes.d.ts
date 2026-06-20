@@ -13,15 +13,16 @@ interface QuizAttempt {
     attempt: number;
     responses: Array<{
         questionId: string;
-        selectedAnswer: string;
+        selectedAnswer: QuizAnswer;
         correct: boolean;
     }>;
     score: number;
     total: number;
     submittedAt: string;
 }
+type QuizAnswer = string | Record<string, string>;
 interface QuizState {
-    selectedAnswers: Record<string, string>;
+    selectedAnswers: Record<string, QuizAnswer>;
     submitted: boolean;
     score: number | null;
     total: number | null;

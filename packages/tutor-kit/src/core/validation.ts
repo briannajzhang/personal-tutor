@@ -742,6 +742,7 @@ function validateQuiz(
   const difficulties = new Set<string>();
   const answerPositions = new Map<number, number>();
   const fourChoiceAnswerPositions = new Map<number, number>();
+  let choiceQuestionCount = 0;
   let fourChoiceQuestionCount = 0;
   props.questions.forEach((question, index) => {
     const questionPath = `${path}.questions[${index}]`;
@@ -782,11 +783,26 @@ function validateQuiz(
       issues.push(issue("Quiz question should include tags.", `${questionPath}.tags`, file));
     }
 
+    const questionKind = question.kind;
+    if (questionKind !== "multiple-choice" && questionKind !== "matching") {
+      issues.push(issue("Quiz question kind must be multiple-choice or matching.", `${questionPath}.kind`, file));
+      return;
+    }
+
+    if (questionKind === "matching") {
+      validateMatchingQuizQuestion(question, questionPath, file, issues);
+      if (typeof question.difficulty === "string" && quizDifficulties.has(question.difficulty)) {
+        difficulties.add(question.difficulty);
+      }
+      return;
+    }
+
     if (!Array.isArray(question.choices) || question.choices.length < 2) {
       issues.push(issue("Quiz question choices must contain at least 2 choices.", `${questionPath}.choices`, file));
       return;
     }
 
+    choiceQuestionCount += 1;
     const choiceIds = new Set<string>();
     question.choices.forEach((choice, choiceIndex) => {
       const choicePath = `${questionPath}.choices[${choiceIndex}]`;
@@ -832,9 +848,9 @@ function validateQuiz(
   if (props.mode === "practice-test" && difficulties.size < 2) {
     issues.push(issue("Practice-test quiz should include at least 2 difficulty levels.", `${path}.questions`, file));
   }
-  if (props.questions.length >= 4) {
+  if (choiceQuestionCount >= 4) {
     const highestPositionCount = Math.max(0, ...answerPositions.values());
-    if (highestPositionCount / props.questions.length > 0.7) {
+    if (highestPositionCount / choiceQuestionCount > 0.7) {
       issues.push(issue(
         "Quiz correct answers are overly concentrated in one choice position. Shuffle choices to reduce answer-position bias.",
         `${path}.questions`,
@@ -849,6 +865,41 @@ function validateQuiz(
       file
     ));
   }
+}
+
+function validateMatchingQuizQuestion(
+  question: Record<string, unknown>,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  if (question.leftLabel !== undefined) validateTextProp(question.leftLabel, `${path}.leftLabel`, file, issues);
+  if (question.rightLabel !== undefined) validateTextProp(question.rightLabel, `${path}.rightLabel`, file, issues);
+
+  if (!Array.isArray(question.pairs) || question.pairs.length < 2) {
+    issues.push(issue("Matching quiz question pairs must contain at least 2 pairs.", `${path}.pairs`, file));
+    return;
+  }
+
+  const pairIds = new Set<string>();
+  question.pairs.forEach((pair, pairIndex) => {
+    const pairPath = `${path}.pairs[${pairIndex}]`;
+    if (!isRecord(pair)) {
+      issues.push(issue("Matching quiz pair must be an object.", pairPath, file));
+      return;
+    }
+    if (!hasText(pair.id)) {
+      issues.push(issue("Matching quiz pair id is required.", `${pairPath}.id`, file));
+    } else {
+      if (pairIds.has(pair.id)) {
+        issues.push(issue(`Duplicate matching quiz pair id: ${pair.id}`, `${pairPath}.id`, file));
+      }
+      pairIds.add(pair.id);
+    }
+    validateTextProp(pair.left, `${pairPath}.left`, file, issues);
+    validateTextProp(pair.right, `${pairPath}.right`, file, issues);
+    if (pair.explanation !== undefined) validateTextProp(pair.explanation, `${pairPath}.explanation`, file, issues);
+  });
 }
 
 function validateCodingAction(

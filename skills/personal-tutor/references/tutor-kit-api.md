@@ -170,6 +170,8 @@ Use blocks by teaching purpose:
 
 Prefer `balancedQuiz(...)` for generated 4-choice quizzes unless answer order is meaningful. It returns a normal quiz block and mechanically balances correct-answer positions.
 
+Quiz questions should set `kind: "multiple-choice"` when they use `choices` and `answer`, or `kind: "matching"` when they use one-to-one `pairs`.
+
 `callout` tones are `note`, `caution`, and `key-idea`.
 
 `transformation` artifact formats are `markdown`, `code`, `math`, and `table`. Use `layout: "auto"` unless `flow` or `compare` is clearly better.

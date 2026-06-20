@@ -20,6 +20,7 @@ import type {
   QuizBlock,
   QuizChoice,
   QuizDifficulty,
+  MatchingQuizPair,
   QuizMode,
   QuizQuestion,
   ChapterRole,
@@ -154,7 +155,8 @@ interface QuizChoiceInput {
   body: string;
 }
 
-interface QuizQuestionInput extends BlockInput {
+interface MultipleChoiceQuizQuestionInput extends BlockInput {
+  kind: "multiple-choice";
   prompt: string;
   choices: QuizChoiceInput[];
   answer: string;
@@ -162,6 +164,26 @@ interface QuizQuestionInput extends BlockInput {
   tags?: string[];
   difficulty?: QuizDifficulty;
 }
+
+interface MatchingQuizPairInput {
+  id: string;
+  left: string;
+  right: string;
+  explanation?: string;
+}
+
+interface MatchingQuizQuestionInput extends BlockInput {
+  kind: "matching";
+  prompt: string;
+  leftLabel?: string;
+  rightLabel?: string;
+  pairs: MatchingQuizPairInput[];
+  explanation: string;
+  tags?: string[];
+  difficulty?: QuizDifficulty;
+}
+
+type QuizQuestionInput = MultipleChoiceQuizQuestionInput | MatchingQuizQuestionInput;
 
 interface QuizInput extends BlockInput {
   title: string;
@@ -379,7 +401,22 @@ export function projectFiles(baseUrl: string, dir: string): {
 }
 
 function normalizeQuizQuestion(input: QuizQuestionInput): QuizQuestion {
+  if (input.kind === "matching") {
+    return {
+      kind: "matching",
+      id: requireText(input.id, "quiz.questions[].id"),
+      prompt: requireText(input.prompt, "quiz.questions[].prompt"),
+      leftLabel: requireText(input.leftLabel ?? "Prompt", "quiz.questions[].leftLabel"),
+      rightLabel: requireText(input.rightLabel ?? "Match", "quiz.questions[].rightLabel"),
+      pairs: requireMatchingPairs(input.pairs, "quiz.questions[].pairs"),
+      explanation: requireText(input.explanation, "quiz.questions[].explanation"),
+      tags: input.tags ?? [],
+      difficulty: input.difficulty
+    };
+  }
+
   return {
+    kind: "multiple-choice",
     id: requireText(input.id, "quiz.questions[].id"),
     prompt: requireText(input.prompt, "quiz.questions[].prompt"),
     choices: input.choices.map(normalizeQuizChoice),
@@ -387,6 +424,22 @@ function normalizeQuizQuestion(input: QuizQuestionInput): QuizQuestion {
     explanation: requireText(input.explanation, "quiz.questions[].explanation"),
     tags: input.tags ?? [],
     difficulty: input.difficulty
+  };
+}
+
+function requireMatchingPairs(value: MatchingQuizPairInput[], label: string): MatchingQuizPair[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`${label} must contain at least one pair`);
+  }
+  return value.map((pair, index) => normalizeMatchingPair(pair, `${label}[${index}]`));
+}
+
+function normalizeMatchingPair(input: MatchingQuizPairInput, label: string): MatchingQuizPair {
+  return {
+    id: requireText(input.id, `${label}.id`),
+    left: requireText(input.left, `${label}.left`),
+    right: requireText(input.right, `${label}.right`),
+    explanation: input.explanation === undefined ? undefined : requireText(input.explanation, `${label}.explanation`)
   };
 }
 
@@ -402,6 +455,10 @@ function balanceQuizQuestions(quizId: string, questions: QuizQuestionInput[]): Q
   let eligibleIndex = 0;
 
   return questions.map((question) => {
+    if (question.kind === "matching") {
+      return cloneQuizQuestion(question);
+    }
+
     if (question.choices.length !== 4) {
       return cloneQuizQuestion(question);
     }
@@ -421,6 +478,14 @@ function balanceQuizQuestions(quizId: string, questions: QuizQuestionInput[]): Q
 }
 
 function cloneQuizQuestion(question: QuizQuestionInput): QuizQuestionInput {
+  if (question.kind === "matching") {
+    return {
+      ...question,
+      pairs: question.pairs.map((pair) => ({ ...pair })),
+      tags: question.tags === undefined ? undefined : [...question.tags]
+    };
+  }
+
   return {
     ...question,
     choices: question.choices.map((choice) => ({ ...choice })),
@@ -429,7 +494,7 @@ function cloneQuizQuestion(question: QuizQuestionInput): QuizQuestionInput {
 }
 
 function reorderChoicesForAnswerPosition(
-  question: QuizQuestionInput,
+  question: MultipleChoiceQuizQuestionInput,
   quizId: string,
   targetPosition: number
 ): QuizChoiceInput[] {

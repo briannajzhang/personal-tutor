@@ -178,6 +178,8 @@ Surrounding content should add a distinct teaching move: problem framing, readou
 
 Use quizzes for fast conceptual diagnosis, retrieval, misconception checks, prediction, classification, chapter review, and cumulative mixed review.
 
+Choose quiz format and builder from the assessment purpose. Keep each quiz close to the concept, example, trap, or review target it checks.
+
 Use:
 
 - `mode: "check"` for local comprehension near a new idea or example. Use 1-3 questions.

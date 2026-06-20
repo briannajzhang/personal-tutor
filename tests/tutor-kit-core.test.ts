@@ -12,6 +12,7 @@ test.afterEach(() => {
 
 function quizQuestions(answerIds: string[], prefix = "question") {
   return answerIds.map((answer, index) => ({
+    kind: "multiple-choice" as const,
     id: `${prefix}-${index + 1}`,
     prompt: `Apply concept ${index + 1}.`,
     choices: [
@@ -25,6 +26,31 @@ function quizQuestions(answerIds: string[], prefix = "question") {
     tags: [`topic-${index % 3}`],
     difficulty: index % 2 === 0 ? "easy" as const : "medium" as const
   }));
+}
+
+function matchingQuestion(id = "matching") {
+  return {
+    kind: "matching" as const,
+    id,
+    prompt: "Match each join to its row behavior.",
+    pairs: [
+      {
+        id: "inner",
+        left: "INNER JOIN",
+        right: "Keeps only rows with matches on both sides.",
+        explanation: "An inner join removes rows that do not match."
+      },
+      {
+        id: "left",
+        left: "LEFT JOIN",
+        right: "Keeps every left row and fills missing right values with NULL.",
+        explanation: "A left join preserves the left input."
+      }
+    ],
+    explanation: "Matching join names to row behavior checks whether the row-preservation rule is clear.",
+    tags: ["joins", "classification"],
+    difficulty: "medium" as const
+  };
 }
 
 function textbookWithQuizzes(quizzes: ReturnType<typeof quiz>[]) {
@@ -121,6 +147,7 @@ test("builders create valid textbooks", () => {
                 mode: "review",
                 questions: [
                   {
+                    kind: "multiple-choice",
                     id: "double-purpose",
                     prompt: "What should `double(x)` return?",
                     choices: [
@@ -135,6 +162,7 @@ test("builders create valid textbooks", () => {
                     difficulty: "easy"
                   },
                   {
+                    kind: "multiple-choice",
                     id: "double-five",
                     prompt: "What should `double(5)` return?",
                     choices: [
@@ -149,6 +177,7 @@ test("builders create valid textbooks", () => {
                     difficulty: "easy"
                   },
                   {
+                    kind: "multiple-choice",
                     id: "return-vs-print",
                     prompt: "Why should `double(x)` return the computed value instead of only printing it?",
                     choices: [
@@ -163,6 +192,7 @@ test("builders create valid textbooks", () => {
                     difficulty: "medium"
                   },
                   {
+                    kind: "multiple-choice",
                     id: "implementation-choice",
                     prompt: "Which implementation correctly doubles the input?",
                     choices: [
@@ -317,6 +347,7 @@ test("validation rejects malformed quiz blocks", () => {
                 title: "Broken Quiz",
                 questions: [
                   {
+                    kind: "multiple-choice",
                     id: "same",
                     prompt: "Which option is correct?",
                     choices: [
@@ -328,6 +359,7 @@ test("validation rejects malformed quiz blocks", () => {
                     difficulty: "easy"
                   },
                   {
+                    kind: "multiple-choice",
                     id: "same",
                     prompt: "Which option is also correct?",
                     choices: [
@@ -379,6 +411,7 @@ test("validation flags non-trivial chapters without review quizzes", () => {
                 mode: "check",
                 questions: [
                   {
+                    kind: "multiple-choice",
                     id: "condition-role",
                     prompt: "What job does the condition do in an `if` statement?",
                     choices: [
@@ -997,6 +1030,7 @@ test("validation rejects review and assessment section quiz-mode mismatches", ()
 
 test("validation rejects quiz answer-position bias", () => {
   const questions = ["one", "two", "three", "four"].map((id) => ({
+    kind: "multiple-choice" as const,
     id,
     prompt: `Question ${id}?`,
     choices: [
@@ -1032,6 +1066,7 @@ test("validation rejects quiz answer-position bias", () => {
 
 test("balancedQuiz reorders choices to satisfy answer-position validation", () => {
   const questions = Array.from({ length: 8 }, (_, index) => ({
+    kind: "multiple-choice" as const,
     id: `biased-${index + 1}`,
     prompt: `Question ${index + 1}?`,
     choices: [
@@ -1068,6 +1103,7 @@ test("balancedQuiz preserves semantic answer identity and stable output", () => 
     title: "Identity",
     mode: "review" as const,
     questions: [{
+      kind: "multiple-choice" as const,
       id: "q1",
       prompt: "Which choice names the mechanism?",
       choices: [
@@ -1081,6 +1117,7 @@ test("balancedQuiz preserves semantic answer identity and stable output", () => 
       tags: ["identity"],
       difficulty: "medium" as const
     }, {
+      kind: "multiple-choice" as const,
       id: "q2",
       prompt: "Which short answer is valid?",
       choices: [
@@ -1107,6 +1144,116 @@ test("balancedQuiz preserves semantic answer identity and stable output", () => 
   assert.deepEqual(first.props.questions[0].tags, ["identity"]);
   assert.equal(first.props.questions[0].difficulty, "medium");
   assert.deepEqual(first.props.questions[1].choices, input.questions[1].choices);
+});
+
+test("quiz builder normalizes explicit multiple-choice and matching questions", () => {
+  const built = quiz({
+    id: "mixed-check",
+    title: "Mixed Check",
+    mode: "check",
+    questions: [
+      quizQuestions(["a"])[0],
+      matchingQuestion("join-behavior")
+    ]
+  });
+  const choiceQuestion = built.props.questions[0];
+  const matchQuestion = built.props.questions[1];
+
+  assert.equal(choiceQuestion.kind, "multiple-choice");
+  assert.equal(matchQuestion.kind, "matching");
+  assert.equal(matchQuestion.leftLabel, "Prompt");
+  assert.equal(matchQuestion.rightLabel, "Match");
+  assert.equal(matchQuestion.pairs.length, 2);
+});
+
+test("balancedQuiz leaves matching questions structurally intact", () => {
+  const input = {
+    id: "mixed-review",
+    title: "Mixed Review",
+    mode: "review" as const,
+    questions: [
+      ...quizQuestions(["a", "a", "a"], "choice"),
+      matchingQuestion("join-behavior")
+    ]
+  };
+  const balanced = balancedQuiz(input);
+  const normalized = quiz(input);
+  const matchQuestion = balanced.props.questions.find((question) => question.id === "join-behavior");
+  const normalizedMatchQuestion = normalized.props.questions.find((question) => question.id === "join-behavior");
+
+  assert.equal(matchQuestion?.kind, "matching");
+  assert.deepEqual(matchQuestion, normalizedMatchQuestion);
+});
+
+test("validation accepts mixed choice and matching quiz questions", () => {
+  const built = textbookWithQuizzes([
+    quiz({
+      id: "mixed-check",
+      title: "Mixed Check",
+      mode: "check",
+      questions: [
+        quizQuestions(["a"])[0],
+        matchingQuestion("join-behavior")
+      ]
+    })
+  ]);
+
+  assert.deepEqual(validateTextbook(built), []);
+});
+
+test("validation rejects malformed matching quiz questions", () => {
+  const makeTextbook = (question: any) => textbookWithQuizzes([
+    quiz({
+      id: "matching-check",
+      title: "Matching Check",
+      mode: "check",
+      questions: [question]
+    })
+  ]);
+  const cases = [
+    {
+      question: {
+        ...matchingQuestion(),
+        pairs: [
+          { id: "inner", left: "INNER JOIN", right: "Only matches" },
+          { id: "inner", left: "LEFT JOIN", right: "Preserves left" }
+        ]
+      },
+      message: /Duplicate matching quiz pair id: inner/
+    },
+    {
+      question: {
+        ...matchingQuestion(),
+        pairs: [{ id: "inner", left: "INNER JOIN", right: "Only matches" }]
+      },
+      message: /pairs must contain at least 2 pairs/
+    }
+  ];
+
+  for (const { question, message } of cases) {
+    assert.match(validateTextbook(makeTextbook(question)).map((issue) => issue.message).join("\n"), message);
+  }
+});
+
+test("validation ignores matching questions for answer-position bias", () => {
+  const built = textbookWithQuizzes([
+    quiz({
+      id: "mostly-matching",
+      title: "Mostly Matching",
+      mode: "review",
+      questions: [
+        quizQuestions(["a"], "choice")[0],
+        matchingQuestion("match-one"),
+        matchingQuestion("match-two"),
+        matchingQuestion("match-three")
+      ]
+    })
+  ]);
+
+  assert.doesNotMatch(
+    validateTextbook(built).map((issue) => issue.message).join("\n"),
+    /answer-position bias|choice positions/
+  );
 });
 
 test("validation requires at least 10 practice-test questions", () => {

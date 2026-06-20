@@ -468,6 +468,10 @@ h1 {
   border: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
 }
+.quiz-question[data-quiz-kind="matching"] {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
 .quiz-question-title {
   margin: 0 0 12px;
   color: var(--ink-soft);
@@ -500,6 +504,108 @@ h1 {
 .quiz-choice.incorrect {
   border-color: color-mix(in srgb, #a33b2f 62%, var(--line));
   background: color-mix(in srgb, #a33b2f 10%, var(--paper));
+}
+.quiz-matching {
+  display: grid;
+  gap: 0;
+}
+.quiz-matching-head,
+.quiz-match-row {
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(220px, 1fr) 22px;
+  column-gap: 12px;
+  row-gap: 4px;
+  align-items: start;
+}
+.quiz-matching-head {
+  padding-bottom: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 36%, transparent);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 620;
+}
+.quiz-match-row {
+  padding: 6px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+}
+.quiz-match-row:last-child {
+  padding-bottom: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+}
+.quiz-match-row.selected {
+  background: transparent;
+}
+.quiz-match-left {
+  min-width: 0;
+  padding: 7px 0 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.quiz-match-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 36px 6px 10px;
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--line) 52%, transparent);
+  background-color: color-mix(in srgb, var(--panel) 78%, var(--paper));
+  background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 5l4 4 4-4' fill='none' stroke='%235d5850' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 14px;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.quiz-match-select:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  outline-offset: 2px;
+}
+.quiz-match-select:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.quiz-match-row.correct .quiz-match-select {
+  border-color: color-mix(in srgb, #2f7d46 52%, var(--line));
+}
+.quiz-match-row.incorrect .quiz-match-select {
+  border-color: color-mix(in srgb, #a33b2f 52%, var(--line));
+}
+.quiz-match-result {
+  min-width: 18px;
+  min-height: 34px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  visibility: hidden;
+}
+.quiz-match-row.correct .quiz-match-result,
+.quiz-match-row.incorrect .quiz-match-result {
+  visibility: visible;
+}
+.quiz-match-row.correct .quiz-match-result {
+  color: #2f7d46;
+}
+.quiz-match-row.incorrect .quiz-match-result {
+  color: #a33b2f;
+}
+.quiz-question[data-quiz-kind="matching"] > .quiz-explanation {
+  margin-top: 10px;
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.quiz-question[data-quiz-kind="matching"] > .quiz-explanation p {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
 }
 .quiz-explanation {
   margin-top: 12px;
@@ -945,6 +1051,23 @@ body.route-loading {
   }
   .transformation-stage:last-child {
     border-bottom: 0;
+  }
+  .quiz-matching-head,
+  .quiz-match-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .quiz-match-row {
+    grid-template-columns: minmax(0, 1fr) 22px;
+    column-gap: 10px;
+  }
+  .quiz-match-left,
+  .quiz-match-select {
+    grid-column: 1 / 2;
+  }
+  .quiz-match-result {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
   }
   .coding-workspace {
     grid-template-columns: 1fr;
@@ -1394,20 +1517,7 @@ function renderQuiz(block) {
         <div class="quiz-meta">\${escapeHtml(formatQuizMode(block.props.mode))} / \${block.props.questions.length} questions</div>
       </div>
       <form class="quiz-form">
-        \${block.props.questions.map((question, index) => \`
-          <fieldset class="quiz-question" data-quiz-question="\${escapeAttr(question.id)}" data-quiz-answer="\${escapeAttr(question.answer)}">
-            <div class="quiz-question-title">\${index + 1}. \${renderInlineMarkdown(question.prompt)}</div>
-            <div class="quiz-choices">
-              \${question.choices.map((choice) => \`
-                <label class="quiz-choice" data-quiz-choice="\${escapeAttr(choice.id)}">
-                  <input type="radio" name="\${escapeAttr(block.id)}-\${escapeAttr(question.id)}" value="\${escapeAttr(choice.id)}" />
-                  <span>\${renderInlineMarkdown(choice.body)}</span>
-                </label>
-              \`).join("")}
-            </div>
-            <div class="quiz-explanation markdown" data-quiz-explanation hidden>\${renderMarkdown(question.explanation)}</div>
-          </fieldset>
-        \`).join("")}
+        \${block.props.questions.map((question, index) => renderQuizQuestion(block, question, index)).join("")}
         <div class="quiz-footer">
           <div class="quiz-actions">
             <button class="quiz-check" type="button" data-quiz-check>Check answers</button>
@@ -1418,6 +1528,69 @@ function renderQuiz(block) {
       </form>
     </article>
   \`;
+}
+
+function renderQuizQuestion(block, question, index) {
+  if (isMatchingQuestion(question)) return renderMatchingQuestion(block, question, index);
+  const title = renderQuizQuestionTitle(block, question, index);
+  return \`
+    <fieldset class="quiz-question" data-quiz-question="\${escapeAttr(question.id)}" data-quiz-kind="choice" data-quiz-answer="\${escapeAttr(question.answer)}">
+      <div class="quiz-question-title">\${title}</div>
+      <div class="quiz-choices">
+        \${question.choices.map((choice) => \`
+          <label class="quiz-choice" data-quiz-choice="\${escapeAttr(choice.id)}">
+            <input type="radio" name="\${escapeAttr(block.id)}-\${escapeAttr(question.id)}" value="\${escapeAttr(choice.id)}" />
+            <span>\${renderInlineMarkdown(choice.body)}</span>
+          </label>
+        \`).join("")}
+      </div>
+      <div class="quiz-explanation markdown" data-quiz-explanation hidden>\${renderMarkdown(question.explanation)}</div>
+    </fieldset>
+  \`;
+}
+
+function renderMatchingQuestion(block, question, index) {
+  const options = matchingOptions(block, question);
+  const title = renderQuizQuestionTitle(block, question, index);
+  return \`
+    <fieldset class="quiz-question" data-quiz-question="\${escapeAttr(question.id)}" data-quiz-kind="matching">
+      <div class="quiz-question-title">\${title}</div>
+      <div class="quiz-matching">
+        <div class="quiz-matching-head">
+          <span>\${escapeHtml(question.leftLabel ?? "Prompt")}</span>
+          <span>\${escapeHtml(question.rightLabel ?? "Match")}</span>
+          <span aria-hidden="true"></span>
+        </div>
+        \${question.pairs.map((pair) => \`
+          <div class="quiz-match-row" data-quiz-match-pair="\${escapeAttr(pair.id)}" data-quiz-match-answer="\${escapeAttr(pair.id)}">
+            <div class="quiz-match-left">\${renderInlineMarkdown(pair.left)}</div>
+            <select class="quiz-match-select" data-quiz-match-select aria-label="Choose match for \${escapeAttr(pair.left)}">
+              <option value="">Choose...</option>
+              \${options.map((option) => \`<option value="\${escapeAttr(option.id)}">\${escapeHtml(option.right)}</option>\`).join("")}
+            </select>
+            <span class="quiz-match-result" data-quiz-match-result></span>
+          </div>
+        \`).join("")}
+      </div>
+      <div class="quiz-explanation markdown" data-quiz-explanation hidden>\${renderMarkdown(question.explanation)}</div>
+    </fieldset>
+  \`;
+}
+
+function renderQuizQuestionTitle(block, question, index) {
+  const prompt = renderInlineMarkdown(question.prompt);
+  if (block.props.questions.length === 1) return prompt;
+  return \`\${index + 1}. \${prompt}\`;
+}
+
+function matchingOptions(block, question) {
+  return question.pairs
+    .map((option) => ({ id: option.id, right: option.right }))
+    .sort((left, right) => stableHash(\`\${block.id}:\${question.id}:\${left.id}\`) - stableHash(\`\${block.id}:\${question.id}:\${right.id}\`));
+}
+
+function isMatchingQuestion(question) {
+  return question?.kind === "matching";
 }
 
 function formatQuizMode(mode) {
@@ -1453,6 +1626,7 @@ async function hydrateQuiz(element, block, chapter) {
       void saveQuizSelections(state);
     });
   });
+  bindMatchingBoards(element, state);
   const checkButton = element.querySelector("[data-quiz-check]");
   const resetButton = element.querySelector("[data-quiz-reset]");
   if (checkButton) {
@@ -1463,6 +1637,27 @@ async function hydrateQuiz(element, block, chapter) {
   }
 }
 
+function bindMatchingBoards(element, state) {
+  element.querySelectorAll('[data-quiz-kind="matching"]').forEach((questionElement) => {
+    questionElement.querySelectorAll("[data-quiz-match-select]").forEach((select) => {
+      select.addEventListener("change", () => {
+        if (state.submitted) return;
+        const questionId = questionElement.dataset.quizQuestion;
+        if (!questionId) return;
+        normalizeMatchingSelections(questionElement);
+        const selected = matchingSelection(questionElement);
+        updateMatchingSelectOptions(questionElement);
+        if (Object.keys(selected).length > 0) {
+          state.selectedAnswers[questionId] = selected;
+        } else {
+          delete state.selectedAnswers[questionId];
+        }
+        void saveQuizSelections(state);
+      });
+    });
+  });
+}
+
 async function checkQuizAnswers(state) {
   const { element, block, chapter } = state;
   let correct = 0;
@@ -1470,24 +1665,10 @@ async function checkQuizAnswers(state) {
   for (const question of block.props.questions) {
     const questionElement = element.querySelector(\`[data-quiz-question="\${cssEscape(question.id)}"]\`);
     if (!questionElement) continue;
-    const selected = questionElement.querySelector("input:checked")?.value;
-    if (selected === question.answer) correct += 1;
-    if (selected) {
-      state.selectedAnswers[question.id] = selected;
-      responses.push({ questionId: question.id, selectedAnswer: selected, correct: selected === question.answer });
-    }
-
-    questionElement.querySelectorAll("[data-quiz-choice]").forEach((choiceElement) => {
-      const choiceId = choiceElement.dataset.quizChoice;
-      choiceElement.classList.toggle("correct", choiceId === question.answer);
-      choiceElement.classList.toggle("incorrect", Boolean(selected) && choiceId === selected && selected !== question.answer);
-    });
-
-    questionElement.querySelectorAll("input").forEach((input) => {
-      input.disabled = true;
-    });
-    const explanation = questionElement.querySelector("[data-quiz-explanation]");
-    if (explanation) explanation.hidden = false;
+    const isCorrect = isMatchingQuestion(question)
+      ? checkMatchingQuestion(questionElement, question, state, responses)
+      : checkChoiceQuestion(questionElement, question, state, responses);
+    if (isCorrect) correct += 1;
   }
 
   const score = element.querySelector("[data-quiz-score]");
@@ -1511,6 +1692,128 @@ async function checkQuizAnswers(state) {
   });
 }
 
+function checkChoiceQuestion(questionElement, question, state, responses) {
+  const selected = questionElement.querySelector("input:checked")?.value;
+  const isCorrect = selected === question.answer;
+  if (selected) {
+    state.selectedAnswers[question.id] = selected;
+    responses.push({ questionId: question.id, selectedAnswer: selected, correct: isCorrect });
+  }
+  applyChoiceFeedback(questionElement, question, selected);
+  return isCorrect;
+}
+
+function applyChoiceFeedback(questionElement, question, selected) {
+  questionElement.querySelectorAll("[data-quiz-choice]").forEach((choiceElement) => {
+    const choiceId = choiceElement.dataset.quizChoice;
+    choiceElement.classList.toggle("correct", choiceId === question.answer);
+    choiceElement.classList.toggle("incorrect", Boolean(selected) && choiceId === selected && selected !== question.answer);
+  });
+  questionElement.querySelectorAll("input").forEach((input) => {
+    input.disabled = true;
+  });
+  const explanation = questionElement.querySelector("[data-quiz-explanation]");
+  if (explanation) explanation.hidden = false;
+}
+
+function checkMatchingQuestion(questionElement, question, state, responses) {
+  normalizeMatchingSelections(questionElement);
+  updateMatchingSelectOptions(questionElement);
+  const selected = matchingSelection(questionElement);
+  const hasSelection = Object.keys(selected).length > 0;
+  const isCorrect = matchingQuestionCorrect(question, selected);
+  if (hasSelection) {
+    state.selectedAnswers[question.id] = selected;
+    responses.push({ questionId: question.id, selectedAnswer: selected, correct: isCorrect });
+  } else {
+    delete state.selectedAnswers[question.id];
+  }
+  applyMatchingFeedback(questionElement, question, selected);
+  return isCorrect;
+}
+
+function matchingSelection(questionElement) {
+  const selected = {};
+  questionElement.querySelectorAll("[data-quiz-match-pair]").forEach((row) => {
+    const pairId = row.dataset.quizMatchPair;
+    const value = row.querySelector("[data-quiz-match-select]")?.value;
+    if (pairId && value) selected[pairId] = value;
+  });
+  return selected;
+}
+
+function normalizeMatchingSelections(questionElement) {
+  const used = new Set();
+  questionElement.querySelectorAll("[data-quiz-match-select]").forEach((select) => {
+    const value = select.value;
+    if (!value) return;
+    if (used.has(value)) {
+      select.value = "";
+      return;
+    }
+    used.add(value);
+  });
+}
+
+function updateMatchingSelectOptions(questionElement) {
+  const selectedBySelect = new Map();
+  questionElement.querySelectorAll("[data-quiz-match-select]").forEach((select) => {
+    if (select.value) selectedBySelect.set(select, select.value);
+  });
+  const selectedValues = new Set(selectedBySelect.values());
+  questionElement.querySelectorAll("[data-quiz-match-select]").forEach((select) => {
+    const currentValue = selectedBySelect.get(select) ?? "";
+    select.querySelectorAll("option").forEach((option) => {
+      option.disabled = Boolean(option.value) && option.value !== currentValue && selectedValues.has(option.value);
+    });
+  });
+}
+
+function renderMatchingAssignments(questionElement, selectedAnswer) {
+  const selected = isRecordObject(selectedAnswer) ? selectedAnswer : {};
+  questionElement.querySelectorAll("[data-quiz-match-pair]").forEach((row) => {
+    const pairId = row.dataset.quizMatchPair;
+    const select = row.querySelector("[data-quiz-match-select]");
+    if (!pairId || !select) return;
+    select.value = selected[pairId] ?? "";
+    if (select.value !== (selected[pairId] ?? "")) {
+      select.value = "";
+    }
+  });
+  normalizeMatchingSelections(questionElement);
+  updateMatchingSelectOptions(questionElement);
+  return matchingSelection(questionElement);
+}
+
+function matchingQuestionCorrect(question, selected) {
+  if (!isRecordObject(selected)) return false;
+  return question.pairs.every((pair) => selected[pair.id] === pair.id);
+}
+
+function applyMatchingFeedback(questionElement, question, selectedAnswer) {
+  const selected = renderMatchingAssignments(questionElement, selectedAnswer);
+  questionElement.querySelectorAll("[data-quiz-match-pair]").forEach((row) => {
+    const pairId = row.dataset.quizMatchPair;
+    const answer = row.dataset.quizMatchAnswer;
+    const selectedRight = pairId ? selected[pairId] : undefined;
+    const isCorrect = Boolean(selectedRight) && selectedRight === answer;
+    row.classList.toggle("correct", isCorrect);
+    row.classList.toggle("incorrect", !isCorrect);
+    row.classList.remove("selected");
+    const result = row.querySelector("[data-quiz-match-result]");
+    if (result) {
+      result.textContent = isCorrect ? "✓" : "!";
+      result.setAttribute("aria-label", isCorrect ? "Correct" : "Incorrect");
+    }
+  });
+  delete questionElement.dataset.quizActivePair;
+  questionElement.querySelectorAll("[data-quiz-match-select]").forEach((select) => {
+    select.disabled = true;
+  });
+  const explanation = questionElement.querySelector("[data-quiz-explanation]");
+  if (explanation) explanation.hidden = false;
+}
+
 function resetQuiz(state) {
   const { element } = state;
   state.selectedAnswers = {};
@@ -1519,8 +1822,22 @@ function resetQuiz(state) {
     input.checked = false;
     input.disabled = false;
   });
+  element.querySelectorAll("[data-quiz-kind='matching']").forEach((questionElement) => {
+    delete questionElement.dataset.quizActivePair;
+    questionElement.querySelectorAll("[data-quiz-match-select]").forEach((select) => {
+      select.disabled = false;
+    });
+    renderMatchingAssignments(questionElement, {});
+  });
   element.querySelectorAll("[data-quiz-choice]").forEach((choiceElement) => {
     choiceElement.classList.remove("correct", "incorrect");
+  });
+  element.querySelectorAll("[data-quiz-match-pair]").forEach((row) => {
+    row.classList.remove("correct", "incorrect", "selected");
+  });
+  element.querySelectorAll("[data-quiz-match-result]").forEach((result) => {
+    result.textContent = "";
+    result.removeAttribute("aria-label");
   });
   element.querySelectorAll("[data-quiz-explanation]").forEach((explanation) => {
     explanation.hidden = true;
@@ -1535,8 +1852,20 @@ function resetQuiz(state) {
 
 function restoreQuizState(state, persisted) {
   for (const [questionId, answer] of Object.entries(state.selectedAnswers)) {
-    const input = state.element.querySelector(\`[data-quiz-question="\${cssEscape(questionId)}"] input[value="\${cssEscape(answer)}"]\`);
-    if (input) input.checked = true;
+    if (typeof answer === "string") {
+      const input = state.element.querySelector(\`[data-quiz-question="\${cssEscape(questionId)}"] input[value="\${cssEscape(answer)}"]\`);
+      if (input) input.checked = true;
+    } else if (isRecordObject(answer)) {
+      const questionElement = state.element.querySelector(\`[data-quiz-question="\${cssEscape(questionId)}"][data-quiz-kind="matching"]\`);
+      if (questionElement) {
+        const normalized = renderMatchingAssignments(questionElement, answer);
+        if (Object.keys(normalized).length > 0) {
+          state.selectedAnswers[questionId] = normalized;
+        } else {
+          delete state.selectedAnswers[questionId];
+        }
+      }
+    }
   }
   if (persisted.submitted) {
     void checkQuizAnswersLocally(state, persisted.score, persisted.total);
@@ -1547,16 +1876,12 @@ function checkQuizAnswersLocally(state, persistedScore, persistedTotal) {
   const { element, block } = state;
   for (const question of block.props.questions) {
     const questionElement = element.querySelector(\`[data-quiz-question="\${cssEscape(question.id)}"]\`);
-    const selected = state.selectedAnswers[question.id];
     if (!questionElement) continue;
-    questionElement.querySelectorAll("[data-quiz-choice]").forEach((choiceElement) => {
-      const choiceId = choiceElement.dataset.quizChoice;
-      choiceElement.classList.toggle("correct", choiceId === question.answer);
-      choiceElement.classList.toggle("incorrect", Boolean(selected) && choiceId === selected && selected !== question.answer);
-    });
-    questionElement.querySelectorAll("input").forEach((input) => { input.disabled = true; });
-    const explanation = questionElement.querySelector("[data-quiz-explanation]");
-    if (explanation) explanation.hidden = false;
+    if (isMatchingQuestion(question)) {
+      applyMatchingFeedback(questionElement, question, state.selectedAnswers[question.id]);
+    } else {
+      applyChoiceFeedback(questionElement, question, state.selectedAnswers[question.id]);
+    }
   }
   const score = element.querySelector("[data-quiz-score]");
   if (score) {
@@ -2198,6 +2523,20 @@ function escapeAttr(value) {
 function cssEscape(value) {
   if (window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(String(value));
   return String(value).replace(/["\\\\]/g, "\\\\$&");
+}
+
+function isRecordObject(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stableHash(value) {
+  const source = String(value ?? "");
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
 }
 
 load().catch((error) => {
