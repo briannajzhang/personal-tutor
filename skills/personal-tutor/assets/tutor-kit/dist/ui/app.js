@@ -100,6 +100,32 @@ h1 {
 .rows {
   border-top: 1px solid var(--line);
 }
+.textbook-chapter-rows {
+  border-top: 0;
+}
+.textbook-tabs {
+  display: flex;
+  gap: 22px;
+  border-bottom: 1px solid var(--line);
+  margin: -12px 0 0;
+}
+.textbook-tab {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 620;
+  padding: 0 0 10px;
+}
+.textbook-tab.active {
+  border-bottom-color: var(--ink);
+  color: var(--ink);
+}
+.textbook-tab:hover {
+  color: var(--accent-2);
+}
 .row {
   width: 100%;
   display: grid;
@@ -352,6 +378,65 @@ h1 {
   color: var(--ink-soft);
   font-size: 14px;
   line-height: 1.55;
+}
+.glossary-toolbar {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 32px;
+  padding: 22px 0;
+}
+.glossary-search {
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+}
+.glossary-search:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  outline-offset: 2px;
+}
+.glossary-results {
+  display: grid;
+  gap: 34px;
+}
+.glossary-chapter-group {
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 48%, transparent);
+  padding-bottom: 18px;
+}
+.glossary-group-head {
+  margin-bottom: 14px;
+}
+.glossary-group-title {
+  margin: 0;
+}
+.glossary-group-title-link {
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 560;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+.glossary-group-title-link:hover {
+  color: var(--accent-2);
+}
+.glossary-aggregate-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+.glossary-aggregate-entry {
+  display: grid;
+  grid-template-columns: minmax(150px, 230px) minmax(0, 1fr);
+  column-gap: 22px;
+  padding: 16px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+}
+.glossary-aggregate-entry:last-child {
+  border-bottom: 0;
 }
 .transformation {
   margin: 10px 0 22px;
@@ -1099,6 +1184,13 @@ body.route-loading {
     grid-template-columns: 1fr;
     gap: 4px;
   }
+  .textbook-tabs {
+    margin-top: -6px;
+  }
+  .glossary-aggregate-entry {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
   .quiz-matching-head,
   .quiz-match-row {
     grid-template-columns: 1fr;
@@ -1128,6 +1220,7 @@ body.route-loading {
 function clientJs() {
     return `
 let textbooks = [];
+const textbookCache = new Map();
 let activeChapter = null;
 const codingStates = new Map();
 const quizStates = new Map();
@@ -1151,6 +1244,13 @@ async function fetchJson(url, options) {
     throw error;
   }
   return response.json();
+}
+
+async function loadTextbook(textbookId) {
+  if (textbookCache.has(textbookId)) return textbookCache.get(textbookId);
+  const textbook = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}\`);
+  textbookCache.set(textbookId, textbook);
+  return textbook;
 }
 
 function renderHome() {
@@ -1203,9 +1303,10 @@ function renderEmptyTextbooks() {
 }
 
 async function renderTextbook(textbookId) {
-  const token = beginRouteLoad("Loading textbook...");
-  const textbook = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}\`);
+  const token = textbookCache.has(textbookId) ? ++routeToken : beginRouteLoad("Loading textbook...");
+  const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
+  const glossaryEntries = collectTextbookGlossaryEntries(textbook);
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -1214,9 +1315,9 @@ async function renderTextbook(textbookId) {
       ])}
       <div class="page-head">
         <h1>\${escapeHtml(textbook.title)}</h1>
-        <div class="meta">\${textbook.chapters.length} chapters</div>
       </div>
-      <div class="rows">
+      \${renderTextbookTabs("chapters", textbook.chapters.length, glossaryEntries.length)}
+      <div class="rows textbook-chapter-rows">
         \${textbook.chapters.map((chapter) => {
           const sectionCount = chapter.sections.length;
           const subsectionCount = chapter.sections.reduce((sum, section) => sum + section.subsections.length, 0);
@@ -1236,8 +1337,160 @@ async function renderTextbook(textbookId) {
   document.querySelectorAll("[data-chapter]").forEach((button) => {
     button.addEventListener("click", () => navigateChapter(textbook.id, button.dataset.chapter));
   });
+  bindTextbookTabs(textbook.id);
   bindCrumbs();
   finishRouteLoad(token);
+}
+
+async function renderTextbookGlossary(textbookId) {
+  const token = textbookCache.has(textbookId) ? ++routeToken : beginRouteLoad("Loading glossary...");
+  const textbook = await loadTextbook(textbookId);
+  if (token !== routeToken) return;
+  const entries = collectTextbookGlossaryEntries(textbook);
+  document.querySelector("#main").innerHTML = \`
+    <section>
+      \${renderCrumbs([
+        { label: document.title, action: "home" },
+        { label: textbook.title, action: "textbook", textbookId },
+        { label: "Glossary" }
+      ])}
+      <div class="page-head">
+        <h1>\${escapeHtml(textbook.title)}</h1>
+      </div>
+      \${renderTextbookTabs("glossary", textbook.chapters.length, entries.length)}
+      \${renderTextbookGlossaryView(entries)}
+    </section>
+  \`;
+  bindCrumbs();
+  bindTextbookTabs(textbook.id);
+  bindTextbookGlossarySearch(entries);
+  bindGlossarySourceLinks();
+  finishRouteLoad(token);
+}
+
+function renderTextbookTabs(activeTab, chapterCount, glossaryCount) {
+  return \`
+    <nav class="textbook-tabs" aria-label="Textbook views">
+      <button class="textbook-tab \${activeTab === "chapters" ? "active" : ""}" type="button" data-textbook-tab="chapters">
+        Chapters · \${chapterCount}
+      </button>
+      <button class="textbook-tab \${activeTab === "glossary" ? "active" : ""}" type="button" data-textbook-tab="glossary">
+        Glossary · \${glossaryCount}
+      </button>
+    </nav>
+  \`;
+}
+
+function bindTextbookTabs(textbookId) {
+  document.querySelectorAll("[data-textbook-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.textbookTab === "glossary") {
+        navigateTextbookGlossary(textbookId);
+        return;
+      }
+      navigateTextbook(textbookId);
+    });
+  });
+}
+
+function renderTextbookGlossaryView(entries) {
+  if (entries.length === 0) {
+    return renderTextbookGlossaryEmpty();
+  }
+  return \`
+    <div class="glossary-toolbar">
+      <input class="glossary-search" type="search" placeholder="Search glossary terms" aria-label="Search glossary terms" data-glossary-search />
+    </div>
+    <div class="glossary-results" data-glossary-results>
+      \${renderTextbookGlossaryResults(entries)}
+    </div>
+  \`;
+}
+
+function renderTextbookGlossaryEmpty() {
+  return \`
+    <div class="empty-state">
+      <div>
+        <div class="empty-kicker">No glossary terms</div>
+        <h2 class="empty-title">Chapter glossary blocks will appear here</h2>
+        <p class="empty-copy">Add terms with authored chapter <code>glossary(...)</code> blocks, and this textbook view will aggregate them automatically.</p>
+      </div>
+      <div class="empty-prompt" aria-label="Glossary source">
+        <span class="empty-prompt-label">Source block</span>
+        <code>glossary({ entries: [...] })</code>
+      </div>
+    </div>
+  \`;
+}
+
+function renderTextbookGlossaryResults(entries) {
+  if (entries.length === 0) {
+    return \`
+      <div class="empty-state">
+        <div>
+          <div class="empty-kicker">No matches</div>
+          <h2 class="empty-title">No glossary terms match this search</h2>
+          <p class="empty-copy">Search checks glossary terms only.</p>
+        </div>
+      </div>
+    \`;
+  }
+
+  const groups = [];
+  for (const entry of entries) {
+    const last = groups.at(-1);
+    if (last && last.chapterId === entry.chapterId) {
+      last.entries.push(entry);
+    } else {
+      groups.push({ chapterId: entry.chapterId, chapterTitle: entry.chapterTitle, sourceHref: entry.sourceHref, entries: [entry] });
+    }
+  }
+
+  return groups.map((group) => \`
+    <section class="glossary-chapter-group">
+      <div class="glossary-group-head">
+        <h2 class="glossary-group-title">
+          <a class="glossary-group-title-link" href="\${escapeAttr(group.sourceHref)}" data-glossary-source aria-label="Open source glossary for \${escapeAttr(group.chapterTitle)}">\${escapeHtml(group.chapterTitle)}</a>
+        </h2>
+      </div>
+      <dl class="glossary-aggregate-list">
+        \${group.entries.map((entry) => \`
+          <div class="glossary-aggregate-entry">
+            <dt class="glossary-term">\${renderInlineMarkdown(entry.term)}</dt>
+            <dd class="glossary-definition">
+              \${renderInlineMarkdown(entry.definition)}
+            </dd>
+          </div>
+        \`).join("")}
+      </dl>
+    </section>
+  \`).join("");
+}
+
+function bindTextbookGlossarySearch(entries) {
+  const input = document.querySelector("[data-glossary-search]");
+  const results = document.querySelector("[data-glossary-results]");
+  if (!input || !results) return;
+  input.addEventListener("input", () => {
+    const query = normalizeGlossarySearch(input.value);
+    const filtered = query
+      ? entries.filter((entry) => entry.searchText.includes(query))
+      : entries;
+    results.innerHTML = renderTextbookGlossaryResults(filtered);
+    bindGlossarySourceLinks();
+  });
+}
+
+function bindGlossarySourceLinks() {
+  document.querySelectorAll("[data-glossary-source]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const href = link.getAttribute("href");
+      if (!href) return;
+      event.preventDefault();
+      history.pushState({}, "", href);
+      void renderRoute();
+    });
+  });
 }
 
 async function renderChapter(textbookId, chapterId) {
@@ -1377,6 +1630,10 @@ async function renderRoute() {
       await renderChapter(route.textbookId, route.chapterId);
       return;
     }
+    if (route.kind === "textbookGlossary") {
+      await renderTextbookGlossary(route.textbookId);
+      return;
+    }
     if (route.kind === "textbook") {
       await renderTextbook(route.textbookId);
       return;
@@ -1416,6 +1673,9 @@ function parseRoute(pathname) {
   if (parts.length === 4 && parts[0] === "textbooks" && parts[1] && parts[2] === "chapters" && parts[3]) {
     return { kind: "chapter", textbookId: parts[1], chapterId: parts[3] };
   }
+  if (parts.length === 3 && parts[0] === "textbooks" && parts[1] && parts[2] === "glossary") {
+    return { kind: "textbookGlossary", textbookId: parts[1] };
+  }
   if (parts.length === 2 && parts[0] === "textbooks" && parts[1]) {
     return { kind: "textbook", textbookId: parts[1] };
   }
@@ -1429,6 +1689,11 @@ function navigateHome() {
 
 function navigateTextbook(textbookId) {
   history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}\`);
+  void renderRoute();
+}
+
+function navigateTextbookGlossary(textbookId) {
+  history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/glossary\`);
   void renderRoute();
 }
 
@@ -1480,7 +1745,7 @@ function renderGlossary(block) {
   const title = block.props.title || "Glossary";
   const entries = Array.isArray(block.props.entries) ? block.props.entries : [];
   return \`
-    <article class="block glossary">
+    <article class="block glossary" id="\${escapeAttr(blockAnchorId(block.id))}">
       <h4 class="glossary-title">\${escapeHtml(title)}</h4>
       <dl class="glossary-list">
         \${entries.map((entry) => \`
@@ -2345,6 +2610,49 @@ function collectChapterBlocks(chapter) {
   return blocks;
 }
 
+function collectTextbookGlossaryEntries(textbook) {
+  const entries = [];
+  for (const chapter of textbook.chapters ?? []) {
+    for (const section of chapter.sections ?? []) {
+      collectGlossaryEntriesFromBlocks(entries, textbook, chapter, section, section.blocks ?? []);
+      for (const subsection of section.subsections ?? []) {
+        collectGlossaryEntriesFromBlocks(entries, textbook, chapter, section, subsection.blocks ?? [], subsection);
+      }
+    }
+  }
+  return entries;
+}
+
+function collectGlossaryEntriesFromBlocks(entries, textbook, chapter, section, blocks, subsection) {
+  for (const block of blocks) {
+    if (block?.kind !== "glossary") continue;
+    const glossaryTitle = block.props?.title || "Glossary";
+    const sourceHref = \`/textbooks/\${encodeURIComponent(textbook.id)}/chapters/\${encodeURIComponent(chapter.id)}#\${encodeURIComponent(blockAnchorId(block.id))}\`;
+    for (const entry of block.props?.entries ?? []) {
+      const term = String(entry?.term ?? "");
+      const definition = String(entry?.definition ?? "");
+      entries.push({
+        term,
+        definition,
+        chapterId: chapter.id,
+        chapterTitle: chapter.title,
+        sectionId: section.id,
+        sectionTitle: section.title,
+        subsectionId: subsection?.id,
+        subsectionTitle: subsection?.title,
+        blockId: block.id,
+        glossaryTitle,
+        sourceHref,
+        searchText: normalizeGlossarySearch(term)
+      });
+    }
+  }
+}
+
+function normalizeGlossarySearch(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
 function loadMonaco() {
   if (!monacoReady) {
     monacoReady = new Promise((resolve, reject) => {
@@ -2574,6 +2882,10 @@ function normalizeLatex(value) {
 
 function anchorId(value) {
   return String(value ?? "").replace(/[^a-zA-Z0-9_-]+/g, "-");
+}
+
+function blockAnchorId(value) {
+  return \`block-\${anchorId(value)}\`;
 }
 
 function escapeHtml(value) {

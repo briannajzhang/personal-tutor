@@ -41,16 +41,33 @@ function assertMatchingQuizAssets(page: string) {
 function assertGlossaryAssets(page: string) {
   for (const pattern of [
     /renderGlossary/,
+    /renderTextbookGlossary/,
+    /loadTextbook/,
+    /textbookCache/,
+    /collectTextbookGlossaryEntries/,
+    /bindTextbookGlossarySearch/,
     /glossary-list/,
     /glossary-term/,
     /glossary-definition/,
+    /glossary-aggregate-entry/,
+    /glossary-group-title-link/,
+    /Open source glossary for/,
+    /Chapters ·/,
+    /Glossary ·/,
+    /searchText: normalizeGlossarySearch\(term\)/,
+    /data-glossary-search/,
+    /data-glossary-source/,
+    /textbook-tabs/,
+    /blockAnchorId/,
     /\.glossary-term code/,
     /\.glossary-definition code/
   ]) {
     assert.match(page, pattern);
   }
 
-  assert.doesNotMatch(page, /data-glossary/);
+  assert.doesNotMatch(page, /data-glossary="/);
+  assert.doesNotMatch(page, /sourceLabel/);
+  assert.doesNotMatch(page, /Open glossary/);
 }
 
 test("dev server exposes textbooks, chapters, and appends events", async () => {
@@ -116,6 +133,10 @@ export default textbook({
     assert.match(page, /renderNotFoundPage/);
     assert.match(page, /Page not found/);
     assert.match(page, /Generate your first textbook/);
+
+    const glossaryPage = await fetchText(`${server.url}/textbooks/getting-started/glossary`);
+    assert.match(glossaryPage, /renderTextbookGlossary/);
+    assert.match(glossaryPage, /data-glossary-results/);
 
     const missingPageResponse = await fetch(`${server.url}/missing-route`);
     const missingPage = await missingPageResponse.text();

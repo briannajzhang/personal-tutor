@@ -217,6 +217,7 @@ function isKnownAppPath(pathname: string): boolean {
   if (!parts) return false;
   if (parts.length === 0 || (parts.length === 1 && parts[0] === "textbooks")) return true;
   if (parts.length === 2 && parts[0] === "textbooks" && Boolean(parts[1])) return true;
+  if (parts.length === 3 && parts[0] === "textbooks" && Boolean(parts[1]) && parts[2] === "glossary") return true;
   if (parts.length === 4 && parts[0] === "textbooks" && Boolean(parts[1]) && parts[2] === "chapters" && Boolean(parts[3])) return true;
   return false;
 }
