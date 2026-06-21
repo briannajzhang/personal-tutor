@@ -240,7 +240,7 @@ For a request to add practice questions, quizzes, exercises, or coding practice:
 1. Inspect the target chapter or nearest relevant chapter.
 2. Identify the learner outcome and concepts already taught.
 3. Add material where it fits the teaching sequence.
-4. Choose the question format by the learner move before choosing the builder. Use `balancedQuiz(...)` for generated multiple-choice checks when answer order does not matter; use `quiz(...)` for matching or preserved answer structure.
+4. Choose the question format by the learner move before choosing the builder. Use `balancedQuiz(...)` for generated multiple-choice checks when one-decision questions fit and answer order does not matter; use `quiz(...)` for matching relationship checks or preserved answer structure.
 5. Add concrete tasks or coding problems when the learner must produce, debug, design, transform, or implement.
 6. Verify that practice does not require untaught moves.
 7. Compile and record evidence.

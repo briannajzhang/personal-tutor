@@ -63,7 +63,9 @@ Examples by subject:
 
 ## Quiz Authoring
 
-Choose the question format by the learner move. Use multiple choice when one prompt asks for one decision, prediction, diagnosis, or best answer. Use matching when the check is about distinguishing several related items along the same one-to-one relationship.
+Choose the question format by the learner move. Use multiple choice when one prompt asks for one decision, prediction, diagnosis, misconception check, or best answer. Use matching when the learner should map several related items to their meanings, roles, examples, categories, or use cases.
+
+Matching is strongest for similar-but-different concepts the learner has already met. A recently taught compact table, ladder, glossary, taxonomy, or label set is a useful signal that one matching question may check the map before the quiz returns to scenario judgments. Matching should compress repeated distinction checks, not add bulk.
 
 Use `balancedQuiz(...)` for generated multiple-choice quizzes when answer order does not matter. Use `quiz(...)` when the quiz includes matching or when answer order or question structure should be preserved.
 
@@ -73,7 +75,7 @@ Quiz modes:
 - `"review"`: chapter mastery, 4-10 questions.
 - `"practice-test"`: mixed cumulative assessment, at least 10 questions.
 
-Prompts should ask the learner to predict, classify, debug, compare, or apply.
+Prompts should ask the learner to predict, classify, map, debug, compare, or apply.
 
 Weak:
 
@@ -91,16 +93,18 @@ Each question should include:
 
 - stable question ID
 - concrete prompt
-- `kind`: `"multiple-choice"` with choices and an answer ID, or `"matching"` with one-to-one pairs
+- `kind`: `"multiple-choice"` with choices and one answer ID, or `"matching"` with compact one-to-one pairs
 - explanation that teaches the mechanism
 - tags
 - difficulty when useful: `easy`, `medium`, or `hard`
 
-Distractors should represent realistic learner mistakes. If no plausible learner reasoning leads to a choice, replace it.
+Multiple-choice distractors should represent realistic learner mistakes. If no plausible learner reasoning leads to a choice, replace it.
 
-For matching questions, keep both sides short and one-to-one. Avoid many-to-many relationships unless the question is split into simpler checks.
+For matching questions, keep both sides short and one-to-one. Use them after the lesson has taught or framed the items; do not make matching the first exposure to the concepts.
 
-For matching explanations, explain the shared sorting rule or decision test.
+Avoid matching when the answer requires long reasoning, nuanced judgment, partial credit, or more than one reasonable pairing. Split many-to-many relationships into simpler checks.
+
+For matching explanations, explain the shared sorting rule or decision test, not a reference entry for every term.
 
 ## Review Sets
 
@@ -110,7 +114,7 @@ Review should usually include:
 
 - a short retrieval frame
 - a concrete written or task-based mastery check
-- a `balancedQuiz(...)` or `quiz(...)` block with `mode: "review"` when multiple choice fits
+- a `balancedQuiz(...)` or `quiz(...)` block with `mode: "review"` when a quiz fits the mastery check
 
 Review questions should assess the chapter outcome with new scenarios where possible. Direct repetition is appropriate only for deliberate retrieval of a fundamental concept.
 
