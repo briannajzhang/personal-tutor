@@ -10,6 +10,7 @@ import type {
   CodingProblemFile,
   CodingProblemProps,
   CodeBlock,
+  GlossaryBlock,
   HeadingBlock,
   HeadingProps,
   ListBlock,
@@ -95,6 +96,16 @@ interface CalloutInput extends BlockInput {
   tone?: CalloutProps["tone"];
   title?: string;
   body: string;
+}
+
+interface GlossaryEntryInput {
+  term: string;
+  definition: string;
+}
+
+interface GlossaryInput extends BlockInput {
+  title?: string;
+  entries: GlossaryEntryInput[];
 }
 
 interface TransformationInput extends BlockInput {
@@ -317,6 +328,17 @@ export function callout(input: CalloutInput): CalloutBlock {
   };
 }
 
+export function glossary(input: GlossaryInput): GlossaryBlock {
+  return {
+    kind: "glossary",
+    id: requireText(input.id, "glossary.id"),
+    props: {
+      title: requireText(input.title ?? "Glossary", "glossary.title"),
+      entries: requireGlossaryEntries(input.entries, "glossary.entries")
+    }
+  };
+}
+
 export function transformation(input: TransformationInput): TransformationBlock {
   return {
     kind: "transformation",
@@ -448,6 +470,16 @@ function normalizeQuizChoice(input: QuizChoiceInput): QuizChoice {
     id: requireText(input.id, "quiz.questions[].choices[].id"),
     body: requireText(input.body, "quiz.questions[].choices[].body")
   };
+}
+
+function requireGlossaryEntries(value: GlossaryEntryInput[], label: string): GlossaryEntryInput[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`${label} must contain at least one entry`);
+  }
+  return value.map((entry, index) => ({
+    term: requireText(entry.term, `${label}[${index}].term`),
+    definition: requireText(entry.definition, `${label}[${index}].definition`)
+  }));
 }
 
 function balanceQuizQuestions(quizId: string, questions: QuizQuestionInput[]): QuizQuestionInput[] {

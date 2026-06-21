@@ -312,6 +312,47 @@ h1 {
   text-transform: uppercase;
   margin: 0 0 7px;
 }
+.glossary {
+  margin: 8px 0 18px;
+  padding: 16px 18px 6px;
+  border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
+  background: color-mix(in srgb, var(--panel) 30%, transparent);
+}
+.glossary-title {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 560;
+  letter-spacing: 0;
+}
+.glossary-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+.glossary-entry {
+  display: grid;
+  grid-template-columns: minmax(118px, 190px) minmax(0, 1fr);
+  column-gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+}
+.glossary-entry:last-child {
+  border-bottom: 0;
+}
+.glossary-term {
+  margin: 0;
+  color: var(--accent-2);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+.glossary-definition {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
 .transformation {
   margin: 10px 0 22px;
   border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
@@ -836,7 +877,9 @@ h1 {
   line-height: 1.7;
   margin: 0 0 12px;
 }
-.markdown code {
+.markdown code,
+.glossary-term code,
+.glossary-definition code {
   background: var(--panel-soft);
   border: 1px solid color-mix(in srgb, var(--line) 58%, transparent);
   padding: 2px 5px;
@@ -1051,6 +1094,10 @@ body.route-loading {
   }
   .transformation-stage:last-child {
     border-bottom: 0;
+  }
+  .glossary-entry {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
   .quiz-matching-head,
   .quiz-match-row {
@@ -1414,6 +1461,9 @@ function renderBlock(block) {
     const title = block.props.title ? block.props.title : block.props.tone.replace("-", " ");
     return \`<aside class="callout \${escapeAttr(block.props.tone)}"><div class="callout-title">\${escapeHtml(title)}</div><div class="markdown">\${renderMarkdown(block.props.body)}</div></aside>\`;
   }
+  if (block.kind === "glossary") {
+    return renderGlossary(block);
+  }
   if (block.kind === "transformation") {
     return renderTransformation(block);
   }
@@ -1424,6 +1474,24 @@ function renderBlock(block) {
     return renderQuiz(block);
   }
   return \`<article class="block"><div class="markdown"><p>Unsupported block: \${escapeHtml(block.kind)}</p></div></article>\`;
+}
+
+function renderGlossary(block) {
+  const title = block.props.title || "Glossary";
+  const entries = Array.isArray(block.props.entries) ? block.props.entries : [];
+  return \`
+    <article class="block glossary">
+      <h4 class="glossary-title">\${escapeHtml(title)}</h4>
+      <dl class="glossary-list">
+        \${entries.map((entry) => \`
+          <div class="glossary-entry">
+            <dt class="glossary-term">\${renderInlineMarkdown(entry?.term ?? "")}</dt>
+            <dd class="glossary-definition">\${renderInlineMarkdown(entry?.definition ?? "")}</dd>
+          </div>
+        \`).join("")}
+      </dl>
+    </article>
+  \`;
 }
 
 function renderTransformation(block) {

@@ -44,7 +44,7 @@ tutor init
 tutor init --starter
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
-tutor add block <p|heading|list|codeBlock|mathBlock|callout|transformation|quiz|codingProblem>
+tutor add block <p|heading|list|codeBlock|mathBlock|callout|transformation|glossary|quiz|codingProblem>
 tutor list textbooks
 tutor inspect textbook <id>
 tutor compile
@@ -144,6 +144,7 @@ import {
   chapter,
   codeBlock,
   codingProblem,
+  glossary,
   list,
   mathBlock,
   p,
@@ -165,6 +166,7 @@ Use blocks by teaching purpose:
 - `mathBlock`: displayed equation or notation.
 - `callout`: misconception, warning, boundary case, or key idea.
 - `transformation`: inspectable input -> operation -> output worked example.
+- `glossary`: compact reference for durable terms the learner has already met.
 - `quiz` or `balancedQuiz`: local checks, chapter review, and practice tests.
 - `codingProblem`: runnable or checkable learner practice.
 
@@ -175,6 +177,20 @@ Quiz questions should set `kind: "multiple-choice"` when they use `choices` and 
 `callout` tones are `note`, `caution`, and `key-idea`.
 
 `transformation` artifact formats are `markdown`, `code`, `math`, and `table`. Use `layout: "auto"` unless `flow` or `compare` is clearly better.
+
+`glossary` entries contain `term` and `definition`; `title` defaults to `Glossary`.
+
+Glossary terms and definitions support inline Markdown, including backticked code.
+
+```ts
+glossary({
+  id: "join-terms",
+  title: "Join Terms",
+  entries: [
+    { term: "LEFT JOIN", definition: "Keeps every left row and fills missing right-side values with NULL." }
+  ]
+});
+```
 
 ## Coding Problem Files
 
