@@ -170,9 +170,9 @@ Use blocks by teaching purpose:
 - `quiz` or `balancedQuiz`: local checks, chapter review, and practice tests.
 - `codingProblem`: runnable or checkable learner practice.
 
-Prefer `balancedQuiz(...)` for generated 4-choice quizzes unless answer order is meaningful. It returns a normal quiz block and mechanically balances correct-answer positions.
+Prefer `balancedQuiz(...)` for generated 4-choice multiple-choice quizzes unless answer order is meaningful. Use `quiz(...)` for matching questions or preserved answer structure.
 
-Quiz questions should set `kind: "multiple-choice"` when they use `choices` and `answer`, or `kind: "matching"` when they use one-to-one `pairs`.
+Quiz questions should set `kind: "multiple-choice"` when they use `choices` and `answer`, or `kind: "matching"` when they use one-to-one `pairs`. Matching pairs contain `id`, `left`, `right`, and optional `explanation`; matching questions can set `leftLabel` and `rightLabel` when the defaults are too generic.
 
 `callout` tones are `note`, `caution`, and `key-idea`.
 
