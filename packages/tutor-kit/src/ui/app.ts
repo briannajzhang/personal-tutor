@@ -403,6 +403,13 @@ h1 {
   display: grid;
   gap: 34px;
 }
+.glossary-empty {
+  border-bottom: 1px solid var(--line);
+  padding: 28px 0 30px;
+}
+.glossary-empty .empty-copy {
+  max-width: 520px;
+}
 .glossary-chapter-group {
   border-bottom: 1px solid color-mix(in srgb, var(--line) 48%, transparent);
   padding-bottom: 18px;
@@ -1349,6 +1356,11 @@ async function renderTextbookGlossary(textbookId) {
   const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
   const entries = collectTextbookGlossaryEntries(textbook);
+  if (entries.length === 0) {
+    history.replaceState(history.state, "", "/textbooks/" + encodeURIComponent(textbookId));
+    await renderTextbook(textbookId);
+    return;
+  }
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -1376,9 +1388,11 @@ function renderTextbookTabs(activeTab, chapterCount, glossaryCount) {
       <button class="textbook-tab \${activeTab === "chapters" ? "active" : ""}" type="button" data-textbook-tab="chapters">
         Chapters · \${chapterCount}
       </button>
+      \${glossaryCount > 0 ? \`
       <button class="textbook-tab \${activeTab === "glossary" ? "active" : ""}" type="button" data-textbook-tab="glossary">
         Glossary · \${glossaryCount}
       </button>
+      \` : ""}
     </nav>
   \`;
 }
@@ -1411,15 +1425,11 @@ function renderTextbookGlossaryView(entries) {
 
 function renderTextbookGlossaryEmpty() {
   return \`
-    <div class="empty-state">
+    <div class="glossary-empty">
       <div>
         <div class="empty-kicker">No glossary terms</div>
-        <h2 class="empty-title">Chapter glossary blocks will appear here</h2>
-        <p class="empty-copy">Add terms with authored chapter <code>glossary(...)</code> blocks, and this textbook view will aggregate them automatically.</p>
-      </div>
-      <div class="empty-prompt" aria-label="Glossary source">
-        <span class="empty-prompt-label">Source block</span>
-        <code>glossary({ entries: [...] })</code>
+        <h2 class="empty-title">This textbook does not have glossary terms yet</h2>
+        <p class="empty-copy">Glossary terms are collected from chapter glossary blocks when they exist.</p>
       </div>
     </div>
   \`;

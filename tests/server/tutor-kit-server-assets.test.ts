@@ -50,8 +50,14 @@ function assertGlossaryAssets(page: string) {
     /glossary-term/,
     /glossary-definition/,
     /glossary-aggregate-entry/,
+    /glossary-empty/,
     /glossary-group-title-link/,
     /Open source glossary for/,
+    /This textbook does not have glossary terms yet/,
+    /Glossary terms are collected from chapter glossary blocks when they exist\./,
+    /glossaryCount > 0/,
+    /history\.replaceState\(history\.state, "", "\/textbooks\/" \+ encodeURIComponent\(textbookId\)\)/,
+    /await renderTextbook\(textbookId\);/,
     /Chapters ·/,
     /Glossary ·/,
     /searchText: normalizeGlossarySearch\(term\)/,
@@ -68,6 +74,9 @@ function assertGlossaryAssets(page: string) {
   assert.doesNotMatch(page, /data-glossary="/);
   assert.doesNotMatch(page, /sourceLabel/);
   assert.doesNotMatch(page, /Open glossary/);
+  assert.doesNotMatch(page, /Chapter glossary blocks will appear here/);
+  assert.doesNotMatch(page, /Source block/);
+  assert.doesNotMatch(page, /glossary\(\{ entries: \[\.\.\.\] \}\)/);
 }
 
 test("dev server exposes textbooks, chapters, and appends events", async () => {
