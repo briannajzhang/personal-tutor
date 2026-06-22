@@ -44,12 +44,44 @@ function assertGlossaryAssets(page: string) {
     /renderTextbookGlossary/,
     /loadTextbook/,
     /textbookCache/,
+    /glossaryStudyStates/,
     /collectTextbookGlossaryEntries/,
+    /glossaryEntryId/,
     /bindTextbookGlossarySearch/,
+    /bindTextbookGlossaryControls/,
+    /bindGlossaryStarControls\(textbookId\)/,
     /glossary-list/,
     /glossary-term/,
     /glossary-definition/,
     /glossary-aggregate-entry/,
+    /renderTextbookGlossaryStudy/,
+    /renderGlossaryStudyPage/,
+    /navigateTextbookGlossaryStudy/,
+    /textbookGlossaryStudy/,
+    /glossary-study-launcher/,
+    /glossary-study-menu/,
+    /glossary-study-page/,
+    /glossary-study-scoreboard/,
+    /glossary-study-progress-bar/,
+    /glossary-study-progress-fill/,
+    /data-glossary-star/,
+    /data-glossary-term/,
+    /data-glossary-study-launch="all"/,
+    /data-glossary-study-launch="starred"/,
+    /Study all terms/,
+    /Study starred terms/,
+    /Back to glossary/,
+    /Still learning/,
+    /Know/,
+    /glossary-rate-button/,
+    /data-glossary-reveal/,
+    /data-glossary-rate="again"/,
+    /data-glossary-rate="knew-it"/,
+    /Review still learning/,
+    /renderGlossary\(block, context\)/,
+    /glossaryEntryId\(context\.chapter\.id, block\.id, term\)/,
+    /\/api\/glossary-study\/state/,
+    /\/api\/glossary-study\/rating/,
     /glossary-empty/,
     /glossary-group-title-link/,
     /Open source glossary for/,
@@ -71,9 +103,14 @@ function assertGlossaryAssets(page: string) {
     assert.match(page, pattern);
   }
 
+  assert.match(page, /\.glossary-star \{[^}]*border: 0;/);
+  assert.doesNotMatch(page, /\.glossary-star \{[^}]*border: 1px/);
   assert.doesNotMatch(page, /data-glossary="/);
   assert.doesNotMatch(page, /sourceLabel/);
   assert.doesNotMatch(page, /Open glossary/);
+  assert.doesNotMatch(page, /glossary-mode-tab/);
+  assert.doesNotMatch(page, /data-glossary-mode="browse"/);
+  assert.doesNotMatch(page, /data-glossary-mode="study"/);
   assert.doesNotMatch(page, /Chapter glossary blocks will appear here/);
   assert.doesNotMatch(page, /Source block/);
   assert.doesNotMatch(page, /glossary\(\{ entries: \[\.\.\.\] \}\)/);
@@ -146,6 +183,11 @@ export default textbook({
     const glossaryPage = await fetchText(`${server.url}/textbooks/getting-started/glossary`);
     assert.match(glossaryPage, /renderTextbookGlossary/);
     assert.match(glossaryPage, /data-glossary-results/);
+
+    const glossaryStudyResponse = await fetch(`${server.url}/textbooks/getting-started/glossary/study?set=all`);
+    const glossaryStudyPage = await glossaryStudyResponse.text();
+    assert.equal(glossaryStudyResponse.status, 200);
+    assert.match(glossaryStudyPage, /renderTextbookGlossaryStudy/);
 
     const missingPageResponse = await fetch(`${server.url}/missing-route`);
     const missingPage = await missingPageResponse.text();
