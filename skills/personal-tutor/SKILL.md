@@ -71,9 +71,6 @@ Read only the reference files needed for the current job:
 - `references/lesson-authoring.md`: learning contract, prose style, semantic blocks, examples, transformations, and chapter structure.
 - `references/practice-and-assessment.md`: quizzes, exercises, review questions, practice-test chapters, coding problems, and verification metadata.
 - `references/review-and-verification.md`: acceptance gate, authoring review, compile evidence, doctor, coding verification, and revision loop.
-- `references/karpathy-corpus.md`: optional entrypoint for the bundled Karpathy homage corpus when lesson, project, or tutorial writing quality would benefit from stronger taste, pacing, examples, or tone.
-- `references/karpathy-teaching-taste.md`: optional high-level observations distilled from the corpus; use through `references/karpathy-corpus.md`.
-- `references/karpathy-source-index.md`: optional primary-source provenance, URLs, transcript status, and license notes; use through `references/karpathy-corpus.md`.
 
 Default read path for new or continued material:
 

@@ -57,7 +57,7 @@ const scenarios = [
 ];
 
 test("skill eval scenarios cover the refocused lesson-authoring workflows", () => {
-  assert.equal(scenarios.length, 8);
+  assert.equal(scenarios.length, 5);
   assert.deepEqual(scenarios.map((scenario) => scenario.id), [
     "seed-beginner-course",
     "continue-existing-textbook",
