@@ -100,6 +100,32 @@ h1 {
 .rows {
   border-top: 1px solid var(--line);
 }
+.textbook-chapter-rows {
+  border-top: 0;
+}
+.textbook-tabs {
+  display: flex;
+  gap: 22px;
+  border-bottom: 1px solid var(--line);
+  margin: -12px 0 0;
+}
+.textbook-tab {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 620;
+  padding: 0 0 10px;
+}
+.textbook-tab.active {
+  border-bottom-color: var(--ink);
+  color: var(--ink);
+}
+.textbook-tab:hover {
+  color: var(--accent-2);
+}
 .row {
   width: 100%;
   display: grid;
@@ -325,6 +351,18 @@ h1 {
   font-weight: 560;
   letter-spacing: 0;
 }
+.glossary-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+.glossary-title-link:hover,
+.glossary-title-link:focus-visible {
+  color: var(--accent-2);
+}
+.glossary-title-link:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-2) 28%, transparent);
+  outline-offset: 3px;
+}
 .glossary-list {
   display: grid;
   gap: 0;
@@ -332,8 +370,9 @@ h1 {
 }
 .glossary-entry {
   display: grid;
-  grid-template-columns: minmax(118px, 190px) minmax(0, 1fr);
+  grid-template-columns: minmax(118px, 190px) minmax(0, 1fr) auto;
   column-gap: 14px;
+  align-items: start;
   padding: 10px 0;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
 }
@@ -352,6 +391,686 @@ h1 {
   color: var(--ink-soft);
   font-size: 14px;
   line-height: 1.55;
+}
+.glossary-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  border-bottom: 0;
+  margin-bottom: 8px;
+  padding: 14px 0 10px;
+}
+.glossary-page-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+}
+.glossary-study-launcher {
+  position: relative;
+}
+.glossary-study-button {
+  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  background: var(--paper);
+  color: var(--accent-2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  min-height: 40px;
+  padding: 10px 13px;
+}
+.glossary-study-button:hover {
+  border-color: var(--accent-2);
+  background: color-mix(in srgb, var(--panel) 48%, transparent);
+  color: var(--accent-2);
+}
+.glossary-study-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  outline-offset: 4px;
+}
+.glossary-study-menu {
+  position: absolute;
+  left: 0;
+  z-index: 5;
+  display: grid;
+  min-width: 220px;
+  margin-top: 8px;
+  border: 1px solid color-mix(in srgb, var(--line) 62%, transparent);
+  background: var(--paper);
+  box-shadow: 0 18px 34px color-mix(in srgb, var(--ink) 11%, transparent);
+}
+.glossary-study-menu[hidden] {
+  display: none;
+}
+.glossary-study-menu button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 48%, transparent);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 560;
+  min-height: 44px;
+  padding: 11px 13px;
+  text-align: left;
+}
+.glossary-study-menu button:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+}
+.glossary-study-menu button:last-child {
+  border-bottom: 0;
+}
+.glossary-study-menu button:hover,
+.glossary-study-menu button:focus-visible {
+  background: color-mix(in srgb, var(--panel) 56%, transparent);
+  color: var(--accent-2);
+}
+.glossary-study-menu button:disabled:hover {
+  background: transparent;
+  color: var(--ink-soft);
+}
+.glossary-study-menu-count {
+  color: var(--muted-2);
+  font-variant-numeric: tabular-nums;
+}
+.glossary-action {
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  background: var(--paper);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 620;
+  line-height: 1;
+}
+.glossary-action.primary {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.glossary-action:hover,
+.glossary-action.primary:hover {
+  border-color: var(--accent-2);
+  background: color-mix(in srgb, var(--panel) 48%, transparent);
+  color: var(--accent-2);
+}
+.glossary-action:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+.glossary-action:disabled:hover {
+  border-color: color-mix(in srgb, var(--line) 72%, transparent);
+  background: var(--paper);
+  color: var(--muted);
+}
+.glossary-search {
+  flex: 0 1 400px;
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  min-height: 40px;
+  padding: 9px 12px;
+}
+.glossary-search:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  outline-offset: 2px;
+}
+.glossary-results {
+  display: grid;
+  gap: 34px;
+}
+.glossary-empty {
+  border-bottom: 1px solid var(--line);
+  padding: 28px 0 30px;
+}
+.glossary-empty .empty-copy {
+  max-width: 520px;
+}
+.glossary-chapter-group {
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 48%, transparent);
+  padding-bottom: 18px;
+}
+.glossary-group-head {
+  margin-bottom: 14px;
+}
+.glossary-group-title {
+  margin: 0;
+}
+.glossary-group-title-link {
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 560;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+.glossary-group-title-link:hover {
+  color: var(--accent-2);
+}
+.glossary-aggregate-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+.glossary-aggregate-entry {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr) auto;
+  column-gap: 18px;
+  align-items: start;
+  padding: 16px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+}
+.glossary-aggregate-entry:last-child {
+  border-bottom: 0;
+}
+.glossary-star {
+  border: 0;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 2px;
+}
+.glossary-star.is-starred {
+  color: var(--accent-2);
+}
+.glossary-star:hover {
+  color: var(--accent-2);
+}
+.glossary-star.is-starred:hover {
+  color: var(--accent);
+}
+.glossary-star:focus-visible,
+.glossary-action:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  outline-offset: 3px;
+}
+.glossary-study-page {
+  display: grid;
+  gap: 16px;
+  padding: 0 0 34px;
+}
+.glossary-study-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 62px;
+  align-items: start;
+}
+.glossary-study-options {
+  position: sticky;
+  top: 48px;
+  display: grid;
+  gap: 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.glossary-study-options.mobile {
+  display: none;
+}
+.glossary-study-options summary {
+  cursor: pointer;
+  list-style: none;
+}
+.glossary-study-options summary::-webkit-details-marker {
+  display: none;
+}
+.glossary-study-options-title {
+  color: var(--accent-2);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.glossary-study-options-groups {
+  display: grid;
+  gap: 18px;
+}
+.glossary-study-option-group {
+  display: grid;
+  gap: 9px;
+}
+.glossary-study-option-label {
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 560;
+  letter-spacing: .01em;
+}
+.glossary-study-option-set {
+  display: grid;
+  gap: 2px;
+}
+.glossary-study-option {
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+  padding: 7px 0 7px 16px;
+  text-align: left;
+}
+.glossary-study-option:hover,
+.glossary-study-option:focus-visible {
+  color: var(--accent-2);
+}
+.glossary-study-option.is-selected {
+  border-left-color: color-mix(in srgb, var(--accent-2) 78%, var(--line));
+  background: color-mix(in srgb, var(--panel) 34%, transparent);
+  color: var(--ink);
+  font-weight: 650;
+}
+.glossary-study-option:disabled {
+  color: var(--muted-2);
+  cursor: not-allowed;
+  opacity: .45;
+}
+.glossary-study-option:disabled:hover {
+  color: var(--muted-2);
+}
+.glossary-study-option.restart {
+  margin-top: 8px;
+  padding-left: 0;
+  font-weight: 520;
+}
+.glossary-study-option-group.session-action {
+  border-top: 1px solid color-mix(in srgb, var(--line) 58%, transparent);
+  padding-top: 14px;
+}
+.glossary-segmented-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
+  background: color-mix(in srgb, var(--paper) 92%, var(--panel));
+}
+.glossary-segmented-control.is-disabled {
+  opacity: .48;
+}
+.glossary-segment {
+  min-height: 34px;
+  border: 0;
+  border-right: 1px solid color-mix(in srgb, var(--line) 38%, transparent);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 560;
+  padding: 7px 8px;
+  text-align: center;
+}
+.glossary-segment:last-child {
+  border-right: 0;
+}
+.glossary-segment:hover,
+.glossary-segment:focus-visible {
+  background: color-mix(in srgb, var(--panel) 22%, transparent);
+  color: var(--accent-2);
+}
+.glossary-segment.is-selected {
+  background: color-mix(in srgb, var(--panel) 54%, var(--paper));
+  box-shadow: none;
+  color: var(--ink);
+  font-weight: 620;
+}
+.glossary-segment:disabled {
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted-2);
+  cursor: not-allowed;
+  opacity: .55;
+}
+.glossary-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 34px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.glossary-toggle-label {
+  color: var(--ink-soft);
+  font-weight: 540;
+}
+.glossary-toggle-input {
+  appearance: none;
+  display: grid;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--muted) 44%, var(--line));
+  background: color-mix(in srgb, var(--paper) 94%, var(--panel));
+  cursor: pointer;
+  margin: 0;
+}
+.glossary-toggle-input::before {
+  width: 7px;
+  height: 7px;
+  background: color-mix(in srgb, var(--accent-2) 84%, var(--ink));
+  content: "";
+  opacity: 0;
+  transform: scale(.45);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+.glossary-toggle-input:checked {
+  border-color: color-mix(in srgb, var(--accent-2) 52%, var(--line));
+  background: color-mix(in srgb, var(--panel) 42%, var(--paper));
+}
+.glossary-toggle-input:checked::before {
+  opacity: .72;
+  transform: scale(1);
+}
+.glossary-toggle-input:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-2) 28%, transparent);
+  outline-offset: 3px;
+}
+.glossary-study-main {
+  min-width: 0;
+}
+.glossary-study-stage {
+  display: grid;
+  gap: 14px;
+  width: min(700px, 100%);
+  margin: 0 auto;
+}
+.glossary-study-status {
+  display: grid;
+  gap: 12px;
+  min-height: 34px;
+}
+.glossary-study-status.is-placeholder .glossary-study-controls {
+  visibility: hidden;
+}
+.glossary-study-status.is-finished {
+  visibility: hidden;
+}
+.glossary-study-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  width: 100%;
+}
+.glossary-study-scoreboard {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 620;
+}
+.glossary-study-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.glossary-study-score.known {
+  justify-self: end;
+}
+.glossary-study-score.again {
+  color: var(--muted);
+}
+.glossary-study-score.known {
+  color: var(--muted);
+}
+.glossary-study-score-value {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.glossary-study-score-separator {
+  color: var(--muted-2);
+}
+.glossary-study-progress-bar {
+  height: 3px;
+  background: color-mix(in srgb, var(--line) 46%, transparent);
+}
+.glossary-study-progress-fill {
+  height: 100%;
+  background: color-mix(in srgb, var(--ink) 54%, var(--line));
+  width: var(--glossary-progress, 0%);
+}
+.glossary-card {
+  position: relative;
+  display: grid;
+  align-items: stretch;
+  justify-items: center;
+  border: 1px solid color-mix(in srgb, var(--line) 54%, transparent);
+  background: color-mix(in srgb, var(--panel) 22%, var(--paper));
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--ink) 4%, transparent);
+  cursor: pointer;
+  min-height: 340px;
+  padding: 34px 40px;
+  transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+.glossary-card:hover {
+  border-color: color-mix(in srgb, var(--accent-2) 28%, var(--line));
+  background: color-mix(in srgb, var(--panel) 34%, var(--paper));
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.glossary-card-body {
+  display: grid;
+  align-items: center;
+  width: min(560px, 100%);
+}
+.glossary-card-content {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+}
+.glossary-card-content.glossary-card-prompt {
+  justify-items: center;
+  text-align: center;
+}
+.glossary-card-content.glossary-card-revealed {
+  justify-items: center;
+  text-align: center;
+}
+.glossary-card-content.glossary-card-both {
+  justify-items: center;
+  text-align: center;
+  gap: 18px;
+}
+.glossary-card .glossary-star {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+.glossary-card-term {
+  margin: 0;
+  color: var(--ink);
+  font-size: 42px;
+  font-weight: 560;
+  line-height: 1.18;
+}
+.glossary-card-definition {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 20px;
+  line-height: 1.55;
+  max-width: 44ch;
+  text-align: center;
+}
+.glossary-study-finish-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.glossary-card-controls {
+  display: grid;
+  align-items: start;
+  width: min(700px, 100%);
+  margin: 0 auto;
+  min-height: 42px;
+}
+.glossary-card-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  grid-area: 1 / 1;
+  justify-self: center;
+}
+.glossary-card-nav.is-waiting {
+  visibility: hidden;
+}
+.glossary-card-nav .glossary-action {
+  text-align: center;
+}
+.glossary-card-nav .glossary-nav-arrow,
+.glossary-card-nav .glossary-rate-button {
+  display: inline-grid;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  min-height: 42px;
+  place-items: center;
+  padding: 0;
+  font-size: 20px;
+}
+.glossary-track-toggle {
+  grid-area: 1 / 1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 620;
+  line-height: 1;
+  user-select: none;
+}
+.glossary-track-toggle input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent-2);
+  margin: 0;
+}
+.glossary-action {
+  padding: 9px 12px;
+}
+.glossary-rate-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, currentColor 54%, var(--line));
+  background: color-mix(in srgb, var(--paper) 84%, transparent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  padding: 9px 12px;
+}
+.glossary-card-nav .glossary-rate-button {
+  flex: 0 0 42px;
+  font-size: 20px;
+}
+.glossary-rate-button:hover {
+  background: color-mix(in srgb, currentColor 8%, var(--paper));
+  border-color: currentColor;
+}
+.glossary-rate-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, currentColor 34%, transparent);
+  outline-offset: 4px;
+}
+.glossary-rate-button.again {
+  color: color-mix(in srgb, #a33b2f 88%, var(--ink));
+}
+.glossary-rate-button.known {
+  color: color-mix(in srgb, #2f7d46 88%, var(--ink));
+}
+.glossary-rate-button.is-selected {
+  background: color-mix(in srgb, currentColor 10%, var(--paper));
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+.glossary-rate-button:disabled {
+  background: color-mix(in srgb, var(--paper) 76%, transparent);
+  color: var(--muted-2);
+  cursor: not-allowed;
+  opacity: .5;
+}
+.glossary-rate-button:disabled:hover {
+  background: color-mix(in srgb, var(--paper) 76%, transparent);
+  border-color: color-mix(in srgb, currentColor 54%, var(--line));
+}
+.glossary-rate-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.glossary-study-finish {
+  width: min(700px, 100%);
+  margin: 0 auto;
+  border: 1px solid color-mix(in srgb, var(--line) 54%, transparent);
+  background: color-mix(in srgb, var(--panel) 22%, var(--paper));
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--ink) 4%, transparent);
+  min-height: 340px;
+  padding: 34px 40px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+.glossary-study-finish-body {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+}
+.glossary-study-finish .empty-kicker {
+  margin-bottom: 8px;
+}
+.glossary-study-finish .empty-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+}
+.glossary-study-finish-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 620;
+}
+.glossary-study-finish-actions {
+  justify-content: center;
+  margin-top: 18px;
+}
+.glossary-study-finish-actions .glossary-action:not(.primary) {
+  border-color: color-mix(in srgb, var(--line) 58%, transparent);
+  color: var(--muted);
+}
+.glossary-study-finish-actions .glossary-action:not(.primary):hover {
+  border-color: color-mix(in srgb, var(--accent-2) 42%, var(--line));
+  color: var(--accent-2);
 }
 .transformation {
   margin: 10px 0 22px;
@@ -1099,6 +1818,74 @@ body.route-loading {
     grid-template-columns: 1fr;
     gap: 4px;
   }
+  .textbook-tabs {
+    margin-top: -6px;
+  }
+  .glossary-aggregate-entry {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .glossary-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .glossary-page-actions {
+    justify-content: flex-start;
+  }
+  .glossary-search {
+    flex-basis: auto;
+    max-width: none;
+    margin-left: 0;
+  }
+  .glossary-study-controls {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .glossary-study-scoreboard {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .glossary-study-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .glossary-study-options.desktop {
+    display: none;
+  }
+  .glossary-study-options.mobile {
+    position: static;
+    display: grid;
+  }
+  .glossary-study-options.mobile .glossary-study-options-groups {
+    border-top: 1px solid color-mix(in srgb, var(--line) 58%, transparent);
+    margin-top: 14px;
+    padding-top: 16px;
+  }
+  .glossary-card {
+    min-height: 360px;
+    padding: 30px 18px 22px;
+  }
+  .glossary-study-finish {
+    min-height: 360px;
+    padding: 30px 18px 22px;
+  }
+  .glossary-rate-button {
+    flex: 1 1 auto;
+  }
+  .glossary-card-nav {
+    gap: 12px;
+  }
+  .glossary-card-nav .glossary-action {
+    min-width: 0;
+  }
+  .glossary-card .glossary-star {
+    right: 16px;
+    top: 16px;
+  }
+  .glossary-card-term {
+    font-size: 30px;
+  }
   .quiz-matching-head,
   .quiz-match-row {
     grid-template-columns: 1fr;
@@ -1123,11 +1910,29 @@ body.route-loading {
     border-right: 0;
     border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
   }
+}
+@media (max-width: 560px) {
+  .glossary-card-controls {
+    gap: 10px;
+  }
+  .glossary-card-nav,
+  .glossary-track-toggle {
+    grid-area: auto;
+  }
+  .glossary-card-nav {
+    justify-self: center;
+  }
+  .glossary-track-toggle {
+    justify-self: start;
+    min-height: auto;
+  }
 }`;
 }
 function clientJs() {
     return `
 let textbooks = [];
+const textbookCache = new Map();
+const glossaryStudyStates = new Map();
 let activeChapter = null;
 const codingStates = new Map();
 const quizStates = new Map();
@@ -1151,6 +1956,13 @@ async function fetchJson(url, options) {
     throw error;
   }
   return response.json();
+}
+
+async function loadTextbook(textbookId) {
+  if (textbookCache.has(textbookId)) return textbookCache.get(textbookId);
+  const textbook = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}\`);
+  textbookCache.set(textbookId, textbook);
+  return textbook;
 }
 
 function renderHome() {
@@ -1203,9 +2015,10 @@ function renderEmptyTextbooks() {
 }
 
 async function renderTextbook(textbookId) {
-  const token = beginRouteLoad("Loading textbook...");
-  const textbook = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}\`);
+  const token = textbookCache.has(textbookId) ? ++routeToken : beginRouteLoad("Loading textbook...");
+  const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
+  const glossaryEntries = collectTextbookGlossaryEntries(textbook);
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -1214,9 +2027,9 @@ async function renderTextbook(textbookId) {
       ])}
       <div class="page-head">
         <h1>\${escapeHtml(textbook.title)}</h1>
-        <div class="meta">\${textbook.chapters.length} chapters</div>
       </div>
-      <div class="rows">
+      \${renderTextbookTabs("chapters", textbook.chapters.length, glossaryEntries.length)}
+      <div class="rows textbook-chapter-rows">
         \${textbook.chapters.map((chapter) => {
           const sectionCount = chapter.sections.length;
           const subsectionCount = chapter.sections.reduce((sum, section) => sum + section.subsections.length, 0);
@@ -1236,15 +2049,1018 @@ async function renderTextbook(textbookId) {
   document.querySelectorAll("[data-chapter]").forEach((button) => {
     button.addEventListener("click", () => navigateChapter(textbook.id, button.dataset.chapter));
   });
+  bindTextbookTabs(textbook.id);
   bindCrumbs();
   finishRouteLoad(token);
+}
+
+async function renderTextbookGlossary(textbookId) {
+  const token = textbookCache.has(textbookId) ? ++routeToken : beginRouteLoad("Loading glossary...");
+  const textbook = await loadTextbook(textbookId);
+  if (token !== routeToken) return;
+  const entries = collectTextbookGlossaryEntries(textbook);
+  if (entries.length === 0) {
+    history.replaceState(history.state, "", "/textbooks/" + encodeURIComponent(textbookId));
+    await renderTextbook(textbookId);
+    return;
+  }
+  const studyState = await loadGlossaryStudyState(textbook.id);
+  if (token !== routeToken) return;
+  document.querySelector("#main").innerHTML = \`
+    <section>
+      \${renderCrumbs([
+        { label: document.title, action: "home" },
+        { label: textbook.title, action: "textbook", textbookId },
+        { label: "Glossary" }
+      ])}
+      <div class="page-head">
+        <h1>\${escapeHtml(textbook.title)}</h1>
+      </div>
+      \${renderTextbookTabs("glossary", textbook.chapters.length, entries.length)}
+      \${renderTextbookGlossaryView(textbook.id, entries, studyState)}
+    </section>
+  \`;
+  bindCrumbs();
+  bindTextbookTabs(textbook.id);
+  bindTextbookGlossaryControls(textbook.id, entries);
+  finishRouteLoad(token);
+}
+
+async function renderTextbookGlossaryStudy(textbookId) {
+  const token = textbookCache.has(textbookId) ? ++routeToken : beginRouteLoad("Loading study session...");
+  const textbook = await loadTextbook(textbookId);
+  if (token !== routeToken) return;
+  const entries = collectTextbookGlossaryEntries(textbook);
+  if (entries.length === 0) {
+    history.replaceState(history.state, "", "/textbooks/" + encodeURIComponent(textbookId));
+    await renderTextbook(textbookId);
+    return;
+  }
+  const studyState = await loadGlossaryStudyState(textbook.id);
+  if (token !== routeToken) return;
+  const requestedSet = new URLSearchParams(window.location.search).get("set") === "starred" ? "starred" : "all";
+  const studySet = requestedSet === "starred" && studyState.starredTermIds.length === 0 ? "all" : requestedSet;
+  startGlossaryStudySession(textbook.id, entries, studySet, undefined, { preserveCurrentIndex: true, render: false });
+  document.querySelector("#main").innerHTML = \`
+    <section>
+      \${renderCrumbs([
+        { label: document.title, action: "home" },
+        { label: textbook.title, action: "textbook", textbookId },
+        { label: "Glossary", action: "glossary", textbookId },
+        { label: "Flashcards" }
+      ])}
+      <div class="page-head">
+        <h1>Flashcards</h1>
+        <div class="meta" data-glossary-study-top-progress>\${renderGlossaryStudyProgressLabel(entries, studyState)}</div>
+      </div>
+      \${renderGlossaryStudyPage(textbook.id, entries, studyState)}
+    </section>
+  \`;
+  bindCrumbs();
+  bindGlossaryStudyPageControls(textbook.id, entries);
+  finishRouteLoad(token);
+}
+
+function renderTextbookTabs(activeTab, chapterCount, glossaryCount) {
+  return \`
+    <nav class="textbook-tabs" aria-label="Textbook views">
+      <button class="textbook-tab \${activeTab === "chapters" ? "active" : ""}" type="button" data-textbook-tab="chapters">
+        Chapters · \${chapterCount}
+      </button>
+      \${glossaryCount > 0 ? \`
+      <button class="textbook-tab \${activeTab === "glossary" ? "active" : ""}" type="button" data-textbook-tab="glossary">
+        Glossary · \${glossaryCount}
+      </button>
+      \` : ""}
+    </nav>
+  \`;
+}
+
+function bindTextbookTabs(textbookId) {
+  document.querySelectorAll("[data-textbook-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.textbookTab === "glossary") {
+        navigateTextbookGlossary(textbookId);
+        return;
+      }
+      navigateTextbook(textbookId);
+    });
+  });
+}
+
+function renderTextbookGlossaryView(textbookId, entries, studyState) {
+  if (entries.length === 0) {
+    return renderTextbookGlossaryEmpty();
+  }
+  return \`
+    <div data-glossary-view>
+      \${renderGlossaryBrowseView(entries, studyState)}
+    </div>
+  \`;
+}
+
+function renderGlossaryStudyLauncher(studyState, glossaryCount = 0) {
+  const starredCount = studyState.starredTermIds.length;
+  return \`
+    <div class="glossary-study-launcher">
+      <button class="glossary-study-button" type="button" data-glossary-study-menu-toggle aria-expanded="false">Flashcards ▾</button>
+      <div class="glossary-study-menu" data-glossary-study-menu hidden>
+        <button type="button" data-glossary-study-launch="all">
+          <span>Study all terms</span>
+          <span class="glossary-study-menu-count">\${glossaryCount}</span>
+        </button>
+        <button type="button" data-glossary-study-launch="starred" \${starredCount === 0 ? "disabled" : ""}>
+          <span>Study starred terms</span>
+          <span class="glossary-study-menu-count">\${starredCount}</span>
+        </button>
+      </div>
+    </div>
+  \`;
+}
+
+function renderTextbookGlossaryEmpty() {
+  return \`
+    <div class="glossary-empty">
+      <div>
+        <div class="empty-kicker">No glossary terms</div>
+        <h2 class="empty-title">This textbook does not have glossary terms yet</h2>
+        <p class="empty-copy">Glossary terms are collected from chapter glossary blocks when they exist.</p>
+      </div>
+    </div>
+  \`;
+}
+
+function renderGlossaryBrowseView(entries, studyState) {
+  return \`
+    <div class="glossary-toolbar">
+      <div class="glossary-page-actions" data-glossary-page-actions>
+        \${renderGlossaryStudyLauncher(studyState, entries.length)}
+      </div>
+      <input class="glossary-search" type="search" placeholder="Search glossary" aria-label="Search glossary terms" data-glossary-search />
+    </div>
+    <div class="glossary-results" data-glossary-results>
+      \${renderTextbookGlossaryResults(entries, studyState)}
+    </div>
+  \`;
+}
+
+function renderTextbookGlossaryResults(entries, studyState) {
+  if (entries.length === 0) {
+    return \`
+      <div class="empty-state">
+        <div>
+          <div class="empty-kicker">No matches</div>
+          <h2 class="empty-title">No glossary terms match this search</h2>
+          <p class="empty-copy">Search checks glossary terms only.</p>
+        </div>
+      </div>
+    \`;
+  }
+
+  const groups = [];
+  for (const entry of entries) {
+    const last = groups.at(-1);
+    if (last && last.chapterId === entry.chapterId) {
+      last.entries.push(entry);
+    } else {
+      groups.push({ chapterId: entry.chapterId, chapterTitle: entry.chapterTitle, sourceHref: entry.sourceHref, entries: [entry] });
+    }
+  }
+
+  return groups.map((group) => \`
+    <section class="glossary-chapter-group">
+      <div class="glossary-group-head">
+        <h2 class="glossary-group-title">
+          <a class="glossary-group-title-link" href="\${escapeAttr(group.sourceHref)}" data-glossary-source aria-label="Open source glossary for \${escapeAttr(group.chapterTitle)}">\${escapeHtml(group.chapterTitle)}</a>
+        </h2>
+      </div>
+      <dl class="glossary-aggregate-list">
+        \${group.entries.map((entry) => \`
+          <div class="glossary-aggregate-entry" data-glossary-entry="\${escapeAttr(entry.id)}">
+            <dt class="glossary-term">\${renderInlineMarkdown(entry.term)}</dt>
+            <dd class="glossary-definition">
+              \${renderInlineMarkdown(entry.definition)}
+            </dd>
+            \${renderGlossaryStarButton(entry, studyState)}
+          </div>
+        \`).join("")}
+      </dl>
+    </section>
+  \`).join("");
+}
+
+function renderGlossaryStarButton(entry, studyState) {
+  const starred = isGlossaryTermStarred(studyState, entry.id);
+  return \`
+    <button class="glossary-star \${starred ? "is-starred" : ""}" type="button" data-glossary-star="\${escapeAttr(entry.id)}" data-glossary-term="\${escapeAttr(entry.term)}" aria-pressed="\${starred ? "true" : "false"}" aria-label="\${starred ? "Unstar" : "Star"} \${escapeAttr(entry.term)}" title="\${starred ? "Unstar term" : "Star term"}">
+      \${starred ? "★" : "☆"}
+    </button>
+  \`;
+}
+
+function renderGlossaryStudyPage(textbookId, entries, studyState) {
+  return \`
+    <div class="glossary-study-page" data-glossary-study-page>
+      <div class="glossary-study-layout">
+        <aside class="glossary-study-options desktop" data-glossary-study-options aria-label="Flashcard options">
+          \${renderGlossaryStudyOptions(entries, studyState)}
+        </aside>
+        <details class="glossary-study-options mobile" data-glossary-study-options>
+          <summary class="glossary-study-options-title">Options</summary>
+          \${renderGlossaryStudyOptions(entries, studyState, { includeTitle: false })}
+        </details>
+        <div class="glossary-study-main" data-glossary-study-view>
+          \${renderGlossaryStudySession(textbookId, entries, studyState)}
+        </div>
+      </div>
+    </div>
+  \`;
+}
+
+function renderGlossaryStudyOptions(entries, studyState, options = {}) {
+  const session = ensureGlossaryStudySession(entries, studyState);
+  normalizeGlossarySessionOptions(session);
+  const starredCount = entries.filter((entry) => isGlossaryTermStarred(studyState, entry.id)).length;
+  return \`
+    <div class="glossary-study-options-groups">
+      <div class="glossary-study-option-group">
+        <div class="glossary-study-option-label">Study set</div>
+        <div class="glossary-segmented-control" role="group" aria-label="Study set">
+          <button class="glossary-segment \${session.studySet === "all" ? "is-selected" : ""}" type="button" data-glossary-deck-option="all" aria-pressed="\${session.studySet === "all" ? "true" : "false"}">All</button>
+          <button class="glossary-segment \${session.studySet === "starred" ? "is-selected" : ""}" type="button" data-glossary-deck-option="starred" aria-pressed="\${session.studySet === "starred" ? "true" : "false"}" \${starredCount === 0 ? "disabled" : ""}>Starred</button>
+        </div>
+      </div>
+      <div class="glossary-study-option-group">
+        <div class="glossary-study-option-label">Prompt side</div>
+        <div class="glossary-segmented-control \${session.showBoth ? "is-disabled" : ""}" role="group" aria-label="Prompt side" \${session.showBoth ? 'aria-disabled="true"' : ""}>
+          <button class="glossary-segment \${session.promptMode === "term-first" ? "is-selected" : ""}" type="button" data-glossary-prompt-option="term-first" aria-pressed="\${session.promptMode === "term-first" ? "true" : "false"}" \${session.showBoth ? "disabled" : ""}>Term</button>
+          <button class="glossary-segment \${session.promptMode === "definition-first" ? "is-selected" : ""}" type="button" data-glossary-prompt-option="definition-first" aria-pressed="\${session.promptMode === "definition-first" ? "true" : "false"}" \${session.showBoth ? "disabled" : ""}>Definition</button>
+        </div>
+      </div>
+      <div class="glossary-study-option-group">
+        <label class="glossary-toggle-row">
+          <span class="glossary-toggle-label">Show both sides</span>
+          <input class="glossary-toggle-input" type="checkbox" data-glossary-show-both \${session.showBoth ? "checked" : ""}>
+        </label>
+      </div>
+      <div class="glossary-study-option-group">
+        <label class="glossary-toggle-row">
+          <span class="glossary-toggle-label">Track progress</span>
+          <input class="glossary-toggle-input" type="checkbox" data-glossary-track-toggle \${session.trackingEnabled ? "checked" : ""}>
+        </label>
+      </div>
+      <div class="glossary-study-option-group session-action">
+        <button class="glossary-study-option restart" type="button" data-glossary-restart>Restart session</button>
+      </div>
+    </div>
+  \`;
+}
+
+function renderGlossaryStudyProgressLabel(entries, studyState) {
+  const progress = glossaryStudyProgressMetrics(entries, studyState);
+  if (progress.total === 0) return "0 terms";
+  return \`\${progress.current} of \${progress.total} terms\`;
+}
+
+function glossaryStudyProgressMetrics(entries, studyState) {
+  const session = ensureGlossaryStudySession(entries, studyState);
+  const progressCardIds = glossaryStudyProgressCardIds(entries, studyState);
+  const total = progressCardIds.length;
+  const currentCardId = session.index < session.cardIds.length ? session.cardIds[session.index] : null;
+  const currentIndex = currentCardId ? progressCardIds.indexOf(currentCardId) : -1;
+  const current = total === 0
+    ? 0
+    : session.completed
+      ? total
+      : currentIndex >= 0
+        ? currentIndex + 1
+        : Math.min(session.index + 1, total);
+  return { current, total };
+}
+
+function glossaryStudyProgressCardIds(entries, studyState) {
+  const session = ensureGlossaryStudySession(entries, studyState);
+  if (session.studySet !== "starred" || session.label !== "starred terms") return session.cardIds;
+  const currentCardId = session.index < session.cardIds.length ? session.cardIds[session.index] : null;
+  const entryIds = new Set(entries.map((entry) => entry.id));
+  const starredIds = new Set(entries
+    .filter((entry) => isGlossaryTermStarred(studyState, entry.id))
+    .map((entry) => entry.id));
+  return session.cardIds.filter((termId) => entryIds.has(termId) && (starredIds.has(termId) || termId === currentCardId));
+}
+
+function renderGlossaryStudySession(textbookId, entries, studyState) {
+  const session = ensureGlossaryStudySession(entries, studyState);
+  normalizeGlossarySessionRatings(session);
+  const cards = session.cardIds.map((termId) => entries.find((entry) => entry.id === termId)).filter(Boolean);
+  if (cards.length === 0) {
+    return \`
+      <div class="glossary-study-stage">
+        \${renderGlossaryStudyFinishSpacer()}
+        <div class="glossary-study-finish">
+          <div class="glossary-study-finish-body">
+            <h2 class="empty-title">No terms in this study set</h2>
+            <p class="empty-copy">Star terms in Browse mode to build a custom study set.</p>
+            <div class="glossary-study-finish-actions">
+              <button class="glossary-action" type="button" data-glossary-back>Browse terms</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    \`;
+  }
+  if (session.completed) {
+    return renderGlossaryStudyFinish(textbookId, entries, studyState);
+  }
+  if (session.index >= cards.length) {
+    session.index = Math.max(cards.length - 1, 0);
+  }
+  if (typeof session.trackingEnabled !== "boolean") {
+    session.trackingEnabled = false;
+  }
+  normalizeGlossarySessionOptions(session);
+  const entry = cards[session.index];
+  const counts = glossarySessionRatingCounts(session);
+  const currentRating = glossarySessionRatingFor(session, entry.id);
+  const progressMetrics = glossaryStudyProgressMetrics(entries, studyState);
+  const trackingEnabled = session.trackingEnabled === true;
+  const ratedCount = counts.again + counts.known;
+  const positionProgress = progressMetrics.total > 0 ? Math.round((Math.max(progressMetrics.current - 1, 0) / progressMetrics.total) * 100) : 0;
+  const ratingProgress = progressMetrics.total > 0 ? Math.round((Math.min(ratedCount, progressMetrics.total) / progressMetrics.total) * 100) : 0;
+  const progress = trackingEnabled ? Math.max(ratingProgress, positionProgress) : positionProgress;
+  const isFirst = session.index === 0;
+  const isLast = session.index >= cards.length - 1;
+  return \`
+    <div class="glossary-study-stage">
+      <div class="glossary-study-status \${trackingEnabled ? "is-tracking" : "is-placeholder"}" \${trackingEnabled ? "" : 'aria-hidden="true"'}>
+        <div class="glossary-study-controls">
+          <div class="glossary-study-scoreboard">
+            <div class="glossary-study-score again">
+              <span class="glossary-study-score-value">\${trackingEnabled ? counts.again : 0}</span>
+              <span>still learning</span>
+            </div>
+            <div class="glossary-study-score known">
+              <span class="glossary-study-score-value">\${trackingEnabled ? counts.known : 0}</span>
+              <span>known</span>
+            </div>
+          </div>
+        </div>
+        <div class="glossary-study-progress-bar" aria-hidden="true">
+          <div class="glossary-study-progress-fill" style="--glossary-progress: \${progress}%"></div>
+        </div>
+      </div>
+      <div class="glossary-card \${session.showBoth ? "is-showing-both" : ""}" data-glossary-card="\${escapeAttr(entry.id)}" data-glossary-card-toggle role="button" tabindex="0" aria-label="\${session.showBoth ? "Showing term and definition" : session.revealed ? "Hide definition" : "Reveal definition"}">
+        \${renderGlossaryStarButton(entry, studyState)}
+        <div class="glossary-card-body">
+          \${renderGlossaryCardContent(entry, session)}
+        </div>
+      </div>
+      <div class="glossary-card-controls">
+        <div class="glossary-card-nav \${trackingEnabled ? "is-tracking" : "is-browsing"}" aria-label="\${trackingEnabled ? "Flashcard rating" : "Flashcard navigation"}">
+          \${trackingEnabled
+            ? \`<button class="glossary-rate-button again \${currentRating === "again" ? "is-selected" : ""}" type="button" data-glossary-rate="again" aria-pressed="\${currentRating === "again" ? "true" : "false"}" aria-label="still learning">
+                <span class="glossary-rate-icon" aria-hidden="true">×</span>
+              </button>\`
+            : \`<button class="glossary-action glossary-nav-arrow previous" type="button" data-glossary-prev aria-label="Previous card" title="Previous card" \${isFirst ? "disabled" : ""}>←</button>\`}
+          \${trackingEnabled
+            ? \`<button class="glossary-rate-button known \${currentRating === "knew-it" ? "is-selected" : ""}" type="button" data-glossary-rate="knew-it" aria-pressed="\${currentRating === "knew-it" ? "true" : "false"}" aria-label="know">
+                <span class="glossary-rate-icon" aria-hidden="true">✓</span>
+              </button>\`
+            : \`<button class="glossary-action glossary-nav-arrow next" type="button" data-glossary-next aria-label="\${isLast ? "Complete flashcards" : "Next card"}" title="\${isLast ? "Complete flashcards" : "Next card"}">→</button>\`}
+        </div>
+      </div>
+    </div>
+  \`;
+}
+
+function renderGlossaryCardContent(entry, session) {
+  const term = \`<div class="glossary-card-term">\${renderInlineMarkdown(entry.term)}</div>\`;
+  const definition = \`<div class="glossary-card-definition">\${renderInlineMarkdown(entry.definition)}</div>\`;
+  if (session.showBoth) {
+    return \`
+      <div class="glossary-card-content glossary-card-both">
+        \${term}
+        \${definition}
+      </div>
+    \`;
+  }
+  const showingDefinition = session.promptMode === "term-first" ? session.revealed : !session.revealed;
+  return \`
+    <div class="glossary-card-content \${session.revealed ? "glossary-card-revealed" : "glossary-card-prompt"}">
+      \${showingDefinition ? definition : term}
+    </div>
+  \`;
+}
+
+function renderGlossaryStudyFinish(textbookId, entries, studyState) {
+  const session = studyState.session;
+  normalizeGlossarySessionOptions(session);
+  normalizeGlossarySessionRatings(session);
+  const stillLearningIds = glossarySessionStillLearningIds(studyState);
+  const counts = glossarySessionRatingCounts(session);
+  if (session.trackingEnabled !== true) {
+    return \`
+      <div class="glossary-study-stage">
+        \${renderGlossaryStudyFinishSpacer()}
+        <div class="glossary-study-finish">
+          <div class="glossary-study-finish-body">
+            <h2 class="empty-title">\${session.cardIds.length} terms reviewed</h2>
+            <div class="glossary-study-finish-actions">
+              <button class="glossary-action" type="button" data-glossary-restart>Restart</button>
+              <button class="glossary-action" type="button" data-glossary-back>Browse terms</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    \`;
+  }
+  return \`
+    <div class="glossary-study-stage">
+      \${renderGlossaryStudyFinishSpacer()}
+      <div class="glossary-study-finish">
+        <div class="glossary-study-finish-body">
+          <h2 class="empty-title">\${session.cardIds.length} terms reviewed</h2>
+          <div class="glossary-study-finish-stats">
+            <span>\${counts.known} known</span>
+            <span class="glossary-study-score-separator" aria-hidden="true">·</span>
+            <span>\${counts.again} still learning</span>
+          </div>
+          <div class="glossary-study-finish-actions">
+            \${stillLearningIds.length > 0 ? '<button class="glossary-action" type="button" data-glossary-review-again>Continue learning</button>' : ""}
+            <button class="glossary-action" type="button" data-glossary-restart>Restart</button>
+            <button class="glossary-action" type="button" data-glossary-back>Browse terms</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  \`;
+}
+
+function renderGlossaryStudyFinishSpacer() {
+  return \`
+    <div class="glossary-study-status is-finished" aria-hidden="true">
+      <div class="glossary-study-controls">
+        <div class="glossary-study-scoreboard">
+          <div class="glossary-study-score again"><span class="glossary-study-score-value">0</span><span>still learning</span></div>
+          <div class="glossary-study-score known"><span class="glossary-study-score-value">0</span><span>known</span></div>
+        </div>
+      </div>
+      <div class="glossary-study-progress-bar">
+        <div class="glossary-study-progress-fill" style="--glossary-progress: 0%"></div>
+      </div>
+    </div>
+  \`;
+}
+
+function bindTextbookGlossaryControls(textbookId, entries) {
+  bindGlossaryStudyLauncher(textbookId);
+  bindGlossaryDynamicControls(textbookId, entries);
+}
+
+function bindGlossaryDynamicControls(textbookId, entries) {
+  bindTextbookGlossarySearch(textbookId, entries);
+  bindGlossaryStarControls(textbookId, entries);
+  bindGlossarySourceLinks();
+}
+
+function bindTextbookGlossarySearch(textbookId, entries) {
+  const input = document.querySelector("[data-glossary-search]");
+  const results = document.querySelector("[data-glossary-results]");
+  if (!input || !results) return;
+  input.addEventListener("input", () => {
+    const studyState = getGlossaryStudyState(textbookId);
+    const query = normalizeGlossarySearch(input.value);
+    const filtered = query
+      ? entries.filter((entry) => entry.searchText.includes(query))
+      : entries;
+    results.innerHTML = renderTextbookGlossaryResults(filtered, studyState);
+    bindGlossarySourceLinks();
+    bindGlossaryStarControls(textbookId, entries);
+  });
+}
+
+function bindGlossaryStudyLauncher(textbookId) {
+  const toggle = document.querySelector("[data-glossary-study-menu-toggle]");
+  const menu = document.querySelector("[data-glossary-study-menu]");
+  if (toggle && menu) {
+    const handleOutsideClick = () => closeMenu();
+    const closeMenu = () => {
+      toggle.setAttribute("aria-expanded", "false");
+      menu.hidden = true;
+      document.removeEventListener("click", handleOutsideClick);
+    };
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      if (expanded) {
+        closeMenu();
+        return;
+      }
+      toggle.setAttribute("aria-expanded", "true");
+      menu.hidden = false;
+      document.addEventListener("click", handleOutsideClick);
+    });
+    menu.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+  }
+  document.querySelectorAll("[data-glossary-study-launch]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const studySet = button.dataset.glossaryStudyLaunch === "starred" ? "starred" : "all";
+      navigateTextbookGlossaryStudy(textbookId, studySet);
+    });
+  });
+}
+
+function bindGlossaryStudyPageControls(textbookId, entries) {
+  const card = document.querySelector("[data-glossary-card-toggle]");
+  if (card) {
+    card.addEventListener("click", (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest("[data-glossary-star]")) return;
+      toggleCurrentGlossaryCardReveal(textbookId, entries);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      toggleCurrentGlossaryCardReveal(textbookId, entries);
+    });
+  }
+  document.querySelectorAll("[data-glossary-rate]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const rating = button.dataset.glossaryRate === "again" ? "again" : "knew-it";
+      markCurrentGlossaryCardRating(textbookId, entries, rating);
+    });
+  });
+  document.querySelectorAll("[data-glossary-deck-option]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const studySet = button.dataset.glossaryDeckOption === "starred" ? "starred" : "all";
+      const state = getGlossaryStudyState(textbookId);
+      if (studySet === state.session?.studySet) return;
+      startGlossaryStudySession(textbookId, entries, studySet, undefined, glossarySessionOptions(state.session));
+    });
+  });
+  document.querySelectorAll("[data-glossary-prompt-option]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const state = getGlossaryStudyState(textbookId);
+      if (!state.session) return;
+      state.session.promptMode = button.dataset.glossaryPromptOption === "definition-first" ? "definition-first" : "term-first";
+      renderGlossaryStudyPageContent(textbookId, entries);
+    });
+  });
+  document.querySelectorAll("[data-glossary-show-both]").forEach((control) => {
+    control.addEventListener("change", () => {
+      const state = getGlossaryStudyState(textbookId);
+      if (!state.session) return;
+      state.session.showBoth = control instanceof HTMLInputElement
+        ? control.checked
+        : control.dataset.glossaryShowBoth === "true";
+      state.session.revealed = false;
+      renderGlossaryStudyPageContent(textbookId, entries);
+    });
+  });
+  document.querySelectorAll("[data-glossary-track-toggle]").forEach((control) => {
+    control.addEventListener("change", () => {
+      const state = getGlossaryStudyState(textbookId);
+      if (!state.session) return;
+      state.session.trackingEnabled = control instanceof HTMLInputElement
+        ? control.checked
+        : control.dataset.glossaryTrackToggle === "track";
+      renderGlossaryStudyPageContent(textbookId, entries);
+    });
+  });
+  const previous = document.querySelector("[data-glossary-prev]");
+  if (previous) {
+    previous.addEventListener("click", () => {
+      moveGlossaryStudyCard(textbookId, entries, -1);
+    });
+  }
+  const next = document.querySelector("[data-glossary-next]");
+  if (next) {
+    next.addEventListener("click", () => {
+      moveGlossaryStudyCard(textbookId, entries, 1);
+    });
+  }
+  document.querySelectorAll("[data-glossary-restart]").forEach((restart) => {
+    restart.addEventListener("click", () => {
+      const state = getGlossaryStudyState(textbookId);
+      const completedReview = state.session?.label === "again terms";
+      const reviewFinishedClean = completedReview
+        && state.session?.trackingEnabled === true
+        && glossarySessionStillLearningIds(state).length === 0;
+      const forcedTermIds = completedReview && !reviewFinishedClean ? state.session.cardIds : undefined;
+      const studySet = reviewFinishedClean ? "all" : state.studySet === "starred" ? "starred" : "all";
+      startGlossaryStudySession(textbookId, entries, studySet, forcedTermIds, glossarySessionOptions(state.session));
+    });
+  });
+  const reviewAgain = document.querySelector("[data-glossary-review-again]");
+  if (reviewAgain) {
+    reviewAgain.addEventListener("click", () => {
+      const state = getGlossaryStudyState(textbookId);
+      const reviewIds = glossarySessionStillLearningIds(state);
+      startGlossaryStudySession(textbookId, entries, "all", reviewIds, { ...glossarySessionOptions(state.session), trackingEnabled: true });
+    });
+  }
+  document.querySelectorAll("[data-glossary-back]").forEach((button) => {
+    if (button.dataset.glossaryBackBound === "true") return;
+    button.dataset.glossaryBackBound = "true";
+    button.addEventListener("click", () => navigateTextbookGlossary(textbookId));
+  });
+  bindGlossaryStarControls(textbookId, entries);
+}
+
+function toggleCurrentGlossaryCardReveal(textbookId, entries) {
+  const state = getGlossaryStudyState(textbookId);
+  if (!state.session) return;
+  normalizeGlossarySessionOptions(state.session);
+  if (state.session.showBoth) return;
+  state.session.revealed = !state.session.revealed;
+  renderGlossaryStudyPageContent(textbookId, entries);
+}
+
+function bindGlossaryStarControls(textbookId, entries) {
+  document.querySelectorAll("[data-glossary-star]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const termId = button.dataset.glossaryStar;
+      if (!termId) return;
+      toggleGlossaryStar(textbookId, termId, entries);
+    });
+  });
+}
+
+function renderGlossaryInteractiveView(textbookId, entries) {
+  const container = document.querySelector("[data-glossary-view]");
+  if (!container) return;
+  const state = getGlossaryStudyState(textbookId);
+  container.innerHTML = renderGlossaryBrowseView(entries, state);
+  bindGlossaryDynamicControls(textbookId, entries);
+  updateGlossaryStudyLauncher(textbookId, entries);
+}
+
+function renderGlossaryStudyPageContent(textbookId, entries) {
+  const state = getGlossaryStudyState(textbookId);
+  reconcileGlossaryStarredSession(entries, state);
+  const container = document.querySelector("[data-glossary-study-view]");
+  if (container) {
+    container.innerHTML = renderGlossaryStudySession(textbookId, entries, state);
+  }
+  const progress = document.querySelector("[data-glossary-study-top-progress]");
+  if (progress) {
+    progress.textContent = renderGlossaryStudyProgressLabel(entries, state);
+  }
+  document.querySelectorAll("[data-glossary-study-options]").forEach((container) => {
+    const includeTitle = !container.classList.contains("mobile");
+    if (container instanceof HTMLDetailsElement) {
+      const wasOpen = container.open;
+      container.innerHTML = \`<summary class="glossary-study-options-title">Options</summary>\${renderGlossaryStudyOptions(entries, state, { includeTitle: false })}\`;
+      container.open = wasOpen;
+    } else {
+      container.innerHTML = renderGlossaryStudyOptions(entries, state, { includeTitle });
+    }
+  });
+  bindGlossaryStudyPageControls(textbookId, entries);
+}
+
+function updateGlossaryStudyLauncher(textbookId, entries = []) {
+  const container = document.querySelector("[data-glossary-page-actions]");
+  if (!container) return;
+  container.innerHTML = renderGlossaryStudyLauncher(getGlossaryStudyState(textbookId), entries.length);
+  bindGlossaryStudyLauncher(textbookId);
+}
+
+async function loadGlossaryStudyState(textbookId) {
+  if (glossaryStudyStates.has(textbookId)) return glossaryStudyStates.get(textbookId);
+  const state = emptyGlossaryStudyState(textbookId);
+  glossaryStudyStates.set(textbookId, state);
+  try {
+    const persisted = await fetchJson(\`/api/glossary-study/state?textbookId=\${encodeURIComponent(textbookId)}\`);
+    state.starredTermIds = Array.isArray(persisted.starredTermIds) ? persisted.starredTermIds : [];
+    state.ratings = persisted.ratings ?? {};
+    state.studySet = persisted.lastStudySet === "starred" ? "starred" : "all";
+    state.lastStudySet = state.studySet;
+    state.currentCardIndex = Number.isInteger(persisted.currentCardIndex) ? persisted.currentCardIndex : 0;
+  } catch {
+    // Study persistence is a convenience; the glossary remains usable without it.
+  }
+  return state;
+}
+
+function getGlossaryStudyState(textbookId) {
+  if (!glossaryStudyStates.has(textbookId)) {
+    glossaryStudyStates.set(textbookId, emptyGlossaryStudyState(textbookId));
+  }
+  return glossaryStudyStates.get(textbookId);
+}
+
+function emptyGlossaryStudyState(textbookId) {
+  return {
+    textbookId,
+    studySet: "all",
+    lastStudySet: "all",
+    starredTermIds: [],
+    ratings: {},
+    currentCardIndex: 0,
+    session: null
+  };
+}
+
+function ensureGlossaryStudySession(entries, state) {
+  if (!state.session) {
+    state.session = newGlossaryStudySession(entries, state, state.studySet === "starred" ? "starred" : "all");
+  }
+  normalizeGlossarySessionOptions(state.session);
+  return state.session;
+}
+
+function normalizeGlossarySessionOptions(session) {
+  if (!session) return;
+  if (session.promptMode !== "definition-first") {
+    session.promptMode = "term-first";
+  }
+  session.showBoth = session.showBoth === true;
+  session.trackingEnabled = session.trackingEnabled === true;
+}
+
+function glossarySessionOptions(session) {
+  normalizeGlossarySessionOptions(session);
+  return {
+    trackingEnabled: session?.trackingEnabled === true,
+    promptMode: session?.promptMode === "definition-first" ? "definition-first" : "term-first",
+    showBoth: session?.showBoth === true
+  };
+}
+
+function reconcileGlossaryStarredSession(entries, state) {
+  const session = state.session;
+  if (!session || session.studySet !== "starred" || session.label !== "starred terms") return;
+  const currentCardId = session.index < session.cardIds.length ? session.cardIds[session.index] : null;
+  const entryIds = new Set(entries.map((entry) => entry.id));
+  const starredIds = entries
+    .filter((entry) => isGlossaryTermStarred(state, entry.id))
+    .map((entry) => entry.id);
+  const starredIdsSet = new Set(starredIds);
+  const priorCards = session.cardIds.slice(0, session.index)
+    .filter((termId) => starredIdsSet.has(termId));
+  const activeCards = new Set(priorCards);
+  const nextCardIds = [...priorCards];
+  let nextIndex = nextCardIds.length;
+  if (currentCardId && entryIds.has(currentCardId)) {
+    nextIndex = nextCardIds.length;
+    nextCardIds.push(currentCardId);
+    activeCards.add(currentCardId);
+  }
+  const existingFuture = session.cardIds.slice(session.index + 1)
+    .filter((termId) => starredIdsSet.has(termId) && !activeCards.has(termId));
+  existingFuture.forEach((termId) => activeCards.add(termId));
+  const newFuture = starredIds
+    .filter((termId) => !activeCards.has(termId));
+  session.cardIds = [...nextCardIds, ...existingFuture, ...shuffleGlossaryCards(newFuture)];
+  session.index = session.cardIds.length === 0 ? 0 : Math.min(nextIndex, session.cardIds.length - 1);
+  state.currentCardIndex = session.index;
+  if (session.index > session.cardIds.length) {
+    session.index = session.cardIds.length;
+    state.currentCardIndex = session.index;
+  }
+}
+
+function startGlossaryStudySession(textbookId, entries, studySet, forcedTermIds, options = {}) {
+  const state = getGlossaryStudyState(textbookId);
+  const currentOptions = glossarySessionOptions(state.session);
+  const nextOptions = {
+    ...currentOptions,
+    ...options
+  };
+  const initialIndex = options.preserveCurrentIndex === true ? state.currentCardIndex : 0;
+  state.studySet = studySet === "starred" ? "starred" : "all";
+  state.lastStudySet = state.studySet;
+  state.session = newGlossaryStudySession(entries, state, state.studySet, forcedTermIds, { ...nextOptions, initialIndex });
+  state.currentCardIndex = state.session.index;
+  void saveGlossaryStudyState(textbookId);
+  if (options.render !== false) {
+    renderGlossaryStudyPageContent(textbookId, entries);
+  }
+}
+
+function newGlossaryStudySession(entries, state, studySet, forcedTermIds, options = {}) {
+  const forced = Array.isArray(forcedTermIds) ? new Set(forcedTermIds) : null;
+  const starred = new Set(state.starredTermIds);
+  const cards = entries.filter((entry) => forced
+    ? forced.has(entry.id)
+    : studySet === "starred" ? starred.has(entry.id) : true);
+  const initialIndex = Number.isInteger(options.initialIndex) && options.initialIndex > 0 ? options.initialIndex : 0;
+  return {
+    studySet,
+    label: forced ? "again terms" : studySet === "starred" ? "starred terms" : "all terms",
+    cardIds: shuffleGlossaryCards(cards.map((entry) => entry.id)),
+    index: Math.max(0, Math.min(initialIndex, Math.max(cards.length - 1, 0))),
+    revealed: false,
+    completed: false,
+    trackingEnabled: options.trackingEnabled === true,
+    promptMode: options.promptMode === "definition-first" ? "definition-first" : "term-first",
+    showBoth: options.showBoth === true,
+    ratings: {}
+  };
+}
+
+function shuffleGlossaryCards(cardIds) {
+  const shuffled = [...cardIds];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swap]] = [shuffled[swap], shuffled[index]];
+  }
+  return shuffled;
+}
+
+function moveGlossaryStudyCard(textbookId, entries, direction) {
+  const state = getGlossaryStudyState(textbookId);
+  const session = state.session;
+  if (!session || session.index >= session.cardIds.length) return;
+  if (direction > 0 && session.index >= session.cardIds.length - 1) {
+    session.completed = true;
+    session.revealed = false;
+    state.currentCardIndex = session.index;
+    void saveGlossaryStudyState(textbookId);
+    renderGlossaryStudyPageContent(textbookId, entries);
+    return;
+  }
+  const nextIndex = Math.max(0, Math.min(session.cardIds.length - 1, session.index + direction));
+  if (nextIndex === session.index) return;
+  session.index = nextIndex;
+  session.revealed = false;
+  session.completed = false;
+  state.currentCardIndex = session.index;
+  void saveGlossaryStudyState(textbookId);
+  renderGlossaryStudyPageContent(textbookId, entries);
+}
+
+function markCurrentGlossaryCardRating(textbookId, entries, rating) {
+  const state = getGlossaryStudyState(textbookId);
+  const session = state.session;
+  if (!session || session.index >= session.cardIds.length) return;
+  const termId = session.cardIds[session.index];
+  const ratings = normalizeGlossarySessionRatings(session);
+  ratings[termId] = rating;
+  updateLocalGlossaryRating(state, termId, rating);
+  if (session.trackingEnabled === true) {
+    if (session.index >= session.cardIds.length - 1) {
+      session.completed = true;
+    } else {
+      session.index += 1;
+      session.completed = false;
+    }
+    session.revealed = false;
+    state.currentCardIndex = session.index;
+  }
+  void persistGlossaryRatingAndState(textbookId, termId, rating);
+  renderGlossaryStudyPageContent(textbookId, entries);
+}
+
+async function persistGlossaryRatingAndState(textbookId, termId, rating) {
+  await submitGlossaryStudyRating(textbookId, termId, rating);
+  await saveGlossaryStudyState(textbookId);
+}
+
+function normalizeGlossarySessionRatings(session) {
+  if (!session) return {};
+  if (Array.isArray(session.ratings)) {
+    session.ratings = session.ratings.reduce((ratings, item) => {
+      if (item?.termId && (item.rating === "again" || item.rating === "knew-it")) {
+        ratings[item.termId] = item.rating;
+      }
+      return ratings;
+    }, {});
+  }
+  if (!isRecordObject(session.ratings)) {
+    session.ratings = {};
+  }
+  return session.ratings;
+}
+
+function glossarySessionRatingFor(session, termId) {
+  const ratings = normalizeGlossarySessionRatings(session);
+  return ratings[termId] === "again" || ratings[termId] === "knew-it" ? ratings[termId] : null;
+}
+
+function glossarySessionRatingCounts(session) {
+  const ratings = normalizeGlossarySessionRatings(session);
+  const counts = { again: 0, known: 0, unrated: 0 };
+  for (const termId of session.cardIds) {
+    const rating = ratings[termId];
+    if (rating === "again") {
+      counts.again += 1;
+    } else if (rating === "knew-it") {
+      counts.known += 1;
+    } else {
+      counts.unrated += 1;
+    }
+  }
+  return counts;
+}
+
+function updateLocalGlossaryRating(state, termId, rating) {
+  const previous = state.ratings[termId] ?? { reviewCount: 0, againCount: 0, knewItCount: 0 };
+  state.ratings[termId] = {
+    rating,
+    reviewedAt: new Date().toISOString(),
+    reviewCount: previous.reviewCount + 1,
+    againCount: previous.againCount + (rating === "again" ? 1 : 0),
+    knewItCount: previous.knewItCount + (rating === "knew-it" ? 1 : 0)
+  };
+}
+
+function glossarySessionStillLearningIds(state) {
+  if (!state.session) return [];
+  const ratings = normalizeGlossarySessionRatings(state.session);
+  return state.session.cardIds.filter((termId) => ratings[termId] === "again");
+}
+
+function toggleGlossaryStar(textbookId, termId, entries) {
+  const state = getGlossaryStudyState(textbookId);
+  const starred = new Set(state.starredTermIds);
+  if (starred.has(termId)) {
+    starred.delete(termId);
+  } else {
+    starred.add(termId);
+  }
+  state.starredTermIds = [...starred];
+  void saveGlossaryStudyState(textbookId);
+  if (document.querySelector("[data-glossary-study-page]") && Array.isArray(entries)) {
+    renderGlossaryStudyPageContent(textbookId, entries);
+  } else if (Array.isArray(entries)) {
+    renderGlossaryInteractiveView(textbookId, entries);
+  } else {
+    updateGlossaryStarButtons(textbookId);
+  }
+}
+
+function updateGlossaryStarButtons(textbookId) {
+  const state = getGlossaryStudyState(textbookId);
+  document.querySelectorAll("[data-glossary-star]").forEach((button) => {
+    const termId = button.dataset.glossaryStar;
+    if (!termId) return;
+    const starred = isGlossaryTermStarred(state, termId);
+    button.classList.toggle("is-starred", starred);
+    button.setAttribute("aria-pressed", starred ? "true" : "false");
+    button.setAttribute("aria-label", (starred ? "Unstar" : "Star") + " " + (button.dataset.glossaryTerm ?? "term"));
+    button.setAttribute("title", starred ? "Unstar term" : "Star term");
+    button.textContent = starred ? "★" : "☆";
+  });
+}
+
+async function saveGlossaryStudyState(textbookId) {
+  const state = getGlossaryStudyState(textbookId);
+  try {
+    await fetchJson("/api/glossary-study/state", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        textbookId,
+        starredTermIds: state.starredTermIds,
+        lastStudySet: state.studySet,
+        currentCardIndex: state.currentCardIndex
+      })
+    });
+  } catch {
+    // Study persistence is a convenience; local UI state remains usable.
+  }
+}
+
+async function submitGlossaryStudyRating(textbookId, termId, rating) {
+  try {
+    await fetchJson("/api/glossary-study/rating", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ textbookId, termId, rating })
+    });
+  } catch {
+    // The local session can continue even if the rating save fails.
+  }
+}
+
+function isGlossaryTermStarred(studyState, termId) {
+  return studyState.starredTermIds.includes(termId);
+}
+
+function bindGlossarySourceLinks() {
+  document.querySelectorAll("[data-glossary-source]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const href = link.getAttribute("href");
+      if (!href) return;
+      event.preventDefault();
+      history.pushState({}, "", href);
+      void renderRoute();
+    });
+  });
 }
 
 async function renderChapter(textbookId, chapterId) {
   const token = beginRouteLoad("Loading chapter...");
   const chapter = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
   if (token !== routeToken) return;
+  const glossaryStudyState = await loadGlossaryStudyState(textbookId);
+  if (token !== routeToken) return;
   activeChapter = chapter;
+  const renderContext = { textbookId, chapter, glossaryStudyState };
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -1269,7 +3085,7 @@ async function renderChapter(textbookId, chapterId) {
           </div>
         </aside>
         <div class="chapter-content">
-          \${chapter.sections.map((section) => renderSection(section)).join("")}
+          \${chapter.sections.map((section) => renderSection(section, renderContext)).join("")}
           \${renderChapterNavigation(chapter)}
         </div>
       </div>
@@ -1278,6 +3094,8 @@ async function renderChapter(textbookId, chapterId) {
   bindCrumbs();
   bindChapterIndex();
   bindChapterNavigation(textbookId);
+  bindGlossaryOverviewLinks();
+  bindGlossaryStarControls(textbookId);
   bindQuizzes(chapter);
   bindCodingProblems(chapter);
   scheduleTransformationLayouts();
@@ -1353,17 +3171,17 @@ function parseHashId(hash) {
   }
 }
 
-function renderSection(section) {
+function renderSection(section, context) {
   return \`
     <section class="chapter-section" id="\${escapeAttr(anchorId(section.id))}">
       <h2 class="section-title">\${escapeHtml(section.title)}</h2>
       \${section.description ? \`<div class="markdown"><p>\${escapeHtml(section.description)}</p></div>\` : ""}
-      <div class="blocks">\${section.blocks.map((block) => renderBlock(block)).join("")}</div>
+      <div class="blocks">\${section.blocks.map((block) => renderBlock(block, context)).join("")}</div>
       \${section.subsections.map((subsection) => \`
         <section class="subsection-block" id="\${escapeAttr(anchorId(subsection.id))}">
           <h3 class="subsection-title">\${escapeHtml(subsection.title)}</h3>
           \${subsection.description ? \`<div class="markdown"><p>\${escapeHtml(subsection.description)}</p></div>\` : ""}
-          <div class="blocks">\${subsection.blocks.map((block) => renderBlock(block)).join("")}</div>
+          <div class="blocks">\${subsection.blocks.map((block) => renderBlock(block, context)).join("")}</div>
         </section>
       \`).join("")}
     </section>
@@ -1375,6 +3193,14 @@ async function renderRoute() {
   try {
     if (route.kind === "chapter") {
       await renderChapter(route.textbookId, route.chapterId);
+      return;
+    }
+    if (route.kind === "textbookGlossaryStudy") {
+      await renderTextbookGlossaryStudy(route.textbookId);
+      return;
+    }
+    if (route.kind === "textbookGlossary") {
+      await renderTextbookGlossary(route.textbookId);
       return;
     }
     if (route.kind === "textbook") {
@@ -1416,6 +3242,12 @@ function parseRoute(pathname) {
   if (parts.length === 4 && parts[0] === "textbooks" && parts[1] && parts[2] === "chapters" && parts[3]) {
     return { kind: "chapter", textbookId: parts[1], chapterId: parts[3] };
   }
+  if (parts.length === 4 && parts[0] === "textbooks" && parts[1] && parts[2] === "glossary" && parts[3] === "study") {
+    return { kind: "textbookGlossaryStudy", textbookId: parts[1] };
+  }
+  if (parts.length === 3 && parts[0] === "textbooks" && parts[1] && parts[2] === "glossary") {
+    return { kind: "textbookGlossary", textbookId: parts[1] };
+  }
   if (parts.length === 2 && parts[0] === "textbooks" && parts[1]) {
     return { kind: "textbook", textbookId: parts[1] };
   }
@@ -1432,13 +3264,35 @@ function navigateTextbook(textbookId) {
   void renderRoute();
 }
 
+function navigateTextbookGlossary(textbookId) {
+  history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/glossary\`);
+  void renderRoute();
+}
+
+function navigateTextbookGlossaryStudy(textbookId, studySet = "all") {
+  const safeStudySet = studySet === "starred" ? "starred" : "all";
+  history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/glossary/study?set=\${safeStudySet}\`);
+  void renderRoute();
+}
+
+function bindGlossaryOverviewLinks() {
+  document.querySelectorAll("[data-glossary-overview]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const textbookId = link.dataset.glossaryOverview;
+      if (!textbookId) return;
+      event.preventDefault();
+      navigateTextbookGlossary(textbookId);
+    });
+  });
+}
+
 function navigateChapter(textbookId, chapterId, scrollToTop = false) {
   history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
   if (scrollToTop) window.scrollTo({ top: 0, behavior: "auto" });
   void renderRoute();
 }
 
-function renderBlock(block) {
+function renderBlock(block, context) {
   if (block.kind === "p" || block.kind === "explanation" || block.kind === "blurb") {
     const title = block.props.title ? \`<h4 class="local-heading">\${escapeHtml(block.props.title)}</h4>\` : "";
     return \`<article class="block">\${title}<div class="markdown">\${renderMarkdown(block.props.body)}</div></article>\`;
@@ -1462,7 +3316,7 @@ function renderBlock(block) {
     return \`<aside class="callout \${escapeAttr(block.props.tone)}"><div class="callout-title">\${escapeHtml(title)}</div><div class="markdown">\${renderMarkdown(block.props.body)}</div></aside>\`;
   }
   if (block.kind === "glossary") {
-    return renderGlossary(block);
+    return renderGlossary(block, context);
   }
   if (block.kind === "transformation") {
     return renderTransformation(block);
@@ -1476,19 +3330,30 @@ function renderBlock(block) {
   return \`<article class="block"><div class="markdown"><p>Unsupported block: \${escapeHtml(block.kind)}</p></div></article>\`;
 }
 
-function renderGlossary(block) {
+function renderGlossary(block, context) {
   const title = block.props.title || "Glossary";
   const entries = Array.isArray(block.props.entries) ? block.props.entries : [];
+  const textbookId = context?.textbookId;
+  const titleMarkup = textbookId
+    ? \`<a class="glossary-title-link" href="/textbooks/\${encodeURIComponent(textbookId)}/glossary" data-glossary-overview="\${escapeAttr(textbookId)}">\${escapeHtml(title)}</a>\`
+    : escapeHtml(title);
   return \`
-    <article class="block glossary">
-      <h4 class="glossary-title">\${escapeHtml(title)}</h4>
+    <article class="block glossary" id="\${escapeAttr(blockAnchorId(block.id))}">
+      <h4 class="glossary-title">\${titleMarkup}</h4>
       <dl class="glossary-list">
-        \${entries.map((entry) => \`
+        \${entries.map((entry) => {
+          const term = String(entry?.term ?? "");
+          const glossaryEntry = context?.chapter && context?.glossaryStudyState
+            ? { id: glossaryEntryId(context.chapter.id, block.id, term), term }
+            : null;
+          return \`
           <div class="glossary-entry">
-            <dt class="glossary-term">\${renderInlineMarkdown(entry?.term ?? "")}</dt>
+            <dt class="glossary-term">\${renderInlineMarkdown(term)}</dt>
             <dd class="glossary-definition">\${renderInlineMarkdown(entry?.definition ?? "")}</dd>
+            \${glossaryEntry ? renderGlossaryStarButton(glossaryEntry, context.glossaryStudyState) : ""}
           </div>
-        \`).join("")}
+        \`;
+        }).join("")}
       </dl>
     </article>
   \`;
@@ -2345,6 +4210,57 @@ function collectChapterBlocks(chapter) {
   return blocks;
 }
 
+function collectTextbookGlossaryEntries(textbook) {
+  const entries = [];
+  for (const chapter of textbook.chapters ?? []) {
+    for (const section of chapter.sections ?? []) {
+      collectGlossaryEntriesFromBlocks(entries, textbook, chapter, section, section.blocks ?? []);
+      for (const subsection of section.subsections ?? []) {
+        collectGlossaryEntriesFromBlocks(entries, textbook, chapter, section, subsection.blocks ?? [], subsection);
+      }
+    }
+  }
+  return entries;
+}
+
+function collectGlossaryEntriesFromBlocks(entries, textbook, chapter, section, blocks, subsection) {
+  for (const block of blocks) {
+    if (block?.kind !== "glossary") continue;
+    const glossaryTitle = block.props?.title || "Glossary";
+    const sourceHref = \`/textbooks/\${encodeURIComponent(textbook.id)}/chapters/\${encodeURIComponent(chapter.id)}#\${encodeURIComponent(blockAnchorId(block.id))}\`;
+    for (const entry of block.props?.entries ?? []) {
+      const term = String(entry?.term ?? "");
+      const definition = String(entry?.definition ?? "");
+      entries.push({
+        id: glossaryEntryId(chapter.id, block.id, term),
+        term,
+        definition,
+        chapterId: chapter.id,
+        chapterTitle: chapter.title,
+        sectionId: section.id,
+        sectionTitle: section.title,
+        subsectionId: subsection?.id,
+        subsectionTitle: subsection?.title,
+        blockId: block.id,
+        glossaryTitle,
+        sourceHref,
+        searchText: normalizeGlossarySearch(term)
+      });
+    }
+  }
+}
+
+function normalizeGlossarySearch(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function glossaryEntryId(chapterId, blockId, term) {
+  const normalizedTerm = normalizeGlossarySearch(term)
+    .replace(/[^a-z0-9_.-]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "term";
+  return [chapterId, blockId, normalizedTerm].map((part) => String(part).replace(/[^a-zA-Z0-9_.-]+/g, "_")).join(":");
+}
+
 function loadMonaco() {
   if (!monacoReady) {
     monacoReady = new Promise((resolve, reject) => {
@@ -2386,8 +4302,8 @@ function renderCrumbs(items) {
       \${items.map((item, index) => {
         const separator = index === 0 ? "" : '<span class="crumb-separator">/</span>';
         if (item.action) {
-          const attrs = item.action === "textbook"
-            ? \`data-nav="textbook" data-textbook="\${escapeAttr(item.textbookId ?? "")}"\`
+          const attrs = item.action === "textbook" || item.action === "glossary"
+            ? \`data-nav="\${escapeAttr(item.action)}" data-textbook="\${escapeAttr(item.textbookId ?? "")}"\`
             : 'data-nav="home"';
           return \`\${separator}<button class="crumb-link" \${attrs}>\${escapeHtml(item.label)}</button>\`;
         }
@@ -2406,6 +4322,10 @@ function bindCrumbs() {
       }
       if (button.dataset.nav === "textbook" && button.dataset.textbook) {
         navigateTextbook(button.dataset.textbook);
+        return;
+      }
+      if (button.dataset.nav === "glossary" && button.dataset.textbook) {
+        navigateTextbookGlossary(button.dataset.textbook);
       }
     });
   });
@@ -2574,6 +4494,10 @@ function normalizeLatex(value) {
 
 function anchorId(value) {
   return String(value ?? "").replace(/[^a-zA-Z0-9_-]+/g, "-");
+}
+
+function blockAnchorId(value) {
+  return \`block-\${anchorId(value)}\`;
 }
 
 function escapeHtml(value) {

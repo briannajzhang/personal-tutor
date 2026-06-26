@@ -7,6 +7,7 @@ import { monacoAssetPath } from "../ui/monaco-assets.js";
 import { invalidateWorkspaceCaches, loadTextbooks, resolveWorkspace, type WorkspacePaths } from "../compile/discover.js";
 import { summarizeChapter, summarizeTextbook } from "../core/validation.js";
 import { loadCodingDraft, loadCodingFeedback, runCodingProblem, saveCodingDraft } from "./coding.js";
+import { loadGlossaryStudyState, saveGlossaryStudyState, submitGlossaryStudyRating } from "./glossary-study.js";
 import { loadQuizState, saveQuizState, submitQuizAttempt } from "./quizzes.js";
 
 export interface DevServerOptions {
@@ -202,6 +203,21 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
     return;
   }
 
+  if (request.method === "GET" && url.pathname === "/api/glossary-study/state") {
+    sendJson(response, 200, await loadGlossaryStudyState(cwd, url.searchParams));
+    return;
+  }
+
+  if (request.method === "PUT" && url.pathname === "/api/glossary-study/state") {
+    sendJson(response, 200, await saveGlossaryStudyState(cwd, await readJson(request)));
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/glossary-study/rating") {
+    sendJson(response, 201, await submitGlossaryStudyRating(cwd, await readJson(request)));
+    return;
+  }
+
   if (request.method === "GET" && !url.pathname.startsWith("/api/")) {
     const workspace = await resolveWorkspace(cwd);
     const status = isKnownAppPath(url.pathname) ? 200 : 404;
@@ -217,6 +233,8 @@ function isKnownAppPath(pathname: string): boolean {
   if (!parts) return false;
   if (parts.length === 0 || (parts.length === 1 && parts[0] === "textbooks")) return true;
   if (parts.length === 2 && parts[0] === "textbooks" && Boolean(parts[1])) return true;
+  if (parts.length === 3 && parts[0] === "textbooks" && Boolean(parts[1]) && parts[2] === "glossary") return true;
+  if (parts.length === 4 && parts[0] === "textbooks" && Boolean(parts[1]) && parts[2] === "glossary" && parts[3] === "study") return true;
   if (parts.length === 4 && parts[0] === "textbooks" && Boolean(parts[1]) && parts[2] === "chapters" && Boolean(parts[3])) return true;
   return false;
 }

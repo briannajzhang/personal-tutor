@@ -41,16 +41,120 @@ function assertMatchingQuizAssets(page: string) {
 function assertGlossaryAssets(page: string) {
   for (const pattern of [
     /renderGlossary/,
+    /renderTextbookGlossary/,
+    /loadTextbook/,
+    /textbookCache/,
+    /glossaryStudyStates/,
+    /collectTextbookGlossaryEntries/,
+    /glossaryEntryId/,
+    /bindTextbookGlossarySearch/,
+    /bindTextbookGlossaryControls/,
+    /bindGlossaryStarControls\(textbookId\)/,
     /glossary-list/,
+    /glossary-title-link/,
     /glossary-term/,
     /glossary-definition/,
+    /glossary-aggregate-entry/,
+    /renderTextbookGlossaryStudy/,
+    /renderGlossaryStudyPage/,
+    /navigateTextbookGlossaryStudy/,
+    /textbookGlossaryStudy/,
+    /glossary-study-launcher/,
+    /glossary-study-menu/,
+    /glossary-study-page/,
+    /glossary-study-scoreboard/,
+    /glossary-study-progress-bar/,
+    /glossary-study-progress-fill/,
+    /glossary-card-body/,
+    /data-glossary-star/,
+    /data-glossary-term/,
+    /data-glossary-study-launch="all"/,
+    /data-glossary-study-launch="starred"/,
+    /Flashcards/,
+    /Flashcards ▾/,
+    /Study all terms/,
+    /Study starred terms/,
+    /Browse terms/,
+    /still learning/,
+    /known/,
+    /Track progress/,
+    /Flashcard options/,
+    /Options/,
+    /Study set/,
+    /Prompt side/,
+    /Show both sides/,
+    /Restart session/,
+    /terms reviewed/,
+    /No terms in this study set/,
+    /data-glossary-deck-option="all"[^>]*>All/,
+    /data-glossary-deck-option="starred"[^>]*>Starred/,
+    /glossary-segmented-control/,
+    /glossary-segment/,
+    /glossary-toggle-row/,
+    /glossary-toggle-input/,
+    /Previous/,
+    /Next/,
+    /unrated/,
+    /glossary-rate-button/,
+    /data-glossary-card-toggle/,
+    /data-glossary-rate="again"/,
+    /data-glossary-rate="knew-it"/,
+    /data-glossary-deck-option/,
+    /data-glossary-prompt-option/,
+    /data-glossary-show-both/,
+    /data-glossary-track-toggle/,
+    /trackingEnabled/,
+    /promptMode/,
+    /showBoth/,
+    /preserveCurrentIndex/,
+    /glossaryStudyProgressCardIds/,
+    /persistGlossaryRatingAndState/,
+    /await submitGlossaryStudyRating/,
+    /data-glossary-prev/,
+    /data-glossary-next/,
+    /Continue learning/,
+    /studySet === state\.session\?\.studySet/,
+    /reviewFinishedClean/,
+    /glossarySessionStillLearningIds\(state\)\.length === 0/,
+    /reconcileGlossaryStarredSession/,
+    /renderGlossary\(block, context\)/,
+    /glossaryEntryId\(context\.chapter\.id, block\.id, term\)/,
+    /\/api\/glossary-study\/state/,
+    /\/api\/glossary-study\/rating/,
+    /glossary-empty/,
+    /glossary-group-title-link/,
+    /Open source glossary for/,
+    /This textbook does not have glossary terms yet/,
+    /Glossary terms are collected from chapter glossary blocks when they exist\./,
+    /glossaryCount > 0/,
+    /history\.replaceState\(history\.state, "", "\/textbooks\/" \+ encodeURIComponent\(textbookId\)\)/,
+    /await renderTextbook\(textbookId\);/,
+    /Chapters ·/,
+    /Glossary ·/,
+    /searchText: normalizeGlossarySearch\(term\)/,
+    /data-glossary-search/,
+    /data-glossary-source/,
+    /data-glossary-overview/,
+    /bindGlossaryOverviewLinks/,
+    /textbook-tabs/,
+    /blockAnchorId/,
     /\.glossary-term code/,
     /\.glossary-definition code/
   ]) {
     assert.match(page, pattern);
   }
 
-  assert.doesNotMatch(page, /data-glossary/);
+  assert.match(page, /\.glossary-star \{[^}]*border: 0;/);
+  assert.doesNotMatch(page, /\.glossary-star \{[^}]*border: 1px/);
+  assert.doesNotMatch(page, /data-glossary="/);
+  assert.doesNotMatch(page, /sourceLabel/);
+  assert.doesNotMatch(page, /Open glossary/);
+  assert.doesNotMatch(page, /glossary-mode-tab/);
+  assert.doesNotMatch(page, /data-glossary-mode="browse"/);
+  assert.doesNotMatch(page, /data-glossary-mode="study"/);
+  assert.doesNotMatch(page, /Chapter glossary blocks will appear here/);
+  assert.doesNotMatch(page, /Source block/);
+  assert.doesNotMatch(page, /glossary\(\{ entries: \[\.\.\.\] \}\)/);
 }
 
 test("dev server exposes textbooks, chapters, and appends events", async () => {
@@ -116,6 +220,15 @@ export default textbook({
     assert.match(page, /renderNotFoundPage/);
     assert.match(page, /Page not found/);
     assert.match(page, /Generate your first textbook/);
+
+    const glossaryPage = await fetchText(`${server.url}/textbooks/getting-started/glossary`);
+    assert.match(glossaryPage, /renderTextbookGlossary/);
+    assert.match(glossaryPage, /data-glossary-results/);
+
+    const glossaryStudyResponse = await fetch(`${server.url}/textbooks/getting-started/glossary/study?set=all`);
+    const glossaryStudyPage = await glossaryStudyResponse.text();
+    assert.equal(glossaryStudyResponse.status, 200);
+    assert.match(glossaryStudyPage, /renderTextbookGlossaryStudy/);
 
     const missingPageResponse = await fetch(`${server.url}/missing-route`);
     const missingPage = await missingPageResponse.text();
