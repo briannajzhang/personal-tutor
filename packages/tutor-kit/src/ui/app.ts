@@ -352,6 +352,18 @@ h1 {
   font-weight: 560;
   letter-spacing: 0;
 }
+.glossary-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+.glossary-title-link:hover,
+.glossary-title-link:focus-visible {
+  color: var(--accent-2);
+}
+.glossary-title-link:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-2) 28%, transparent);
+  outline-offset: 3px;
+}
 .glossary-list {
   display: grid;
   gap: 0;
@@ -2090,7 +2102,7 @@ async function renderTextbookGlossaryStudy(textbookId) {
   if (token !== routeToken) return;
   const requestedSet = new URLSearchParams(window.location.search).get("set") === "starred" ? "starred" : "all";
   const studySet = requestedSet === "starred" && studyState.starredTermIds.length === 0 ? "all" : requestedSet;
-  startGlossaryStudySession(textbook.id, entries, studySet, undefined, { render: false });
+  startGlossaryStudySession(textbook.id, entries, studySet, undefined, { preserveCurrentIndex: true, render: false });
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -2314,12 +2326,29 @@ function renderGlossaryStudyProgressLabel(entries, studyState) {
 
 function glossaryStudyProgressMetrics(entries, studyState) {
   const session = ensureGlossaryStudySession(entries, studyState);
-  const liveStarredTotal = session.studySet === "starred"
-    ? entries.filter((entry) => isGlossaryTermStarred(studyState, entry.id)).length
-    : null;
-  const total = liveStarredTotal ?? session.cardIds.length;
-  const current = total === 0 ? 0 : session.completed ? total : Math.min(session.index + 1, total);
+  const progressCardIds = glossaryStudyProgressCardIds(entries, studyState);
+  const total = progressCardIds.length;
+  const currentCardId = session.index < session.cardIds.length ? session.cardIds[session.index] : null;
+  const currentIndex = currentCardId ? progressCardIds.indexOf(currentCardId) : -1;
+  const current = total === 0
+    ? 0
+    : session.completed
+      ? total
+      : currentIndex >= 0
+        ? currentIndex + 1
+        : Math.min(session.index + 1, total);
   return { current, total };
+}
+
+function glossaryStudyProgressCardIds(entries, studyState) {
+  const session = ensureGlossaryStudySession(entries, studyState);
+  if (session.studySet !== "starred" || session.label !== "starred terms") return session.cardIds;
+  const currentCardId = session.index < session.cardIds.length ? session.cardIds[session.index] : null;
+  const entryIds = new Set(entries.map((entry) => entry.id));
+  const starredIds = new Set(entries
+    .filter((entry) => isGlossaryTermStarred(studyState, entry.id))
+    .map((entry) => entry.id));
+  return session.cardIds.filter((termId) => entryIds.has(termId) && (starredIds.has(termId) || termId === currentCardId));
 }
 
 function renderGlossaryStudySession(textbookId, entries, studyState) {
@@ -2329,12 +2358,14 @@ function renderGlossaryStudySession(textbookId, entries, studyState) {
   if (cards.length === 0) {
     return \`
       <div class="glossary-study-stage">
+        \${renderGlossaryStudyFinishSpacer()}
         <div class="glossary-study-finish">
-          <div class="empty-kicker">No cards</div>
-          <h2 class="empty-title">There are no terms in this study set</h2>
-          <p class="empty-copy">Star terms in Browse mode to build a custom study set.</p>
-          <div class="glossary-study-finish-actions">
-            <button class="glossary-action" type="button" data-glossary-back>Browse terms</button>
+          <div class="glossary-study-finish-body">
+            <h2 class="empty-title">No terms in this study set</h2>
+            <p class="empty-copy">Star terms in Browse mode to build a custom study set.</p>
+            <div class="glossary-study-finish-actions">
+              <button class="glossary-action" type="button" data-glossary-back>Browse terms</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2567,6 +2598,7 @@ function bindGlossaryStudyPageControls(textbookId, entries) {
     button.addEventListener("click", () => {
       const studySet = button.dataset.glossaryDeckOption === "starred" ? "starred" : "all";
       const state = getGlossaryStudyState(textbookId);
+      if (studySet === state.session?.studySet) return;
       startGlossaryStudySession(textbookId, entries, studySet, undefined, glossarySessionOptions(state.session));
     });
   });
@@ -2614,8 +2646,13 @@ function bindGlossaryStudyPageControls(textbookId, entries) {
   document.querySelectorAll("[data-glossary-restart]").forEach((restart) => {
     restart.addEventListener("click", () => {
       const state = getGlossaryStudyState(textbookId);
-      const forcedTermIds = state.session?.label === "again terms" ? state.session.cardIds : undefined;
-      startGlossaryStudySession(textbookId, entries, state.studySet === "starred" ? "starred" : "all", forcedTermIds, glossarySessionOptions(state.session));
+      const completedReview = state.session?.label === "again terms";
+      const reviewFinishedClean = completedReview
+        && state.session?.trackingEnabled === true
+        && glossarySessionStillLearningIds(state).length === 0;
+      const forcedTermIds = completedReview && !reviewFinishedClean ? state.session.cardIds : undefined;
+      const studySet = reviewFinishedClean ? "all" : state.studySet === "starred" ? "starred" : "all";
+      startGlossaryStudySession(textbookId, entries, studySet, forcedTermIds, glossarySessionOptions(state.session));
     });
   });
   const reviewAgain = document.querySelector("[data-glossary-review-again]");
@@ -2764,10 +2801,13 @@ function reconcileGlossaryStarredSession(entries, state) {
     .filter((entry) => isGlossaryTermStarred(state, entry.id))
     .map((entry) => entry.id);
   const starredIdsSet = new Set(starredIds);
-  const priorCards = session.cardIds.slice(0, session.index);
+  const priorCards = session.cardIds.slice(0, session.index)
+    .filter((termId) => starredIdsSet.has(termId));
   const activeCards = new Set(priorCards);
   const nextCardIds = [...priorCards];
+  let nextIndex = nextCardIds.length;
   if (currentCardId && entryIds.has(currentCardId)) {
+    nextIndex = nextCardIds.length;
     nextCardIds.push(currentCardId);
     activeCards.add(currentCardId);
   }
@@ -2777,6 +2817,8 @@ function reconcileGlossaryStarredSession(entries, state) {
   const newFuture = starredIds
     .filter((termId) => !activeCards.has(termId));
   session.cardIds = [...nextCardIds, ...existingFuture, ...shuffleGlossaryCards(newFuture)];
+  session.index = session.cardIds.length === 0 ? 0 : Math.min(nextIndex, session.cardIds.length - 1);
+  state.currentCardIndex = session.index;
   if (session.index > session.cardIds.length) {
     session.index = session.cardIds.length;
     state.currentCardIndex = session.index;
@@ -2790,10 +2832,11 @@ function startGlossaryStudySession(textbookId, entries, studySet, forcedTermIds,
     ...currentOptions,
     ...options
   };
+  const initialIndex = options.preserveCurrentIndex === true ? state.currentCardIndex : 0;
   state.studySet = studySet === "starred" ? "starred" : "all";
   state.lastStudySet = state.studySet;
-  state.currentCardIndex = 0;
-  state.session = newGlossaryStudySession(entries, state, state.studySet, forcedTermIds, nextOptions);
+  state.session = newGlossaryStudySession(entries, state, state.studySet, forcedTermIds, { ...nextOptions, initialIndex });
+  state.currentCardIndex = state.session.index;
   void saveGlossaryStudyState(textbookId);
   if (options.render !== false) {
     renderGlossaryStudyPageContent(textbookId, entries);
@@ -2806,11 +2849,12 @@ function newGlossaryStudySession(entries, state, studySet, forcedTermIds, option
   const cards = entries.filter((entry) => forced
     ? forced.has(entry.id)
     : studySet === "starred" ? starred.has(entry.id) : true);
+  const initialIndex = Number.isInteger(options.initialIndex) && options.initialIndex > 0 ? options.initialIndex : 0;
   return {
     studySet,
     label: forced ? "again terms" : studySet === "starred" ? "starred terms" : "all terms",
     cardIds: shuffleGlossaryCards(cards.map((entry) => entry.id)),
-    index: 0,
+    index: Math.max(0, Math.min(initialIndex, Math.max(cards.length - 1, 0))),
     revealed: false,
     completed: false,
     trackingEnabled: options.trackingEnabled === true,
@@ -2869,9 +2913,13 @@ function markCurrentGlossaryCardRating(textbookId, entries, rating) {
     session.revealed = false;
     state.currentCardIndex = session.index;
   }
-  void submitGlossaryStudyRating(textbookId, termId, rating);
-  void saveGlossaryStudyState(textbookId);
+  void persistGlossaryRatingAndState(textbookId, termId, rating);
   renderGlossaryStudyPageContent(textbookId, entries);
+}
+
+async function persistGlossaryRatingAndState(textbookId, termId, rating) {
+  await submitGlossaryStudyRating(textbookId, termId, rating);
+  await saveGlossaryStudyState(textbookId);
 }
 
 function normalizeGlossarySessionRatings(session) {
@@ -3048,6 +3096,7 @@ async function renderChapter(textbookId, chapterId) {
   bindCrumbs();
   bindChapterIndex();
   bindChapterNavigation(textbookId);
+  bindGlossaryOverviewLinks();
   bindGlossaryStarControls(textbookId);
   bindQuizzes(chapter);
   bindCodingProblems(chapter);
@@ -3228,6 +3277,17 @@ function navigateTextbookGlossaryStudy(textbookId, studySet = "all") {
   void renderRoute();
 }
 
+function bindGlossaryOverviewLinks() {
+  document.querySelectorAll("[data-glossary-overview]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const textbookId = link.dataset.glossaryOverview;
+      if (!textbookId) return;
+      event.preventDefault();
+      navigateTextbookGlossary(textbookId);
+    });
+  });
+}
+
 function navigateChapter(textbookId, chapterId, scrollToTop = false) {
   history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
   if (scrollToTop) window.scrollTo({ top: 0, behavior: "auto" });
@@ -3275,9 +3335,13 @@ function renderBlock(block, context) {
 function renderGlossary(block, context) {
   const title = block.props.title || "Glossary";
   const entries = Array.isArray(block.props.entries) ? block.props.entries : [];
+  const textbookId = context?.textbookId;
+  const titleMarkup = textbookId
+    ? \`<a class="glossary-title-link" href="/textbooks/\${encodeURIComponent(textbookId)}/glossary" data-glossary-overview="\${escapeAttr(textbookId)}">\${escapeHtml(title)}</a>\`
+    : escapeHtml(title);
   return \`
     <article class="block glossary" id="\${escapeAttr(blockAnchorId(block.id))}">
-      <h4 class="glossary-title">\${escapeHtml(title)}</h4>
+      <h4 class="glossary-title">\${titleMarkup}</h4>
       <dl class="glossary-list">
         \${entries.map((entry) => {
           const term = String(entry?.term ?? "");
