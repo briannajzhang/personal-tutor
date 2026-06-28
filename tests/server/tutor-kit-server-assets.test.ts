@@ -157,6 +157,75 @@ function assertGlossaryAssets(page: string) {
   assert.doesNotMatch(page, /glossary\(\{ entries: \[\.\.\.\] \}\)/);
 }
 
+function assertHighlightAssets(page: string) {
+  for (const pattern of [
+    /data-highlight-anchor/,
+    /data-highlight-block/,
+    /data-highlight-section/,
+    /data-highlight-list/,
+    /chapter-highlights/,
+    /text-highlight/,
+    /loadChapterHighlights/,
+    /bindHighlighter/,
+    /applyChapterHighlights/,
+    /resolveHighlightRange/,
+    /highlightModeEnabled/,
+    /handleHighlightSelection/,
+    /parseHighlightSelection/,
+    /selectedHighlightAnchorRange/,
+    /highlightSelectionForRange/,
+    /selectionHasUnsupportedText/,
+    /applyHighlightModeSelections/,
+    /refreshHighlightModeAffordances/,
+    /highlight-mode-active/,
+    /data-highlight-unsupported/,
+    /This area can't be highlighted/,
+    /glossary-toggle-row/,
+    /glossary-toggle-input/,
+    /highlightSelectionController/,
+    /document\.addEventListener\("mouseup"/,
+    /classifyHighlightSelection/,
+    /removeSelectedHighlightRanges/,
+    /splitHighlightRange/,
+    /selectionFullyCovered/,
+    /rangesTouchOrOverlap/,
+    /applyHighlightModeSelection/,
+    /renderHighlightModeToggle/,
+    /data-highlight-mode-toggle/,
+    /Highlight mode/,
+    /saveMergedHighlight/,
+    /refreshChapterHighlightUi/,
+    /clearRenderedHighlights/,
+    /removeHighlight/,
+    /\/api\/highlights/,
+    /Select text to highlight/,
+    /Source text changed/,
+    /Source text no longer exists/
+  ]) {
+    assert.match(page, pattern);
+  }
+
+  for (const pattern of [
+    /highlight-toolbar/,
+    /highlight-popover/,
+    /data-highlight-create/,
+    /data-highlight-remove-active/,
+    /createHighlightFromSelection/,
+    /showHighlightPopover/,
+    /data-highlight-hint/,
+    /showHighlightHint/,
+    /Select within one paragraph or block/,
+    /selectedTextNodeRange/,
+    /createTreeWalker\(content/,
+    /compareBoundaryPoints/,
+    /cloneRange/,
+    /\.text-highlight:hover/,
+    /cursor: pointer;\n\s*padding: 1px 2px;/
+  ]) {
+    assert.doesNotMatch(page, pattern);
+  }
+}
+
 test("dev server exposes textbooks, chapters, and appends events", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
   initWorkspace(dir, { starter: true });
@@ -216,6 +285,7 @@ export default textbook({
     assert.match(page, /<em>/);
     assertMatchingQuizAssets(page);
     assertGlossaryAssets(page);
+    assertHighlightAssets(page);
     assert.match(page, /document\.fonts\?\.ready/);
     assert.match(page, /renderNotFoundPage/);
     assert.match(page, /Page not found/);

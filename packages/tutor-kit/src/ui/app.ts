@@ -185,6 +185,82 @@ h1 {
   display: grid;
   gap: 2px;
 }
+.chapter-highlights {
+  border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  margin-top: 24px;
+  padding-top: 18px;
+}
+.chapter-highlights[hidden] {
+  display: none;
+}
+.chapter-highlight-list {
+  display: grid;
+  gap: 8px;
+}
+.chapter-highlight-empty {
+  color: var(--muted-2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.highlight-mode-toggle {
+  margin-bottom: 12px;
+}
+.chapter-content.highlight-mode-active [data-highlight-unsupported] {
+  cursor: not-allowed;
+}
+.chapter-content.highlight-mode-active [data-highlight-anchor] {
+  cursor: text;
+}
+.chapter-highlight-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  border: 0;
+  border-left: 3px solid color-mix(in srgb, #d6a932 84%, var(--line));
+  background: color-mix(in srgb, #f4d35e 18%, transparent);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font: inherit;
+  padding: 8px 0 8px 10px;
+  text-align: left;
+}
+.chapter-highlight-item.changed,
+.chapter-highlight-item.unresolved {
+  border-left-color: var(--muted-2);
+  background: color-mix(in srgb, var(--panel) 46%, transparent);
+}
+.chapter-highlight-quote {
+  display: -webkit-box;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.chapter-highlight-status {
+  color: var(--muted-2);
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.35;
+  margin-top: 4px;
+}
+.chapter-highlight-remove {
+  border: 0;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  min-width: 22px;
+  padding: 1px 0;
+}
+.chapter-highlight-remove:hover,
+.chapter-highlight-remove:focus-visible {
+  color: var(--accent-2);
+}
 .index-link {
   display: block;
   border: 0;
@@ -1615,6 +1691,13 @@ h1 {
 .transformation-focus em {
   font-style: italic;
 }
+.text-highlight {
+  background: color-mix(in srgb, #f4d35e 62%, transparent);
+  border-radius: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 1px 2px;
+}
 .math {
   color: var(--accent-2);
   font-family: "Times New Roman", serif;
@@ -1936,6 +2019,9 @@ let textbooks = [];
 const textbookCache = new Map();
 const glossaryStudyStates = new Map();
 let activeChapter = null;
+let activeChapterHighlights = [];
+let highlightModeEnabled = false;
+let highlightSelectionController = null;
 const codingStates = new Map();
 const quizStates = new Map();
 let monacoReady = null;
@@ -3061,7 +3147,10 @@ async function renderChapter(textbookId, chapterId) {
   if (token !== routeToken) return;
   const glossaryStudyState = await loadGlossaryStudyState(textbookId);
   if (token !== routeToken) return;
+  const highlightState = await loadChapterHighlights(textbookId, chapterId);
+  if (token !== routeToken) return;
   activeChapter = chapter;
+  activeChapterHighlights = highlightState.highlights;
   const renderContext = { textbookId, chapter, glossaryStudyState };
   document.querySelector("#main").innerHTML = \`
     <section>
@@ -3085,6 +3174,7 @@ async function renderChapter(textbookId, chapterId) {
               \`).join("")}
             \`).join("")}
           </div>
+          <div class="chapter-highlights" data-highlight-list hidden></div>
         </aside>
         <div class="chapter-content">
           \${chapter.sections.map((section) => renderSection(section, renderContext)).join("")}
@@ -3098,6 +3188,9 @@ async function renderChapter(textbookId, chapterId) {
   bindChapterNavigation(textbookId);
   bindGlossaryOverviewLinks();
   bindGlossaryStarControls(textbookId);
+  bindHighlighter(chapter);
+  applyChapterHighlights(chapter);
+  renderChapterHighlightsList(chapter);
   bindQuizzes(chapter);
   bindCodingProblems(chapter);
   scheduleTransformationLayouts();
@@ -3174,16 +3267,17 @@ function parseHashId(hash) {
 }
 
 function renderSection(section, context) {
+  const sectionContext = { ...context, section, subsection: null };
   return \`
     <section class="chapter-section" id="\${escapeAttr(anchorId(section.id))}">
-      <h2 class="section-title">\${escapeHtml(section.title)}</h2>
-      \${section.description ? \`<div class="markdown"><p>\${escapeHtml(section.description)}</p></div>\` : ""}
-      <div class="blocks">\${section.blocks.map((block) => renderBlock(block, context)).join("")}</div>
+      <h2 class="section-title"\${highlightUnsupportedAttrs()}>\${escapeHtml(section.title)}</h2>
+      \${section.description ? \`<div class="markdown"\${highlightUnsupportedAttrs()}><p>\${escapeHtml(section.description)}</p></div>\` : ""}
+      <div class="blocks">\${section.blocks.map((block) => renderBlock(block, sectionContext)).join("")}</div>
       \${section.subsections.map((subsection) => \`
         <section class="subsection-block" id="\${escapeAttr(anchorId(subsection.id))}">
-          <h3 class="subsection-title">\${escapeHtml(subsection.title)}</h3>
-          \${subsection.description ? \`<div class="markdown"><p>\${escapeHtml(subsection.description)}</p></div>\` : ""}
-          <div class="blocks">\${subsection.blocks.map((block) => renderBlock(block, context)).join("")}</div>
+          <h3 class="subsection-title"\${highlightUnsupportedAttrs()}>\${escapeHtml(subsection.title)}</h3>
+          \${subsection.description ? \`<div class="markdown"\${highlightUnsupportedAttrs()}><p>\${escapeHtml(subsection.description)}</p></div>\` : ""}
+          <div class="blocks">\${subsection.blocks.map((block) => renderBlock(block, { ...context, section, subsection })).join("")}</div>
         </section>
       \`).join("")}
     </section>
@@ -3297,25 +3391,25 @@ function navigateChapter(textbookId, chapterId, scrollToTop = false) {
 function renderBlock(block, context) {
   if (block.kind === "p" || block.kind === "explanation" || block.kind === "blurb") {
     const title = block.props.title ? \`<h4 class="local-heading">\${escapeHtml(block.props.title)}</h4>\` : "";
-    return \`<article class="block">\${title}<div class="markdown">\${renderMarkdown(block.props.body)}</div></article>\`;
+    return \`<article class="block">\${title}<div class="markdown"\${highlightAnchorAttrs(block, context)}>\${renderMarkdown(block.props.body)}</div></article>\`;
   }
   if (block.kind === "heading") {
-    return \`<h\${block.props.level} class="local-heading level-\${block.props.level}">\${escapeHtml(block.props.text)}</h\${block.props.level}>\`;
+    return \`<h\${block.props.level} class="local-heading level-\${block.props.level}"\${highlightUnsupportedAttrs()}>\${escapeHtml(block.props.text)}</h\${block.props.level}>\`;
   }
   if (block.kind === "list") {
     const tag = block.props.style === "number" ? "ol" : "ul";
-    return \`<div class="block markdown"><\${tag}>\${block.props.items.map((item) => \`<li>\${renderInlineMarkdown(item)}</li>\`).join("")}</\${tag}></div>\`;
+    return \`<div class="block markdown"\${highlightAnchorAttrs(block, context)}><\${tag}>\${block.props.items.map((item) => \`<li>\${renderInlineMarkdown(item)}</li>\`).join("")}</\${tag}></div>\`;
   }
   if (block.kind === "codeBlock") {
     const language = block.props.language ? \` data-language="\${escapeAttr(block.props.language)}"\` : "";
-    return \`<pre class="code-block"\${language}><code>\${escapeHtml(block.props.code)}</code></pre>\`;
+    return \`<pre class="code-block"\${language}\${highlightUnsupportedAttrs()}><code>\${escapeHtml(block.props.code)}</code></pre>\`;
   }
   if (block.kind === "mathBlock") {
-    return \`<div class="math-block">\${renderMath(block.props.body, true)}</div>\`;
+    return \`<div class="math-block"\${highlightUnsupportedAttrs()}>\${renderMath(block.props.body, true)}</div>\`;
   }
   if (block.kind === "callout") {
     const title = block.props.title ? block.props.title : block.props.tone.replace("-", " ");
-    return \`<aside class="callout \${escapeAttr(block.props.tone)}"><div class="callout-title">\${escapeHtml(title)}</div><div class="markdown">\${renderMarkdown(block.props.body)}</div></aside>\`;
+    return \`<aside class="callout \${escapeAttr(block.props.tone)}"><div class="callout-title"\${highlightUnsupportedAttrs()}>\${escapeHtml(title)}</div><div class="markdown"\${highlightAnchorAttrs(block, context)}>\${renderMarkdown(block.props.body)}</div></aside>\`;
   }
   if (block.kind === "glossary") {
     return renderGlossary(block, context);
@@ -3329,7 +3423,519 @@ function renderBlock(block, context) {
   if (block.kind === "quiz") {
     return renderQuiz(block);
   }
-  return \`<article class="block"><div class="markdown"><p>Unsupported block: \${escapeHtml(block.kind)}</p></div></article>\`;
+  return \`<article class="block"\${highlightUnsupportedAttrs()}><div class="markdown"><p>Unsupported block: \${escapeHtml(block.kind)}</p></div></article>\`;
+}
+
+function highlightAnchorAttrs(block, context) {
+  const sectionId = context?.section?.id ?? "";
+  const subsectionId = context?.subsection?.id ?? "";
+  return [
+    ' data-highlight-anchor="true"',
+    \` data-highlight-block="\${escapeAttr(block.id)}"\`,
+    \` data-highlight-section="\${escapeAttr(sectionId)}"\`,
+    subsectionId ? \` data-highlight-subsection="\${escapeAttr(subsectionId)}"\` : ""
+  ].join("");
+}
+
+function highlightUnsupportedAttrs() {
+  return ' data-highlight-unsupported="true"';
+}
+
+async function loadChapterHighlights(textbookId, chapterId) {
+  try {
+    const state = await fetchJson(\`/api/highlights?textbookId=\${encodeURIComponent(textbookId)}&chapterId=\${encodeURIComponent(chapterId)}\`);
+    return {
+      highlights: Array.isArray(state.highlights) ? state.highlights : [],
+      statePath: state.statePath
+    };
+  } catch {
+    return { highlights: [], statePath: "" };
+  }
+}
+
+function bindHighlighter(chapter) {
+  highlightSelectionController?.abort();
+  highlightSelectionController = new AbortController();
+  refreshHighlightModeAffordances();
+  document.addEventListener("mouseup", () => {
+    window.setTimeout(() => handleHighlightSelection(chapter), 0);
+  }, { signal: highlightSelectionController.signal });
+  document.addEventListener("keyup", (event) => {
+    if (event.key === "Escape") return;
+    void handleHighlightSelection(chapter);
+  }, { signal: highlightSelectionController.signal });
+}
+
+function setHighlightModeEnabled(enabled) {
+  highlightModeEnabled = enabled;
+  refreshHighlightModeAffordances();
+}
+
+function refreshHighlightModeAffordances() {
+  const content = document.querySelector(".chapter-content");
+  content?.classList.toggle("highlight-mode-active", highlightModeEnabled);
+  document.querySelectorAll("[data-highlight-unsupported]").forEach((element) => {
+    if (highlightModeEnabled) {
+      element.setAttribute("title", "This area can't be highlighted.");
+    } else {
+      element.removeAttribute("title");
+    }
+  });
+}
+
+async function handleHighlightSelection(chapter) {
+  if (!highlightModeEnabled) return;
+  const parsed = parseHighlightSelection(chapter);
+  if (!parsed || parsed.kind === "empty") {
+    return;
+  }
+  if (parsed.kind === "unsupported") {
+    window.getSelection()?.removeAllRanges();
+    return;
+  }
+  await applyHighlightModeSelections(chapter, parsed.selections);
+}
+
+function parseHighlightSelection(chapter) {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return { kind: "empty" };
+  const range = selection.getRangeAt(0);
+  const content = document.querySelector(".chapter-content");
+  if (!content || !rangeIntersectsNode(range, content)) return { kind: "empty" };
+  const anchorSelections = [...content.querySelectorAll("[data-highlight-anchor]")]
+    .filter((anchor) => rangeIntersectsNode(range, anchor))
+    .map((anchor) => selectedHighlightAnchorRange(range, anchor))
+    .filter(Boolean);
+  const supportedTexts = anchorSelections.map(({ selectedText }) => selectedText).filter(Boolean);
+  if (selectionHasUnsupportedText(range.toString(), supportedTexts)) return { kind: "unsupported" };
+  const selections = anchorSelections
+    .map(({ anchor, startOffset, endOffset }) => highlightSelectionForRange(chapter, anchor, startOffset, endOffset))
+    .filter(Boolean);
+  if (selections.length === 0) return { kind: "empty" };
+  return {
+    kind: "selection",
+    selections
+  };
+}
+
+function selectedHighlightAnchorRange(range, anchor) {
+  const plainText = anchor.textContent ?? "";
+  const startOffset = anchor.contains(range.startContainer)
+    ? textOffset(anchor, range.startContainer, range.startOffset)
+    : 0;
+  const endOffset = anchor.contains(range.endContainer)
+    ? textOffset(anchor, range.endContainer, range.endOffset)
+    : plainText.length;
+  const firstOffset = Math.min(startOffset, endOffset);
+  const lastOffset = Math.max(startOffset, endOffset);
+  const selectedText = plainText.slice(firstOffset, lastOffset);
+  if (!selectedText.trim()) return null;
+  return { anchor, startOffset: firstOffset, endOffset: lastOffset, selectedText };
+}
+
+function highlightSelectionForRange(chapter, anchor, startOffset, endOffset) {
+  const firstOffset = Math.min(startOffset, endOffset);
+  const lastOffset = Math.max(startOffset, endOffset);
+  const plainText = anchor.textContent ?? "";
+  const quote = plainText.slice(firstOffset, lastOffset);
+  if (!quote.trim()) return null;
+  return {
+    textbookId: chapter.textbookId,
+    chapterId: chapter.id,
+    sectionId: anchor.dataset.highlightSection,
+    subsectionId: anchor.dataset.highlightSubsection,
+    blockId: anchor.dataset.highlightBlock,
+    quote,
+    startOffset: firstOffset,
+    endOffset: lastOffset,
+    prefix: plainText.slice(Math.max(0, firstOffset - 32), firstOffset),
+    suffix: plainText.slice(lastOffset, Math.min(plainText.length, lastOffset + 32))
+  };
+}
+
+function selectionHasUnsupportedText(selectedText, supportedTexts) {
+  let cursor = 0;
+  for (const supportedText of supportedTexts) {
+    if (!supportedText) continue;
+    const index = selectedText.indexOf(supportedText, cursor);
+    if (index === -1) return selectedText.trim().length > 0;
+    if (selectedText.slice(cursor, index).trim()) return true;
+    cursor = index + supportedText.length;
+  }
+  return selectedText.slice(cursor).trim().length > 0;
+}
+
+async function applyHighlightModeSelections(chapter, selections) {
+  for (const selection of selections) {
+    await applyHighlightModeSelection(chapter, selection);
+  }
+  window.getSelection()?.removeAllRanges();
+  refreshChapterHighlightUi(chapter);
+}
+
+async function applyHighlightModeSelection(chapter, selection) {
+  const classification = classifyHighlightSelection(selection);
+  if (classification === "fully-highlighted") {
+    await removeSelectedHighlightRanges(chapter, selection);
+  } else {
+    const now = new Date().toISOString();
+    await saveMergedHighlight(chapter, highlightForSelection(selection, now));
+  }
+}
+
+function highlightAnchorForNode(node) {
+  const element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+  return element?.closest?.("[data-highlight-anchor]") ?? null;
+}
+
+function rangeIntersectsNode(range, node) {
+  try {
+    return range.intersectsNode(node);
+  } catch {
+    return false;
+  }
+}
+
+function highlightForSelection(selection, now) {
+  const overlapping = touchedHighlights(selection);
+  const anchor = document.querySelector(\`[data-highlight-anchor][data-highlight-block="\${cssEscape(selection.blockId)}"]\`);
+  const plainText = anchor?.textContent ?? "";
+  const base = overlapping.sort((left, right) => left.startOffset - right.startOffset)[0];
+  const startOffset = Math.min(selection.startOffset, ...overlapping.map((highlight) => highlight.startOffset));
+  const endOffset = Math.max(selection.endOffset, ...overlapping.map((highlight) => highlight.endOffset));
+  return {
+    id: base?.id ?? \`highlight_\${Date.now()}_\${Math.random().toString(36).slice(2, 8)}\`,
+    textbookId: selection.textbookId,
+    chapterId: selection.chapterId,
+    sectionId: selection.sectionId,
+    subsectionId: selection.subsectionId,
+    blockId: selection.blockId,
+    quote: plainText.slice(startOffset, endOffset),
+    startOffset,
+    endOffset,
+    prefix: plainText.slice(Math.max(0, startOffset - 32), startOffset),
+    suffix: plainText.slice(endOffset, Math.min(plainText.length, endOffset + 32)),
+    color: "yellow",
+    status: "attached",
+    createdAt: base?.createdAt ?? now,
+    updatedAt: now
+  };
+}
+
+function overlappingHighlights(selection) {
+  return activeChapterHighlights.filter((highlight) => (
+    highlight.status === "attached" &&
+    highlight.blockId === selection.blockId &&
+    Number.isInteger(highlight.startOffset) &&
+    Number.isInteger(highlight.endOffset) &&
+    rangesOverlap(highlight, selection)
+  ));
+}
+
+function touchedHighlights(selection) {
+  return activeChapterHighlights.filter((highlight) => (
+    highlight.status === "attached" &&
+    highlight.blockId === selection.blockId &&
+    Number.isInteger(highlight.startOffset) &&
+    Number.isInteger(highlight.endOffset) &&
+    rangesTouchOrOverlap(highlight, selection)
+  ));
+}
+
+async function saveMergedHighlight(chapter, highlight) {
+  const mergedIds = touchedHighlights(highlight).map((candidate) => candidate.id).filter((id) => id !== highlight.id);
+  await saveHighlight(highlight);
+  for (const id of mergedIds) {
+    await deleteHighlightOnServer(chapter, id);
+  }
+}
+
+async function removeSelectedHighlightRanges(chapter, selection) {
+  const overlaps = overlappingHighlights(selection);
+  for (const highlight of overlaps) {
+    await deleteHighlightOnServer(chapter, highlight.id);
+  }
+  for (const highlight of overlaps) {
+    for (const piece of splitHighlightRange(highlight, selection)) {
+      await saveHighlight(highlightWithRange(highlight, piece));
+    }
+  }
+}
+
+function highlightWithRange(base, range) {
+  const anchor = document.querySelector(\`[data-highlight-anchor][data-highlight-block="\${cssEscape(base.blockId)}"]\`);
+  const plainText = anchor?.textContent ?? "";
+  return {
+    ...base,
+    id: \`\${base.id}_part_\${range.startOffset}_\${range.endOffset}\`,
+    quote: plainText.slice(range.startOffset, range.endOffset),
+    startOffset: range.startOffset,
+    endOffset: range.endOffset,
+    prefix: plainText.slice(Math.max(0, range.startOffset - 32), range.startOffset),
+    suffix: plainText.slice(range.endOffset, Math.min(plainText.length, range.endOffset + 32)),
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function classifyHighlightSelection(selection) {
+  const overlaps = overlappingHighlights(selection);
+  if (overlaps.length === 0) return "unhighlighted";
+  return selectionFullyCovered(selection, overlaps) ? "fully-highlighted" : "partial-overlap";
+}
+
+function selectionFullyCovered(selection, ranges) {
+  const sorted = ranges
+    .filter((range) => rangesOverlap(selection, range))
+    .map((range) => ({
+      startOffset: Math.max(selection.startOffset, range.startOffset),
+      endOffset: Math.min(selection.endOffset, range.endOffset)
+    }))
+    .sort((left, right) => left.startOffset - right.startOffset);
+  let coveredUntil = selection.startOffset;
+  for (const range of sorted) {
+    if (range.startOffset > coveredUntil) return false;
+    coveredUntil = Math.max(coveredUntil, range.endOffset);
+    if (coveredUntil >= selection.endOffset) return true;
+  }
+  return coveredUntil >= selection.endOffset;
+}
+
+function splitHighlightRange(highlight, removal) {
+  const pieces = [];
+  const leftEnd = Math.max(highlight.startOffset, Math.min(removal.startOffset, highlight.endOffset));
+  const rightStart = Math.min(highlight.endOffset, Math.max(removal.endOffset, highlight.startOffset));
+  if (highlight.startOffset < leftEnd) {
+    pieces.push({ startOffset: highlight.startOffset, endOffset: leftEnd });
+  }
+  if (rightStart < highlight.endOffset) {
+    pieces.push({ startOffset: rightStart, endOffset: highlight.endOffset });
+  }
+  return pieces;
+}
+
+function rangesOverlap(left, right) {
+  return left.startOffset < right.endOffset && right.startOffset < left.endOffset;
+}
+
+function rangesTouchOrOverlap(left, right) {
+  return left.startOffset <= right.endOffset && right.startOffset <= left.endOffset;
+}
+
+async function saveHighlight(highlight) {
+  const response = await fetchJson("/api/highlights", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(highlight)
+  });
+  activeChapterHighlights = Array.isArray(response.highlights) ? response.highlights : activeChapterHighlights;
+  return response;
+}
+
+async function removeHighlight(chapter, highlightId) {
+  if (!highlightId) return;
+  await deleteHighlightOnServer(chapter, highlightId);
+  refreshChapterHighlightUi(chapter);
+}
+
+async function deleteHighlightOnServer(chapter, highlightId) {
+  const response = await fetchJson("/api/highlights", {
+    method: "DELETE",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      textbookId: chapter.textbookId,
+      chapterId: chapter.id,
+      id: highlightId
+    })
+  });
+  activeChapterHighlights = Array.isArray(response.highlights) ? response.highlights : activeChapterHighlights;
+  return response;
+}
+
+function refreshChapterHighlightUi(chapter) {
+  applyChapterHighlights(chapter);
+  renderChapterHighlightsList(chapter);
+}
+
+function clearRenderedHighlights() {
+  document.querySelectorAll("[data-text-highlight]").forEach((mark) => {
+    const parent = mark.parentNode;
+    mark.replaceWith(...mark.childNodes);
+    parent?.normalize();
+  });
+}
+
+function applyChapterHighlights(chapter) {
+  clearRenderedHighlights();
+  const nextHighlights = [];
+  for (const highlight of activeChapterHighlights) {
+    const applied = applyChapterHighlight(highlight);
+    nextHighlights.push(applied);
+    if (applied.status !== highlight.status) {
+      void saveHighlight(applied);
+    }
+  }
+  activeChapterHighlights = nextHighlights;
+}
+
+function applyChapterHighlight(highlight) {
+  const anchor = document.querySelector(\`[data-highlight-anchor][data-highlight-block="\${cssEscape(highlight.blockId)}"]\`);
+  if (!anchor) return { ...highlight, status: "unresolved" };
+  const plainText = anchor.textContent ?? "";
+  const resolved = resolveHighlightRange(highlight, plainText);
+  if (!resolved) return { ...highlight, status: "changed" };
+  wrapTextRange(anchor, resolved.startOffset, resolved.endOffset, highlight.id);
+  return {
+    ...highlight,
+    startOffset: resolved.startOffset,
+    endOffset: resolved.endOffset,
+    status: "attached"
+  };
+}
+
+function resolveHighlightRange(highlight, plainText) {
+  const quote = String(highlight.quote ?? "");
+  if (!quote) return null;
+  if (
+    Number.isInteger(highlight.startOffset) &&
+    Number.isInteger(highlight.endOffset) &&
+    plainText.slice(highlight.startOffset, highlight.endOffset) === quote
+  ) {
+    return { startOffset: highlight.startOffset, endOffset: highlight.endOffset };
+  }
+  const matches = allTextMatches(plainText, quote);
+  if (matches.length === 0) return null;
+  if (matches.length === 1) {
+    return { startOffset: matches[0], endOffset: matches[0] + quote.length };
+  }
+  const scored = matches.map((startOffset) => {
+    const endOffset = startOffset + quote.length;
+    let score = 0;
+    if (highlight.prefix && plainText.slice(Math.max(0, startOffset - highlight.prefix.length), startOffset).endsWith(highlight.prefix)) score += 1;
+    if (highlight.suffix && plainText.slice(endOffset, endOffset + highlight.suffix.length).startsWith(highlight.suffix)) score += 1;
+    if (Number.isInteger(highlight.startOffset) && Math.abs(startOffset - highlight.startOffset) <= 24) score += 1;
+    return { startOffset, endOffset, score };
+  }).sort((left, right) => right.score - left.score);
+  return scored[0].score > 0 ? scored[0] : null;
+}
+
+function allTextMatches(text, quote) {
+  const matches = [];
+  let cursor = 0;
+  while (cursor < text.length) {
+    const index = text.indexOf(quote, cursor);
+    if (index === -1) break;
+    matches.push(index);
+    cursor = index + Math.max(quote.length, 1);
+  }
+  return matches;
+}
+
+function wrapTextRange(root, startOffset, endOffset, highlightId) {
+  const start = textPosition(root, startOffset);
+  const end = textPosition(root, endOffset);
+  if (!start || !end) return false;
+  const range = document.createRange();
+  range.setStart(start.node, start.offset);
+  range.setEnd(end.node, end.offset);
+  if (!range.toString()) return false;
+  const mark = document.createElement("mark");
+  mark.className = "text-highlight";
+  mark.dataset.textHighlight = highlightId;
+  mark.append(range.extractContents());
+  range.insertNode(mark);
+  return true;
+}
+
+function textPosition(root, targetOffset) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let offset = 0;
+  let node;
+  while ((node = walker.nextNode())) {
+    const nextOffset = offset + node.nodeValue.length;
+    if (targetOffset <= nextOffset) {
+      return { node, offset: Math.max(0, targetOffset - offset) };
+    }
+    offset = nextOffset;
+  }
+  return targetOffset === offset ? { node: root, offset: root.childNodes.length } : null;
+}
+
+function textOffset(root, container, offset) {
+  const range = document.createRange();
+  range.setStart(root, 0);
+  range.setEnd(container, offset);
+  return range.toString().length;
+}
+
+function renderChapterHighlightsList(chapter) {
+  const container = document.querySelector("[data-highlight-list]");
+  if (!container) return;
+  if (activeChapterHighlights.length === 0) {
+    container.hidden = false;
+    container.innerHTML = \`
+      <div class="index-label">Highlights</div>
+      \${renderHighlightModeToggle()}
+      <div class="chapter-highlight-empty">Select text to highlight.</div>
+    \`;
+    bindHighlightModeToggle();
+    return;
+  }
+  container.hidden = false;
+  container.innerHTML = \`
+    <div class="index-label">Highlights</div>
+    \${renderHighlightModeToggle()}
+    <div class="chapter-highlight-list">
+      \${activeChapterHighlights.map((highlight) => \`
+        <button class="chapter-highlight-item \${escapeAttr(highlight.status)}" type="button" data-highlight-list-item="\${escapeAttr(highlight.id)}">
+          <span>
+            <span class="chapter-highlight-quote">“\${escapeHtml(highlight.quote)}”</span>
+            \${highlight.status === "attached" ? "" : \`<span class="chapter-highlight-status">\${highlight.status === "unresolved" ? "Source text no longer exists" : "Source text changed"}</span>\`}
+          </span>
+          <span class="chapter-highlight-remove" role="button" tabindex="0" data-highlight-list-remove="\${escapeAttr(highlight.id)}" aria-label="Remove highlight">×</span>
+        </button>
+      \`).join("")}
+    </div>
+  \`;
+  bindHighlightModeToggle();
+  container.querySelectorAll("[data-highlight-list-item]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const highlightId = button.dataset.highlightListItem;
+      const mark = document.querySelector(\`[data-text-highlight="\${cssEscape(highlightId)}"]\`);
+      if (mark) {
+        mark.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+    });
+  });
+  container.querySelectorAll("[data-highlight-list-remove]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      void removeHighlight(chapter, button.dataset.highlightListRemove);
+    });
+    button.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      event.stopPropagation();
+      void removeHighlight(chapter, button.dataset.highlightListRemove);
+    });
+  });
+}
+
+function renderHighlightModeToggle() {
+  return \`
+    <label class="highlight-mode-toggle glossary-toggle-row">
+      <span class="glossary-toggle-label">Highlight mode</span>
+      <input class="glossary-toggle-input" type="checkbox" data-highlight-mode-toggle \${highlightModeEnabled ? "checked" : ""} />
+    </label>
+  \`;
+}
+
+function bindHighlightModeToggle() {
+  const input = document.querySelector("[data-highlight-mode-toggle]");
+  if (!(input instanceof HTMLInputElement)) return;
+  input.addEventListener("change", () => {
+    setHighlightModeEnabled(input.checked === true);
+  });
 }
 
 function renderGlossary(block, context) {
@@ -3340,7 +3946,7 @@ function renderGlossary(block, context) {
     ? \`<a class="glossary-title-link" href="/textbooks/\${encodeURIComponent(textbookId)}/glossary" data-glossary-overview="\${escapeAttr(textbookId)}">\${escapeHtml(title)}</a>\`
     : escapeHtml(title);
   return \`
-    <article class="block glossary" id="\${escapeAttr(blockAnchorId(block.id))}">
+    <article class="block glossary" id="\${escapeAttr(blockAnchorId(block.id))}"\${highlightUnsupportedAttrs()}>
       <h4 class="glossary-title">\${titleMarkup}</h4>
       <dl class="glossary-list">
         \${entries.map((entry) => {
@@ -3363,7 +3969,7 @@ function renderGlossary(block, context) {
 
 function renderTransformation(block) {
   return \`
-    <article class="block transformation layout-\${escapeAttr(block.props.layout)}" data-transformation="\${escapeAttr(block.id)}" data-transformation-layout="\${escapeAttr(block.props.layout)}">
+    <article class="block transformation layout-\${escapeAttr(block.props.layout)}" data-transformation="\${escapeAttr(block.id)}" data-transformation-layout="\${escapeAttr(block.props.layout)}"\${highlightUnsupportedAttrs()}>
       <h4 class="transformation-title">\${escapeHtml(block.props.title)}</h4>
       <div class="transformation-focus">\${renderInlineMarkdown(block.props.focus)}</div>
       <div class="transformation-stages">
@@ -3446,7 +4052,7 @@ function renderTransformationArtifact(artifact) {
 
 function renderQuiz(block) {
   return \`
-    <article class="block quiz" data-quiz="\${escapeAttr(block.id)}">
+    <article class="block quiz" data-quiz="\${escapeAttr(block.id)}"\${highlightUnsupportedAttrs()}>
       <div class="quiz-head">
         <h4 class="quiz-title">\${escapeHtml(block.props.title)}</h4>
         <div class="quiz-meta">\${escapeHtml(formatQuizMode(block.props.mode))} / \${block.props.questions.length} questions</div>
@@ -3850,7 +4456,7 @@ function renderCodingProblem(block) {
   const visibleFiles = block.props.files.filter((file) => !file.hidden);
   const visibleActions = block.props.actions.filter((action) => !action.hidden);
   return \`
-    <article class="block coding-problem" data-coding-problem="\${escapeAttr(block.id)}">
+    <article class="block coding-problem" data-coding-problem="\${escapeAttr(block.id)}"\${highlightUnsupportedAttrs()}>
       <div class="coding-head">
         <h4 class="coding-title">\${escapeHtml(block.props.title)}</h4>
         <div class="coding-language">\${escapeHtml(block.props.language)}</div>

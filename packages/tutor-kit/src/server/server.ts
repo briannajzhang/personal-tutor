@@ -8,6 +8,7 @@ import { invalidateWorkspaceCaches, loadTextbooks, resolveWorkspace, type Worksp
 import { summarizeChapter, summarizeTextbook } from "../core/validation.js";
 import { loadCodingDraft, loadCodingFeedback, runCodingProblem, saveCodingDraft } from "./coding.js";
 import { loadGlossaryStudyState, saveGlossaryStudyState, submitGlossaryStudyRating } from "./glossary-study.js";
+import { deleteHighlight, loadHighlights, saveHighlight } from "./highlights.js";
 import { loadQuizState, saveQuizState, submitQuizAttempt } from "./quizzes.js";
 
 export interface DevServerOptions {
@@ -215,6 +216,21 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
 
   if (request.method === "POST" && url.pathname === "/api/glossary-study/rating") {
     sendJson(response, 201, await submitGlossaryStudyRating(cwd, await readJson(request)));
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/highlights") {
+    sendJson(response, 200, await loadHighlights(cwd, url.searchParams));
+    return;
+  }
+
+  if (request.method === "PUT" && url.pathname === "/api/highlights") {
+    sendJson(response, 200, await saveHighlight(cwd, await readJson(request)));
+    return;
+  }
+
+  if (request.method === "DELETE" && url.pathname === "/api/highlights") {
+    sendJson(response, 200, await deleteHighlight(cwd, await readJson(request)));
     return;
   }
 
