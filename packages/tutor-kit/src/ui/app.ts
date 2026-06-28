@@ -98,6 +98,65 @@ h1 {
   font-size: 13px;
   white-space: nowrap;
 }
+.highlight-mode-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  width: fit-content;
+}
+.highlight-mode-tooltip {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: help;
+  font-size: 10px;
+  font-weight: 650;
+  font-style: normal;
+  line-height: 1;
+  min-height: 15px;
+  min-width: 15px;
+  padding: 0;
+  position: relative;
+}
+.highlight-mode-tooltip:hover,
+.highlight-mode-tooltip:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 56%, transparent);
+  color: var(--accent-2);
+}
+.highlight-mode-tooltip:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+.highlight-mode-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  z-index: 20;
+  width: max-content;
+  max-width: 220px;
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  opacity: 0;
+  padding: 6px 8px;
+  pointer-events: none;
+  text-align: center;
+  transform: translate(-50%, 2px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+.highlight-mode-tooltip:hover::after,
+.highlight-mode-tooltip:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
 .rows {
   border-top: 1px solid var(--line);
 }
@@ -201,9 +260,41 @@ h1 {
   color: var(--muted-2);
   font-size: 12px;
   line-height: 1.45;
+  margin-top: 2px;
 }
 .highlight-mode-toggle {
-  margin-bottom: 12px;
+  margin: 0 0 12px;
+}
+.highlight-mode-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  min-height: 22px;
+  color: var(--muted);
+  font-size: 13px;
+  width: fit-content;
+}
+.highlight-mode-row .highlight-mode-switch {
+  gap: 7px;
+  justify-content: flex-start;
+  min-height: 22px;
+}
+.highlight-mode-switch-label {
+  color: var(--muted);
+  font-weight: 530;
+}
+.highlight-mode-row .highlight-mode-switch-label {
+  color: var(--muted);
+  font-weight: 530;
+}
+.highlight-mode-switch .glossary-toggle-input {
+  height: 14px;
+  width: 14px;
+}
+.highlight-mode-switch .glossary-toggle-input::before {
+  height: 6px;
+  width: 6px;
 }
 .chapter-content.highlight-mode-active [data-highlight-unsupported] {
   cursor: not-allowed;
@@ -217,12 +308,12 @@ h1 {
   gap: 8px;
   align-items: start;
   border: 0;
-  border-left: 3px solid color-mix(in srgb, #d6a932 84%, var(--line));
-  background: color-mix(in srgb, #f4d35e 18%, transparent);
+  border-left: 3px solid color-mix(in srgb, #c99a2e 86%, var(--line));
+  background: color-mix(in srgb, #f4d35e 26%, var(--paper));
   color: var(--ink-soft);
   cursor: pointer;
   font: inherit;
-  padding: 8px 0 8px 10px;
+  padding: 10px 12px;
   text-align: left;
 }
 .chapter-highlight-item.changed,
@@ -233,8 +324,8 @@ h1 {
 .chapter-highlight-quote {
   display: -webkit-box;
   color: var(--ink-soft);
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 12.5px;
+  line-height: 1.35;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -254,12 +345,16 @@ h1 {
   font: inherit;
   font-size: 15px;
   line-height: 1;
-  min-width: 22px;
-  padding: 1px 0;
+  min-height: 20px;
+  min-width: 20px;
+  opacity: .72;
+  padding: 0;
+  text-align: center;
 }
 .chapter-highlight-remove:hover,
 .chapter-highlight-remove:focus-visible {
   color: var(--accent-2);
+  opacity: 1;
 }
 .index-link {
   display: block;
@@ -1697,6 +1792,11 @@ h1 {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
   padding: 1px 2px;
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+.text-highlight.focused {
+  background: color-mix(in srgb, #f4d35e 88%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, #d6a932 56%, transparent);
 }
 .math {
   color: var(--accent-2);
@@ -3469,6 +3569,21 @@ function bindHighlighter(chapter) {
 function setHighlightModeEnabled(enabled) {
   highlightModeEnabled = enabled;
   refreshHighlightModeAffordances();
+  updateHighlightModeControl();
+}
+
+function highlightModeHelpText() {
+  return "Select text to save or remove highlights.";
+}
+
+function updateHighlightModeControl() {
+  document.querySelectorAll("[data-highlight-mode-toggle]").forEach((input) => {
+    if (input instanceof HTMLInputElement) input.checked = highlightModeEnabled;
+  });
+  document.querySelectorAll("[data-highlight-mode-tooltip]").forEach((tooltip) => {
+    tooltip.setAttribute("aria-label", highlightModeHelpText());
+    tooltip.setAttribute("data-tooltip", highlightModeHelpText());
+  });
 }
 
 function refreshHighlightModeAffordances() {
@@ -3875,7 +3990,7 @@ function renderChapterHighlightsList(chapter) {
     container.innerHTML = \`
       <div class="index-label">Highlights</div>
       \${renderHighlightModeToggle()}
-      <div class="chapter-highlight-empty">Select text to highlight.</div>
+      <div class="chapter-highlight-empty">No highlights yet.</div>
     \`;
     bindHighlightModeToggle();
     return;
@@ -3903,6 +4018,7 @@ function renderChapterHighlightsList(chapter) {
       const mark = document.querySelector(\`[data-text-highlight="\${cssEscape(highlightId)}"]\`);
       if (mark) {
         mark.scrollIntoView({ block: "center", behavior: "smooth" });
+        focusRenderedHighlight(mark);
       }
     });
   });
@@ -3923,10 +4039,15 @@ function renderChapterHighlightsList(chapter) {
 
 function renderHighlightModeToggle() {
   return \`
-    <label class="highlight-mode-toggle glossary-toggle-row">
-      <span class="glossary-toggle-label">Highlight mode</span>
-      <input class="glossary-toggle-input" type="checkbox" data-highlight-mode-toggle \${highlightModeEnabled ? "checked" : ""} />
-    </label>
+    <div class="highlight-mode-toggle">
+      <div class="highlight-mode-row">
+        <label class="highlight-mode-switch glossary-toggle-row">
+          <input class="glossary-toggle-input" type="checkbox" data-highlight-mode-toggle \${highlightModeEnabled ? "checked" : ""} />
+          <span class="highlight-mode-switch-label glossary-toggle-label">Highlight mode</span>
+        </label>
+        <button class="highlight-mode-tooltip" type="button" data-highlight-mode-tooltip data-tooltip="\${escapeAttr(highlightModeHelpText())}" aria-label="\${escapeAttr(highlightModeHelpText())}">i</button>
+      </div>
+    </div>
   \`;
 }
 
@@ -3936,6 +4057,16 @@ function bindHighlightModeToggle() {
   input.addEventListener("change", () => {
     setHighlightModeEnabled(input.checked === true);
   });
+}
+
+function focusRenderedHighlight(mark) {
+  document.querySelectorAll(".text-highlight.focused").forEach((element) => {
+    element.classList.remove("focused");
+  });
+  mark.classList.add("focused");
+  window.setTimeout(() => {
+    mark.classList.remove("focused");
+  }, 1100);
 }
 
 function renderGlossary(block, context) {
