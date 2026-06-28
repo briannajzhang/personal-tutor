@@ -208,6 +208,7 @@ function assertHighlightAssets(page: string) {
     /aria-label="\$\{escapeAttr\(highlightModeHelpText\(\)\)\}"/,
     />i<\/button>/,
     /padding: 10px 12px;/,
+    /\.chapter-highlight-quote \{[^}]*color: var\(--muted\);/,
     /min-width: 20px;/,
     /<div class="index-label">Highlights<\/div>\s*\$\{renderHighlightModeToggle\(\)\}\s*<div class="chapter-highlight-empty">No highlights yet\.<\/div>/,
     /<div class="index-label">Highlights<\/div>\s*\$\{renderHighlightModeToggle\(\)\}\s*<div class="chapter-highlight-list">/,

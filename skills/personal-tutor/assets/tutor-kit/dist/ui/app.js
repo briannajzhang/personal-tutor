@@ -322,7 +322,7 @@ h1 {
 }
 .chapter-highlight-quote {
   display: -webkit-box;
-  color: var(--ink-soft);
+  color: var(--muted);
   font-size: 12.5px;
   line-height: 1.35;
   overflow: hidden;
