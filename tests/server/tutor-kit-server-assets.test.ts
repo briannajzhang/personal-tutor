@@ -157,6 +157,117 @@ function assertGlossaryAssets(page: string) {
   assert.doesNotMatch(page, /glossary\(\{ entries: \[\.\.\.\] \}\)/);
 }
 
+function assertHighlightAssets(page: string) {
+  for (const pattern of [
+    /data-highlight-anchor/,
+    /data-highlight-block/,
+    /data-highlight-section/,
+    /data-highlight-list/,
+    /chapter-highlights/,
+    /text-highlight/,
+    /loadChapterHighlights/,
+    /bindHighlighter/,
+    /applyChapterHighlights/,
+    /resolveHighlightRange/,
+    /highlightModeEnabled/,
+    /handleHighlightSelection/,
+    /parseHighlightSelection/,
+    /selectedHighlightAnchorRange/,
+    /highlightSelectionForRange/,
+    /selectionHasUnsupportedText/,
+    /applyHighlightModeSelections/,
+    /refreshHighlightModeAffordances/,
+    /highlight-mode-active/,
+    /data-highlight-unsupported/,
+    /This area can't be highlighted/,
+    /highlightSelectionController/,
+    /document\.addEventListener\("mouseup"/,
+    /classifyHighlightSelection/,
+    /removeSelectedHighlightRanges/,
+    /splitHighlightRange/,
+    /selectionFullyCovered/,
+    /rangesTouchOrOverlap/,
+    /applyHighlightModeSelection/,
+    /renderHighlightModeToggle/,
+    /data-highlight-mode-toggle/,
+    /Highlight mode/,
+    /\.page-head \{\n\s*display: flex;\n\s*align-items: end;/,
+    /margin-bottom: 34px;/,
+    /<h1>\$\{escapeHtml\(chapter\.title\)\}<\/h1>\s*<div class="meta">/,
+    /highlight-mode-row/,
+    /<input class="glossary-toggle-input" type="checkbox" data-highlight-mode-toggle[^>]*>\s*<span class="highlight-mode-switch-label glossary-toggle-label">Highlight mode<\/span>/,
+    /highlight-mode-switch/,
+    /highlight-mode-tooltip/,
+    /highlight-mode-tooltip::after/,
+    /data-highlight-mode-tooltip/,
+    /data-tooltip="\$\{escapeAttr\(highlightModeHelpText\(\)\)\}"/,
+    /content: attr\(data-tooltip\)/,
+    /bottom: calc\(100% \+ 7px\);/,
+    /left: 50%;/,
+    /transform: translate\(-50%, 2px\);/,
+    /aria-label="\$\{escapeAttr\(highlightModeHelpText\(\)\)\}"/,
+    />i<\/button>/,
+    /padding: 10px 12px;/,
+    /\.chapter-highlight-quote \{[^}]*color: var\(--muted\);/,
+    /min-width: 20px;/,
+    /<div class="index-label">Highlights<\/div>\s*\$\{renderHighlightModeToggle\(\)\}\s*<div class="chapter-highlight-empty">No highlights yet\.<\/div>/,
+    /<div class="index-label">Highlights<\/div>\s*\$\{renderHighlightModeToggle\(\)\}\s*<div class="chapter-highlight-list">/,
+    /bindHighlightModeToggle\(\);/,
+    /No highlights yet\./,
+    /Select text to save or remove highlights/,
+    /highlightModeHelpText/,
+    /updateHighlightModeControl/,
+    /setHighlightModeEnabled\(input\.checked === true\)/,
+    /focusRenderedHighlight/,
+    /\.text-highlight\.focused/,
+    /saveMergedHighlight/,
+    /refreshChapterHighlightUi/,
+    /clearRenderedHighlights/,
+    /removeHighlight/,
+    /\/api\/highlights/,
+    /Source text changed/,
+    /Source text no longer exists/
+  ]) {
+    assert.match(page, pattern);
+  }
+
+  for (const pattern of [
+    /highlight-toolbar/,
+    /highlight-popover/,
+    /data-highlight-create/,
+    /data-highlight-remove-active/,
+    /createHighlightFromSelection/,
+    /showHighlightPopover/,
+    /data-highlight-hint/,
+    /showHighlightHint/,
+    /Select within one paragraph or block/,
+    /selectedTextNodeRange/,
+    /createTreeWalker\(content/,
+    /compareBoundaryPoints/,
+    /cloneRange/,
+    /highlightCount === 1 \? "highlight" : "highlights"/,
+    /\.page-head \{\n\s*position: relative;/,
+    /chapter-head-tools/,
+    /chapter-highlight-mode/,
+    /highlight-mode-panel/,
+    /chapter-highlight-panel/,
+    /chapter-highlight-count/,
+    /chapter-highlight-help/,
+    /data-highlight-mode-help/,
+    /help\.hidden = !highlightModeEnabled/,
+    /title="\$\{escapeAttr\(highlightModeHelpText\(\)\)\}"/,
+    /Saved ·/,
+    /Saved highlights ·/,
+    /highlight-mode-state/,
+    /data-highlight-mode-state/,
+    /stateText = highlightModeEnabled \? "On" : "Off"/,
+    /\.text-highlight:hover/,
+    /cursor: pointer;\n\s*padding: 1px 2px;/
+  ]) {
+    assert.doesNotMatch(page, pattern);
+  }
+}
+
 test("dev server exposes textbooks, chapters, and appends events", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
   initWorkspace(dir, { starter: true });
@@ -216,6 +327,7 @@ export default textbook({
     assert.match(page, /<em>/);
     assertMatchingQuizAssets(page);
     assertGlossaryAssets(page);
+    assertHighlightAssets(page);
     assert.match(page, /document\.fonts\?\.ready/);
     assert.match(page, /renderNotFoundPage/);
     assert.match(page, /Page not found/);
