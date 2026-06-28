@@ -99,6 +99,26 @@ test("chapter highlights sanitize storage paths and reject invalid payloads", as
     });
     assert.match(saved.statePath, /tutor-data\/highlights\/\.\._getting-started\/welcome_.._.._bad\.json/);
 
+    const traversal = await fetchJson(`${server.url}/api/highlights`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "highlight-traversal",
+        textbookId: "..",
+        chapterId: ".",
+        sectionId: "section",
+        blockId: "block",
+        quote: "safe",
+        startOffset: 1,
+        endOffset: 5,
+        prefix: "",
+        suffix: "",
+        color: "yellow",
+        status: "attached"
+      })
+    });
+    assert.match(traversal.statePath, /tutor-data\/highlights\/_\/_\.json/);
+
     const response = await fetch(`${server.url}/api/highlights`, {
       method: "PUT",
       headers: { "content-type": "application/json" },

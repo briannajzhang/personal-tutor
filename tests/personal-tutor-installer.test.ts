@@ -101,8 +101,8 @@ test("personal-tutor installer supports dry runs", () => {
 
 function writeFakeNpm(path: string): void {
   writeFileSync(path, `#!/usr/bin/env node
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+const { mkdirSync, writeFileSync } = require("node:fs");
+const { join } = require("node:path");
 
 const args = process.argv.slice(2);
 writeFileSync(process.env.PERSONAL_TUTOR_FAKE_NPM_ARGS, args.join("\\n"));

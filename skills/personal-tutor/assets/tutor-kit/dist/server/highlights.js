@@ -152,7 +152,8 @@ function requireNonNegativeInteger(value, label) {
     return value;
 }
 function safeSegment(value) {
-    return value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
+    const segment = value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
+    return segment === "." || segment === ".." ? "_" : segment;
 }
 function appendEvent(dataDir, event) {
     mkdirSync(dataDir, { recursive: true });

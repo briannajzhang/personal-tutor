@@ -212,7 +212,8 @@ function requireNonNegativeInteger(value: unknown, label: string): number {
 }
 
 function safeSegment(value: string): string {
-  return value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
+  const segment = value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
+  return segment === "." || segment === ".." ? "_" : segment;
 }
 
 function appendEvent(dataDir: string, event: Record<string, unknown>): void {
