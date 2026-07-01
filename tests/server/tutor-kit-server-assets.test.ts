@@ -169,6 +169,8 @@ function assertHighlightAssets(page: string) {
     /bindHighlighter/,
     /applyChapterHighlights/,
     /resolveHighlightRange/,
+    /textNodeHighlightSegments/,
+    /wrapTextNodeSegment/,
     /highlightModeEnabled/,
     /handleHighlightSelection/,
     /parseHighlightSelection/,
@@ -232,6 +234,7 @@ function assertHighlightAssets(page: string) {
   }
 
   for (const pattern of [
+    /range\.extractContents\(\)/,
     /highlight-toolbar/,
     /highlight-popover/,
     /data-highlight-create/,

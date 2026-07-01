@@ -3944,33 +3944,49 @@ function allTextMatches(text, quote) {
 }
 
 function wrapTextRange(root, startOffset, endOffset, highlightId) {
-  const start = textPosition(root, startOffset);
-  const end = textPosition(root, endOffset);
-  if (!start || !end) return false;
-  const range = document.createRange();
-  range.setStart(start.node, start.offset);
-  range.setEnd(end.node, end.offset);
-  if (!range.toString()) return false;
-  const mark = document.createElement("mark");
-  mark.className = "text-highlight";
-  mark.dataset.textHighlight = highlightId;
-  mark.append(range.extractContents());
-  range.insertNode(mark);
-  return true;
+  const segments = textNodeHighlightSegments(root, startOffset, endOffset);
+  for (const segment of segments.reverse()) {
+    wrapTextNodeSegment(segment.node, segment.startOffset, segment.endOffset, highlightId);
+  }
+  return segments.length > 0;
 }
 
-function textPosition(root, targetOffset) {
+function textNodeHighlightSegments(root, startOffset, endOffset) {
+  const firstOffset = Math.max(0, Math.min(startOffset, endOffset));
+  const lastOffset = Math.max(0, Math.max(startOffset, endOffset));
+  if (firstOffset === lastOffset) return [];
+  const segments = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   let offset = 0;
   let node;
   while ((node = walker.nextNode())) {
-    const nextOffset = offset + node.nodeValue.length;
-    if (targetOffset <= nextOffset) {
-      return { node, offset: Math.max(0, targetOffset - offset) };
+    const text = node.nodeValue ?? "";
+    const nextOffset = offset + text.length;
+    if (offset < lastOffset && nextOffset > firstOffset) {
+      const segmentStart = Math.max(firstOffset, offset) - offset;
+      const segmentEnd = Math.min(lastOffset, nextOffset) - offset;
+      if (segmentStart < segmentEnd) {
+        segments.push({ node, startOffset: segmentStart, endOffset: segmentEnd });
+      }
     }
     offset = nextOffset;
   }
-  return targetOffset === offset ? { node: root, offset: root.childNodes.length } : null;
+  return segments;
+}
+
+function wrapTextNodeSegment(node, startOffset, endOffset, highlightId) {
+  const text = node.nodeValue ?? "";
+  const firstOffset = Math.max(0, Math.min(startOffset, text.length));
+  const lastOffset = Math.max(firstOffset, Math.min(endOffset, text.length));
+  if (firstOffset === lastOffset) return false;
+  const range = document.createRange();
+  range.setStart(node, firstOffset);
+  range.setEnd(node, lastOffset);
+  const mark = document.createElement("mark");
+  mark.className = "text-highlight";
+  mark.dataset.textHighlight = highlightId;
+  range.surroundContents(mark);
+  return true;
 }
 
 function textOffset(root, container, offset) {
