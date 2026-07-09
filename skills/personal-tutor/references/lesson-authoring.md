@@ -154,6 +154,8 @@ Treat glossary terms as retrieval handles. Use the exact form the learner saw in
 
 A term can be important enough to define in prose without being important enough for a glossary. Prefer a smaller set the learner would actually study over a complete-looking list.
 
+Place a glossary where it best supports retrieval after use. Chapter review is a good default for chapter-wide durable terms; a section or subsection ending is better for a local cluster that will not carry across the whole chapter. If a term cluster recurs across many chapters, prefer a small chapter glossary only when it supports the current chapter's practice, and let the textbook glossary aggregate repeated terms. Do not move a glossary earlier just to define terms; teach first, then make the terms retrievable.
+
 Teach concepts first with prose, examples, mechanisms, boundary cases, and checks. A glossary should not be the first or only teaching move for a concept.
 
 Many good chapters should simply define terms inline and use practice or review instead of a glossary.

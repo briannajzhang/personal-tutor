@@ -117,6 +117,14 @@ Revise when:
 - a qualitative tradeoff would be clearer as prose, a list, a table, or `transformation(...)`
 - a visual lacks nearby framing for what to inspect or a readout of what it shows
 
+### Glossary Fit
+
+Treat glossaries as optional study aids for later retrieval, not as proof that vocabulary was covered.
+
+Revise when:
+
+- glossary placement makes the block feel like first teaching, a default chapter ending, or separated from the term cluster it supports
+
 ## Authoring Validation Notes
 
 Ordinary generation should create concise `review-notes.md`:
