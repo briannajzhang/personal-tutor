@@ -170,7 +170,7 @@ Use blocks by teaching purpose:
 - `chart`: small numeric comparison or trend.
 - `callout`: misconception, warning, boundary case, or key idea.
 - `transformation`: inspectable input -> operation -> output worked example.
-- `glossary`: compact reference for durable terms the learner has already met.
+- `glossary`: optional compact reference for durable terms the learner has already met and will benefit from retrieving later.
 - `quiz` or `balancedQuiz`: local checks, chapter review, and practice tests.
 - `codingProblem`: runnable or checkable learner practice.
 
