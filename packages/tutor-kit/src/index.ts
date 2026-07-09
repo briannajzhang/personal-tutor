@@ -1,4 +1,4 @@
-export { balancedQuiz, blurb, callout, chapter, codeBlock, codingProblem, explanation, glossary, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation } from "./core/builders.js";
+export { balancedQuiz, blurb, callout, chapter, chart, codeBlock, codingProblem, diagram, explanation, glossary, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation } from "./core/builders.js";
 export {
   validateChapter,
   validateSection,
@@ -17,6 +17,10 @@ export type {
   CalloutBlock,
   CalloutProps,
   CalloutTone,
+  ChartBlock,
+  ChartPoint,
+  ChartProps,
+  ChartType,
   Chapter,
   ChapterRole,
   CodingProblemAction,
@@ -28,6 +32,8 @@ export type {
   CodeRuntimeConfig,
   CodeBlock,
   CodeBlockProps,
+  DiagramBlock,
+  DiagramProps,
   ExplanationBlock,
   GlossaryBlock,
   GlossaryEntry,

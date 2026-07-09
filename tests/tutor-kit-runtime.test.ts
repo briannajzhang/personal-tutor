@@ -38,6 +38,8 @@ test("init and add commands create expected workspace files", () => {
   addBlock(dir, "quiz");
   addBlock(dir, "transformation");
   addBlock(dir, "glossary");
+  addBlock(dir, "diagram");
+  addBlock(dir, "chart");
 
   assert.match(readFileSync(join(dir, "package.json"), "utf8"), /file:\/tmp\/tutor-kit/);
   assert.equal(existsSync(join(dir, "textbooks", "getting-started")), false);
@@ -47,6 +49,8 @@ test("init and add commands create expected workspace files", () => {
   assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /coreBlocks/);
   assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /transformation/);
   assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /glossary/);
+  assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /diagram/);
+  assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /chart/);
 });
 
 test("addTextbook creates durable authoring artifacts without touching runtime history", () => {

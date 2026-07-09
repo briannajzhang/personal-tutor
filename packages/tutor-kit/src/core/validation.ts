@@ -10,6 +10,8 @@ import type {
 const calloutTones = new Set(["note", "caution", "key-idea"]);
 const listStyles = new Set(["bullet", "number"]);
 const headingLevels = new Set([4, 5]);
+const diagramSyntaxes = new Set(["mermaid"]);
+const chartTypes = new Set(["bar", "line"]);
 const quizModes = new Set(["check", "review", "practice-test"]);
 const quizDifficulties = new Set(["easy", "medium", "hard"]);
 const chapterRoles = new Set(["instruction", "cumulative-checkpoint"]);
@@ -272,7 +274,7 @@ function validateChapterLearningHeuristics(chapter: Chapter, file?: string): Val
     block.kind === "codingProblem" ||
     block.kind === "quiz" ||
     looksLikeTaskList(block) ||
-    (block.kind !== "transformation" && blockText(block).some((text) => reviewHintPattern.test(text)))
+    (!isVisualExampleBlock(block) && blockText(block).some((text) => reviewHintPattern.test(text)))
   ));
 
   if (!hasPracticeMove) {
@@ -286,7 +288,7 @@ function validateChapterLearningHeuristics(chapter: Chapter, file?: string): Val
   const hasReviewMove = blocks.some((block) => (
     block.kind === "quiz" ||
     looksLikeTaskList(block) ||
-    (block.kind !== "transformation" && blockText(block).some((text) => reviewHintPattern.test(text)))
+    (!isVisualExampleBlock(block) && blockText(block).some((text) => reviewHintPattern.test(text)))
   ));
 
   if (!hasReviewMove) {
@@ -464,6 +466,16 @@ export function validateBlock(
     return;
   }
 
+  if (block.kind === "diagram") {
+    validateDiagram(block.props, `${path}.props`, file, issues);
+    return;
+  }
+
+  if (block.kind === "chart") {
+    validateChart(block.props, `${path}.props`, file, issues);
+    return;
+  }
+
   if (block.kind === "callout") {
     if (!calloutTones.has(block.props.tone as string)) {
       issues.push(issue("Callout tone must be note, caution, or key-idea.", `${path}.props.tone`, file));
@@ -493,6 +505,51 @@ export function validateBlock(
   if (block.kind === "quiz") {
     validateQuiz(block.props, `${path}.props`, file, issues);
   }
+}
+
+function validateDiagram(
+  props: Record<string, unknown>,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  if (props.title !== undefined) validateTextProp(props.title, `${path}.title`, file, issues);
+  if (!diagramSyntaxes.has(props.syntax as string)) {
+    issues.push(issue("Diagram syntax must be mermaid.", `${path}.syntax`, file));
+  }
+  validateTextProp(props.body, `${path}.body`, file, issues);
+}
+
+function validateChart(
+  props: Record<string, unknown>,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  validateTextProp(props.title, `${path}.title`, file, issues);
+  if (!chartTypes.has(props.type as string)) {
+    issues.push(issue("Chart type must be bar or line.", `${path}.type`, file));
+  }
+  if (props.xLabel !== undefined) validateTextProp(props.xLabel, `${path}.xLabel`, file, issues);
+  if (props.yLabel !== undefined) validateTextProp(props.yLabel, `${path}.yLabel`, file, issues);
+  if (!Array.isArray(props.points) || props.points.length === 0) {
+    issues.push(issue("Chart points must be a non-empty array.", `${path}.points`, file));
+    return;
+  }
+  if (props.type === "line" && props.points.length < 2) {
+    issues.push(issue("Line charts must contain at least two points.", `${path}.points`, file));
+  }
+  props.points.forEach((point, index) => {
+    const pointPath = `${path}.points[${index}]`;
+    if (!isRecord(point)) {
+      issues.push(issue("Chart point must be an object.", pointPath, file));
+      return;
+    }
+    validateTextProp(point.label, `${pointPath}.label`, file, issues);
+    if (typeof point.value !== "number" || !Number.isFinite(point.value)) {
+      issues.push(issue("Chart point value must be a finite number.", `${pointPath}.value`, file));
+    }
+  });
 }
 
 function validateGlossary(
@@ -1102,6 +1159,10 @@ function looksLikeTaskList(block: TutorBlock): boolean {
     typeof item === "string" &&
     (item.includes("?") || taskVerbPattern.test(item.trim()))
   ));
+}
+
+function isVisualExampleBlock(block: TutorBlock): boolean {
+  return block.kind === "transformation" || block.kind === "diagram" || block.kind === "chart";
 }
 
 export function summarizeSubsection(subsection: Subsection): { blocks: number } {

@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { balancedQuiz, callout, chapter, codeBlock, codingProblem, glossary, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation, validateTextbook } from "../packages/tutor-kit/dist/index.js";
+import { balancedQuiz, callout, chapter, chart, codeBlock, codingProblem, diagram, glossary, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation, validateTextbook } from "../packages/tutor-kit/dist/index.js";
 import { clearWorkspaceCaches, discoverTextbookFiles, resolveWorkspace } from "../packages/tutor-kit/dist/compile/discover.js";
 
 test.afterEach(() => {
@@ -94,6 +94,18 @@ test("builders create valid textbooks", () => {
               }),
               codeBlock({ id: "code", language: "js", code: "const x = 1;" }),
               mathBlock({ id: "math", body: "x^2 + y^2 = z^2" }),
+              diagram({ id: "flow", title: "Inspect: Control Flow", body: "flowchart TD\n  A[Input] --> B[Output]" }),
+              chart({
+                id: "trend",
+                title: "Runtime Trend",
+                type: "line",
+                xLabel: "Attempt",
+                yLabel: "Seconds",
+                points: [
+                  { label: "First", value: 8 },
+                  { label: "Second", value: 5 }
+                ]
+              }),
               callout({ id: "note", tone: "key-idea", body: "Blocks are semantic." }),
               glossary({
                 id: "core-terms",
@@ -270,6 +282,96 @@ test("validation rejects malformed glossary blocks", () => {
   assert.match(messages, /Text is required/);
 });
 
+test("diagram builder applies defaults and validation rejects malformed diagrams", () => {
+  const built = diagram({
+    id: "request-flow",
+    title: "Request Flow",
+    body: "sequenceDiagram\n  Client->>Server: GET /api/textbooks"
+  });
+
+  assert.equal(built.kind, "diagram");
+  assert.equal(built.props.syntax, "mermaid");
+
+  const invalid = textbook({
+    id: "diagram-validation",
+    title: "Diagram Validation",
+    chapters: [chapter({
+      id: "broken",
+      title: "Broken",
+      sections: [section({
+        id: "visuals",
+        title: "Visuals",
+        blocks: [{
+          kind: "diagram",
+          id: "bad-diagram",
+          props: { syntax: "graphviz", body: "" }
+        }]
+      })]
+    })]
+  });
+
+  const messages = validateTextbook(invalid).map((problem) => problem.message).join("\n");
+  assert.match(messages, /Diagram syntax must be mermaid/);
+  assert.match(messages, /Text is required/);
+});
+
+test("chart builder preserves structured points and validation rejects malformed charts", () => {
+  const built = chart({
+    id: "cache-latency",
+    title: "Cache Latency",
+    type: "bar",
+    xLabel: "Strategy",
+    yLabel: "Milliseconds",
+    points: [
+      { label: "None", value: 240 },
+      { label: "Memory", value: 35 }
+    ]
+  });
+
+  assert.equal(built.kind, "chart");
+  assert.deepEqual(built.props.points, [
+    { label: "None", value: 240 },
+    { label: "Memory", value: 35 }
+  ]);
+
+  const invalid = textbook({
+    id: "chart-validation",
+    title: "Chart Validation",
+    chapters: [chapter({
+      id: "broken",
+      title: "Broken",
+      sections: [section({
+        id: "visuals",
+        title: "Visuals",
+        blocks: [{
+          kind: "chart",
+          id: "bad-chart",
+          props: {
+            title: "",
+            type: "scatter",
+            xLabel: 3,
+            points: [{ label: "", value: Number.NaN }]
+          }
+        }, {
+          kind: "chart",
+          id: "short-line",
+          props: {
+            title: "Short Line",
+            type: "line",
+            points: [{ label: "Only", value: 1 }]
+          }
+        }]
+      })]
+    })]
+  });
+
+  const messages = validateTextbook(invalid).map((problem) => problem.message).join("\n");
+  assert.match(messages, /Chart type must be bar or line/);
+  assert.match(messages, /Text is required/);
+  assert.match(messages, /Chart point value must be a finite number/);
+  assert.match(messages, /Line charts must contain at least two points/);
+});
+
 test("transformation builder applies defaults and preserves supported artifacts", () => {
   const built = transformation({
     id: "evidence-to-claim",
@@ -349,7 +451,7 @@ test("validation rejects malformed transformation artifacts", () => {
   assert.match(messages, /cells must be strings/);
 });
 
-test("transformation blocks do not satisfy chapter practice requirements", () => {
+test("visual example blocks do not satisfy chapter practice requirements", () => {
   const example = transformation({
     id: "worked-example",
     title: "Practice: Starting State To Result",
@@ -369,7 +471,12 @@ test("transformation blocks do not satisfy chapter practice requirements", () =>
         section({
           id: "examples",
           title: "Examples",
-          blocks: [example, { ...example, id: "worked-example-two" }, { ...example, id: "worked-example-three" }, { ...example, id: "worked-example-four" }]
+          blocks: [
+            example,
+            diagram({ id: "practice-flow", title: "Practice Flow", body: "flowchart TD\n  A --> B" }),
+            chart({ id: "practice-chart", title: "Practice Trend", type: "bar", points: [{ label: "A", value: 1 }] }),
+            { ...example, id: "worked-example-four" }
+          ]
         }),
         section({ id: "ending", title: "Ending", blocks: [] })
       ]
