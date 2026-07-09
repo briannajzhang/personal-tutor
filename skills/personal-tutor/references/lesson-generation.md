@@ -139,8 +139,10 @@ After this chapter, the learner should be able to...
 ## Prerequisites
 - ...
 
-## New Terms To Define
+## Terms To Teach In Prose
 - term: plain-language definition
+
+These are terms the chapter must introduce clearly in the lesson flow. Do not treat this list as a glossary plan by default.
 
 ## Central Mechanism Or Mental Model
 ...
@@ -199,6 +201,7 @@ For each independent task, list the required concepts and where each was taught 
 - `transformation`:
 - `quiz` / `balancedQuiz`: learner move, question format, and review target
 - `codingProblem`:
+- `glossary`: omit unless there is a later-retrieval reason; if included, name the term cluster and retrieval purpose
 
 ## Mastery Check
 The chapter is complete only if the learner can...

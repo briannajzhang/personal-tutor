@@ -144,13 +144,19 @@ Avoid visuals with vague node names, unlabeled arrows that mix meanings, decorat
 
 ## Glossaries
 
-Use `glossary(...)` only when the learner has already met a meaningful cluster of terms they will benefit from retrieving later. Prefer durable, reused, central, or easily confused terms; skip incidental labels or vocabulary the chapter does not build on.
+Use `glossary(...)` only when later retrieval or distinction-making is genuinely useful to the learner. A glossary is optional; it is not a chapter-completion marker, a summary block, or the natural destination for every term defined in prose.
+
+First decide whether the learner will need to recall, distinguish, or reuse a meaningful cluster of terms after the current explanation is over. If not, define the terms inline and rely on examples, checks, practice, or review instead.
+
+For term selection, prefer durable retrieval handles: recurring formal terms, central mechanisms, syntax or API names, and concepts that are easy to confuse with neighboring ideas. Skip ordinary language, one-off labels, local example names, section headings, broad topic categories, and vocabulary the chapter mentions but does not build on.
 
 Treat glossary terms as retrieval handles. Use the exact form the learner saw in the lesson, with inline code formatting for code-like terms.
 
+A term can be important enough to define in prose without being important enough for a glossary. Prefer a smaller set the learner would actually study over a complete-looking list.
+
 Teach concepts first with prose, examples, mechanisms, boundary cases, and checks. A glossary should not be the first or only teaching move for a concept.
 
-Many good chapters do not need a glossary.
+Many good chapters should simply define terms inline and use practice or review instead of a glossary.
 
 Do not place visible definitions immediately before definition-recall questions unless the section is intentionally guided.
 
