@@ -125,6 +125,8 @@ write(join(nodeModules, "katex", "package.json"), JSON.stringify({ main: "dist/k
 write(join(nodeModules, "katex", "dist", "katex.min.css"), "/* fake katex */\\n");
 write(join(nodeModules, "katex", "dist", "katex.min.js"), "window.katex = {};\\n");
 write(join(nodeModules, "katex", "dist", "fonts", ".keep"), "");
+write(join(nodeModules, "mermaid", "package.json"), JSON.stringify({ name: "mermaid" }, null, 2));
+write(join(nodeModules, "mermaid", "dist", "mermaid.esm.min.mjs"), "export default { initialize() {}, render() { return { svg: '<svg></svg>' }; } };\\n");
 write(join(nodeModules, "monaco-editor", "package.json"), JSON.stringify({ name: "monaco-editor" }, null, 2));
 write(join(nodeModules, "monaco-editor", "min", "vs", ".keep"), "");
 `);
