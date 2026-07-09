@@ -98,6 +98,25 @@ If yes, use `transformation(...)` unless ordinary semantic blocks are clearer.
 
 Every transformation must show a coherent input -> operation -> output relationship. If the explanation relies on a baseline, temporary state, intermediate result, rejected input, or comparison output, that artifact should be visible.
 
+### Visual Coherence
+
+Treat diagrams and charts as visual examples, not practice by themselves.
+
+Revise when:
+
+- a diagram's arrows or nodes do not have a clear meaning
+- a diagram's title or readout claims a boundary, ownership model, lifecycle, or state change that the visual does not show
+- arrows mix meanings or omit labels when the payload, action, or responsibility is not obvious
+- generic node labels could apply to almost any system
+- the visual repeats prose as a decorative flowchart instead of revealing a relationship
+- a chart uses arbitrary scores without defining the scale
+- a chart's axis labels do not explain what the values measure
+- a chart's y-axis unit or denominator is unclear
+- one chart mixes unlike metrics, units, or denominators
+- generic chart labels such as `Signal`, `Value`, or `Score` create ambiguity
+- a qualitative tradeoff would be clearer as prose, a list, a table, or `transformation(...)`
+- a visual lacks nearby framing for what to inspect or a readout of what it shows
+
 ## Authoring Validation Notes
 
 Ordinary generation should create concise `review-notes.md`:
@@ -218,6 +237,7 @@ Revise before finalizing when material is:
 - using prose-only programming exercises where runnable practice would help
 - containing under-specified coding problems
 - repetitive in chapter shape or voice
+- using diagrams or charts as decoration, vague summaries, or fake precision
 - requiring untaught moves in independent tasks
 - claiming compile or verification evidence that was not actually run
 - claiming source alignment without source notes

@@ -44,7 +44,7 @@ tutor init
 tutor init --starter
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
-tutor add block <p|heading|list|codeBlock|mathBlock|callout|transformation|glossary|quiz|codingProblem>
+tutor add block <p|heading|list|codeBlock|mathBlock|diagram|chart|callout|transformation|glossary|quiz|codingProblem>
 tutor list textbooks
 tutor inspect textbook <id>
 tutor compile
@@ -141,9 +141,11 @@ Import builders from `tutor-kit`:
 import {
   balancedQuiz,
   callout,
+  chart,
   chapter,
   codeBlock,
   codingProblem,
+  diagram,
   glossary,
   list,
   mathBlock,
@@ -164,6 +166,8 @@ Use blocks by teaching purpose:
 - `list`: concrete tasks, comparisons, retrieval prompts, or scan-friendly points.
 - `codeBlock`: exact code, query, command, schema, or structured example.
 - `mathBlock`: displayed equation or notation.
+- `diagram`: visual flow, relationship, hierarchy, state transition, or system structure.
+- `chart`: small numeric comparison or trend.
 - `callout`: misconception, warning, boundary case, or key idea.
 - `transformation`: inspectable input -> operation -> output worked example.
 - `glossary`: compact reference for durable terms the learner has already met.
@@ -177,6 +181,36 @@ Quiz questions should set `kind: "multiple-choice"` when they use `choices` and 
 `callout` tones are `note`, `caution`, and `key-idea`.
 
 `transformation` artifact formats are `markdown`, `code`, `math`, and `table`. Use `layout: "auto"` unless `flow` or `compare` is clearly better.
+
+Use `diagram(...)` when a relationship, flow, branching decision, ownership handoff, or structure is clearer visually:
+
+```ts
+diagram({
+  id: "request-flow",
+  title: "Browser To Server Handoff",
+  body: "sequenceDiagram\n  Browser->>Server: GET /api/textbooks\n  Server-->>Browser: JSON textbook list\n  Browser->>Browser: Render chapter links"
+});
+```
+
+Choose Mermaid syntax that matches the teaching purpose, such as `sequenceDiagram` for ordered handoffs or `flowchart` subgraphs for trust or ownership zones.
+
+Use `chart(...)` for simple single-series numeric comparisons or trends. Chart titles and labels should define the metric, unit, and comparison set clearly enough that the learner does not have to guess what the numbers mean. Qualitative tradeoffs usually belong in prose, a list, a table, or `transformation(...)`.
+
+```ts
+chart({
+  id: "checkout-outcomes-one-hour",
+  title: "Checkout Attempt Outcomes, Last Hour",
+  type: "bar",
+  xLabel: "Outcome",
+  yLabel: "Percent of checkout attempts",
+  points: [
+    { label: "Success", value: 91 },
+    { label: "Payment error", value: 4 },
+    { label: "Inventory error", value: 3 },
+    { label: "Unknown error", value: 2 }
+  ]
+});
+```
 
 `glossary` entries contain `term` and `definition`; `title` defaults to `Glossary`.
 
