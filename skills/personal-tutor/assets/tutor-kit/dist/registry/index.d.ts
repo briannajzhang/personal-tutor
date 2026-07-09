@@ -24,6 +24,16 @@ export declare const builtInBlockRegistry: {
         title: string;
         create: typeof import("../index.js").mathBlock;
     };
+    diagram: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").diagram;
+    };
+    chart: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").chart;
+    };
     callout: {
         kind: string;
         title: string;
@@ -75,6 +85,16 @@ export declare const builtInWidgetRegistry: {
         kind: string;
         title: string;
         create: typeof import("../index.js").mathBlock;
+    };
+    diagram: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").diagram;
+    };
+    chart: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").chart;
     };
     callout: {
         kind: string;

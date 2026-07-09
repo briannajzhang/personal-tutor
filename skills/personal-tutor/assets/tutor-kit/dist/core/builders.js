@@ -100,6 +100,30 @@ export function mathBlock(input) {
         }
     };
 }
+export function diagram(input) {
+    return {
+        kind: "diagram",
+        id: requireText(input.id, "diagram.id"),
+        props: {
+            title: input.title,
+            syntax: input.syntax ?? "mermaid",
+            body: requireText(input.body, "diagram.body")
+        }
+    };
+}
+export function chart(input) {
+    return {
+        kind: "chart",
+        id: requireText(input.id, "chart.id"),
+        props: {
+            title: requireText(input.title, "chart.title"),
+            type: input.type,
+            xLabel: input.xLabel,
+            yLabel: input.yLabel,
+            points: requireChartPoints(input.points, "chart.points")
+        }
+    };
+}
 export function callout(input) {
     return {
         kind: "callout",
@@ -249,6 +273,21 @@ function requireGlossaryEntries(value, label) {
         term: requireText(entry.term, `${label}[${index}].term`),
         definition: requireText(entry.definition, `${label}[${index}].definition`)
     }));
+}
+function requireChartPoints(value, label) {
+    if (!Array.isArray(value) || value.length === 0) {
+        throw new Error(`${label} must contain at least one point`);
+    }
+    return value.map((point, index) => ({
+        label: requireText(point.label, `${label}[${index}].label`),
+        value: requireFiniteNumber(point.value, `${label}[${index}].value`)
+    }));
+}
+function requireFiniteNumber(value, label) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        throw new Error(`${label} must be a finite number`);
+    }
+    return value;
 }
 function balanceQuizQuestions(quizId, questions) {
     const offset = stableHash(quizId) % 4;
