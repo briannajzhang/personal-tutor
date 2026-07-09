@@ -123,7 +123,14 @@ Treat glossaries as optional study aids for later retrieval, not as proof that v
 
 Revise when:
 
+- a glossary feels like the default ending for a chapter
+- entries merely repeat nearby definitions without later study value
+- entries include ordinary words, one-off labels, local example names, section headings, broad topic categories, or vocabulary the chapter does not build on
+- the glossary contains every newly defined term instead of a selected set of durable retrieval handles
 - glossary placement makes the block feel like first teaching, a default chapter ending, or separated from the term cluster it supports
+- terms appear in the glossary before the learner has met them in prose, examples, or checks
+
+If a glossary does not earn its place, omit it.
 
 ## Authoring Validation Notes
 
@@ -246,6 +253,7 @@ Revise before finalizing when material is:
 - containing under-specified coding problems
 - repetitive in chapter shape or voice
 - using diagrams or charts as decoration, vague summaries, or fake precision
+- using glossaries as decorative summaries or vocabulary dumps
 - requiring untaught moves in independent tasks
 - claiming compile or verification evidence that was not actually run
 - claiming source alignment without source notes
