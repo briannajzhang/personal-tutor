@@ -3,6 +3,7 @@ import { mkdirSync, appendFileSync, createReadStream, watch } from "node:fs";
 import { join } from "node:path";
 import { html } from "../ui/app.js";
 import { katexCssPath, katexFontPath, katexJsPath } from "../ui/katex-assets.js";
+import { mermaidAssetPath, mermaidJsPath } from "../ui/mermaid-assets.js";
 import { monacoAssetPath } from "../ui/monaco-assets.js";
 import { invalidateWorkspaceCaches, loadTextbooks, resolveWorkspace } from "../compile/discover.js";
 import { summarizeChapter, summarizeTextbook } from "../core/validation.js";
@@ -50,6 +51,15 @@ async function handleRequest(cwd, request, response) {
     }
     if (request.method === "GET" && url.pathname === "/__tutor-assets/katex/katex.min.js") {
         sendFile(response, katexJsPath());
+        return;
+    }
+    if (request.method === "GET" && url.pathname === "/__tutor-assets/mermaid/mermaid.esm.min.mjs") {
+        sendFile(response, mermaidJsPath());
+        return;
+    }
+    const mermaidMatch = url.pathname.match(/^\/__tutor-assets\/mermaid\/(.+)$/);
+    if (request.method === "GET" && mermaidMatch) {
+        sendFile(response, mermaidAssetPath(decodeURIComponent(mermaidMatch[1] ?? "")));
         return;
     }
     const monacoMatch = url.pathname.match(/^\/__tutor-assets\/monaco\/vs\/(.+)$/);
@@ -252,6 +262,8 @@ function sendFile(response, path) {
         .pipe(response);
 }
 function contentType(path) {
+    if (path.endsWith(".mjs"))
+        return "text/javascript; charset=utf-8";
     if (path.endsWith(".js"))
         return "text/javascript; charset=utf-8";
     if (path.endsWith(".css"))

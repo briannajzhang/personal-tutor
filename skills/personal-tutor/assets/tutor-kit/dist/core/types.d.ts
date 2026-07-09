@@ -1,4 +1,4 @@
-export type BlockKind = "p" | "heading" | "list" | "codeBlock" | "mathBlock" | "callout" | "transformation" | "codingProblem" | "quiz" | "glossary" | "explanation" | "blurb" | (string & {});
+export type BlockKind = "p" | "heading" | "list" | "codeBlock" | "mathBlock" | "diagram" | "chart" | "callout" | "transformation" | "codingProblem" | "quiz" | "glossary" | "explanation" | "blurb" | (string & {});
 export interface CodeRuntimeConfig {
     command?: string;
     env?: Record<string, string>;
@@ -37,6 +37,23 @@ export interface CodeBlockProps {
 }
 export interface MathBlockProps {
     body: string;
+}
+export interface DiagramProps {
+    title?: string;
+    syntax: "mermaid";
+    body: string;
+}
+export type ChartType = "bar" | "line";
+export interface ChartPoint {
+    label: string;
+    value: number;
+}
+export interface ChartProps {
+    title: string;
+    type: ChartType;
+    xLabel?: string;
+    yLabel?: string;
+    points: ChartPoint[];
 }
 export type CalloutTone = "note" | "caution" | "key-idea";
 export interface CalloutProps {
@@ -164,6 +181,8 @@ export type HeadingBlock = BaseBlock<"heading", HeadingProps>;
 export type ListBlock = BaseBlock<"list", ListProps>;
 export type CodeBlock = BaseBlock<"codeBlock", CodeBlockProps>;
 export type MathBlock = BaseBlock<"mathBlock", MathBlockProps>;
+export type DiagramBlock = BaseBlock<"diagram", DiagramProps>;
+export type ChartBlock = BaseBlock<"chart", ChartProps>;
 export type CalloutBlock = BaseBlock<"callout", CalloutProps>;
 export type TransformationBlock = BaseBlock<"transformation", TransformationProps>;
 export type CodingProblemBlock = BaseBlock<"codingProblem", CodingProblemProps>;
@@ -173,7 +192,7 @@ export type ExplanationBlock = BaseBlock<"explanation", ParagraphProps & {
     title?: string;
 }>;
 export type BlurbBlock = ExplanationBlock;
-export type TutorBlock = ParagraphBlock | HeadingBlock | ListBlock | CodeBlock | MathBlock | CalloutBlock | TransformationBlock | CodingProblemBlock | QuizBlock | GlossaryBlock | ExplanationBlock | BaseBlock;
+export type TutorBlock = ParagraphBlock | HeadingBlock | ListBlock | CodeBlock | MathBlock | DiagramBlock | ChartBlock | CalloutBlock | TransformationBlock | CodingProblemBlock | QuizBlock | GlossaryBlock | ExplanationBlock | BaseBlock;
 export interface Subsection {
     id: string;
     title: string;

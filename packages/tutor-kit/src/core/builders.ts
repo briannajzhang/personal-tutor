@@ -5,11 +5,16 @@ import type {
   BlurbBlock,
   CalloutBlock,
   CalloutProps,
+  ChartBlock,
+  ChartPoint,
+  ChartType,
   CodingProblemAction,
   CodingProblemBlock,
   CodingProblemFile,
   CodingProblemProps,
   CodeBlock,
+  DiagramBlock,
+  DiagramProps,
   GlossaryBlock,
   HeadingBlock,
   HeadingProps,
@@ -90,6 +95,25 @@ interface CodeBlockInput extends BlockInput {
 
 interface MathBlockInput extends BlockInput {
   body: string;
+}
+
+interface DiagramInput extends BlockInput {
+  title?: string;
+  syntax?: DiagramProps["syntax"];
+  body: string;
+}
+
+interface ChartPointInput {
+  label: string;
+  value: number;
+}
+
+interface ChartInput extends BlockInput {
+  title: string;
+  type: ChartType;
+  xLabel?: string;
+  yLabel?: string;
+  points: ChartPointInput[];
 }
 
 interface CalloutInput extends BlockInput {
@@ -316,6 +340,32 @@ export function mathBlock(input: MathBlockInput): MathBlock {
   };
 }
 
+export function diagram(input: DiagramInput): DiagramBlock {
+  return {
+    kind: "diagram",
+    id: requireText(input.id, "diagram.id"),
+    props: {
+      title: input.title,
+      syntax: input.syntax ?? "mermaid",
+      body: requireText(input.body, "diagram.body")
+    }
+  };
+}
+
+export function chart(input: ChartInput): ChartBlock {
+  return {
+    kind: "chart",
+    id: requireText(input.id, "chart.id"),
+    props: {
+      title: requireText(input.title, "chart.title"),
+      type: input.type,
+      xLabel: input.xLabel,
+      yLabel: input.yLabel,
+      points: requireChartPoints(input.points, "chart.points")
+    }
+  };
+}
+
 export function callout(input: CalloutInput): CalloutBlock {
   return {
     kind: "callout",
@@ -480,6 +530,23 @@ function requireGlossaryEntries(value: GlossaryEntryInput[], label: string): Glo
     term: requireText(entry.term, `${label}[${index}].term`),
     definition: requireText(entry.definition, `${label}[${index}].definition`)
   }));
+}
+
+function requireChartPoints(value: ChartPointInput[], label: string): ChartPoint[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`${label} must contain at least one point`);
+  }
+  return value.map((point, index) => ({
+    label: requireText(point.label, `${label}[${index}].label`),
+    value: requireFiniteNumber(point.value, `${label}[${index}].value`)
+  }));
+}
+
+function requireFiniteNumber(value: number, label: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`${label} must be a finite number`);
+  }
+  return value;
 }
 
 function balanceQuizQuestions(quizId: string, questions: QuizQuestionInput[]): QuizQuestionInput[] {

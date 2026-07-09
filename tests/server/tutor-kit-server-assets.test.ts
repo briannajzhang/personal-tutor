@@ -315,6 +315,14 @@ export default textbook({
     assert.match(page, /scrollToHashTarget/);
     assert.match(page, /grid-template-columns: 1fr/);
     assert.match(page, /renderTransformation/);
+    assert.match(page, /renderDiagram/);
+    assert.match(page, /renderDiagrams/);
+    assert.match(page, /loadMermaid/);
+    assert.match(page, /mermaid\.esm\.min\.mjs/);
+    assert.match(page, /renderChart/);
+    assert.match(page, /renderChartSvg/);
+    assert.match(page, /chart-svg/);
+    assert.match(page, /diagram-source/);
     assert.match(page, /transformation-stages/);
     assert.match(page, /transformation-table/);
     assert.match(page, /transformation-focus/);
@@ -358,6 +366,18 @@ export default textbook({
     const fontResponse = await fetch(`${server.url}/__tutor-assets/katex/fonts/KaTeX_Main-Regular.woff2`);
     assert.equal(fontResponse.status, 200);
     assert.equal(fontResponse.headers.get("content-type"), "font/woff2");
+
+    const mermaidResponse = await fetch(`${server.url}/__tutor-assets/mermaid/mermaid.esm.min.mjs`);
+    assert.equal(mermaidResponse.status, 200);
+    assert.equal(mermaidResponse.headers.get("content-type"), "text/javascript; charset=utf-8");
+    const mermaidSource = await mermaidResponse.text();
+    const mermaidChunkPath = mermaidSource.match(/from"\.\/([^"]+\.mjs)"/)?.[1]
+      ?? mermaidSource.match(/import"\.\/([^"]+\.mjs)"/)?.[1];
+    assert.ok(mermaidChunkPath, "expected Mermaid bundle to reference at least one chunk");
+    const mermaidChunkResponse = await fetch(`${server.url}/__tutor-assets/mermaid/${mermaidChunkPath}`);
+    assert.equal(mermaidChunkResponse.status, 200);
+    assert.equal(mermaidChunkResponse.headers.get("content-type"), "text/javascript; charset=utf-8");
+    await mermaidChunkResponse.text();
     await fontResponse.arrayBuffer();
 
     const katexCssResponse = await fetch(`${server.url}/__tutor-assets/katex/katex.min.css`);

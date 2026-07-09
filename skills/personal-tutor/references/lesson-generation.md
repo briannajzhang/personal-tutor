@@ -177,6 +177,7 @@ Secondary mechanisms introduced but deferred:
 - visible result, output, or conclusion:
 - explanation of why that result follows:
 - representation: `transformation(...)` or ordinary semantic blocks, with reason
+- visual representation, if useful: what the learner should inspect and why `diagram(...)`, `chart(...)`, or none is clearer than prose, list, table, or `transformation(...)`
 
 ## Practice Plan
 - guided practice:

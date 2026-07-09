@@ -9,6 +9,7 @@ Use this reference when writing learner-facing Tutor Kit chapters, sections, exa
 - Teaching prose
 - Worked examples
 - Semantic blocks
+- Choosing visual blocks
 - Glossaries
 - Transformation blocks
 - Quizzes in lessons
@@ -111,6 +112,8 @@ Use semantic blocks as teaching moves:
 - `list`: give concrete tasks, comparisons, retrieval prompts, or scan-friendly points.
 - `codeBlock`: show exact code, queries, commands, schemas, or structured examples.
 - `mathBlock`: show displayed equations or formal notation.
+- `diagram`: show a flow, relationship, hierarchy, state transition, or system structure.
+- `chart`: show a small numeric comparison or trend.
 - `callout`: protect the learner from a misconception, warning, boundary, or key idea.
 - `transformation`: model an inspectable input-to-result relationship.
 - `glossary`: give compact retrieval support for important terms already introduced in prose.
@@ -122,6 +125,22 @@ Prefer several semantic blocks over one giant Markdown string.
 Before a `codeBlock`, `mathBlock`, table, diagram, formal notation, or example, tell the learner what to inspect. After it, explain what it showed.
 
 `explanation` and `blurb` are legacy aliases. Do not use them in new material.
+
+## Choosing Visual Blocks
+
+Use visual blocks when the learner benefits from seeing the relationship directly, not because a chapter needs decoration.
+
+Use `diagram(...)` when the learner needs to trace parts, relationships, ownership, sequence, boundaries, branching, loops, or state changes. Good diagrams make arrow meanings and node labels concrete.
+
+For diagrams, match the visual shape to the teaching claim. Boundaries should look like zones, flows should label payloads or actions, sequences should preserve order, and state changes should show transitions. A diagram should answer one inspection question: what connects, moves, changes, branches, or owns the work?
+
+Use `chart(...)` when the learner needs to compare numeric magnitude, direction, trend, threshold, or outlier. Good charts use a defined metric or scale.
+
+For charts, make one numeric inspection question visible: what magnitude, direction, trend, threshold, or outlier should the learner compare? Axis labels should name the category or time dimension and the measured unit or denominator, such as `Outcome` and `Percent of checkout attempts`. Avoid vague labels like `Signal`, `Score`, or `Value` unless the surrounding text defines the metric or scale. Avoid mixing different units or denominators in one chart.
+
+Prefer prose, lists, code, math, `transformation(...)`, or a table when the teaching move is qualitative, definitional, or a concrete input-to-output model.
+
+Avoid visuals with vague node names, unlabeled arrows that mix meanings, decorative flowcharts, or scores that imply precision without a defined scale. Split or replace diagrams that mix unrelated meanings, such as buyer/user roles, data movement, and product output in one unclear picture. Frame what to inspect before the visual and explain the takeaway afterward.
 
 ## Glossaries
 

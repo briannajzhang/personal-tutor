@@ -489,6 +489,81 @@ h1 {
 .math .katex {
   font-size: 1.02em;
 }
+.diagram,
+.chart {
+  margin: 6px 0 16px;
+}
+.diagram-title,
+.chart-title {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 560;
+  letter-spacing: 0;
+}
+.diagram-body,
+.chart-body {
+  overflow: auto;
+  padding: 16px;
+  background: color-mix(in srgb, var(--panel) 32%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
+  border-radius: 6px;
+}
+.diagram-body svg,
+.chart-svg {
+  display: block;
+  max-width: 100%;
+}
+.diagram-source,
+.diagram-error {
+  margin-top: 10px;
+}
+.diagram-error {
+  color: var(--accent-2);
+  font-size: 13px;
+}
+.chart-svg {
+  width: 100%;
+  height: auto;
+}
+.chart-axis,
+.chart-grid {
+  stroke: color-mix(in srgb, var(--line) 78%, transparent);
+  stroke-width: 1;
+}
+.chart-grid {
+  stroke-dasharray: 4 5;
+}
+.chart-bar {
+  fill: color-mix(in srgb, var(--accent) 76%, var(--paper));
+}
+.chart-line,
+.chart-point {
+  stroke: var(--accent-2);
+}
+.chart-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chart-point {
+  fill: var(--paper);
+  stroke-width: 2;
+}
+.chart-label,
+.chart-value,
+.chart-axis-label {
+  fill: var(--ink-soft);
+  font-size: 12px;
+}
+.chart-axis-label {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
 .callout {
   margin: 4px 0 14px;
   padding: 14px 16px;
@@ -2123,6 +2198,7 @@ let highlightSelectionController = null;
 const codingStates = new Map();
 const quizStates = new Map();
 let monacoReady = null;
+let mermaidReady = null;
 let routeToken = 0;
 
 async function load() {
@@ -3292,6 +3368,7 @@ async function renderChapter(textbookId, chapterId) {
   bindQuizzes(chapter);
   bindCodingProblems(chapter);
   scheduleTransformationLayouts();
+  void renderDiagrams();
   if (document.fonts?.ready) void document.fonts.ready.then(scheduleTransformationLayouts);
   finishRouteLoad(token);
   scrollToHashTarget(window.location.hash, "auto");
@@ -3505,6 +3582,12 @@ function renderBlock(block, context) {
   if (block.kind === "mathBlock") {
     return \`<div class="math-block"\${highlightUnsupportedAttrs()}>\${renderMath(block.props.body, true)}</div>\`;
   }
+  if (block.kind === "diagram") {
+    return renderDiagram(block);
+  }
+  if (block.kind === "chart") {
+    return renderChart(block);
+  }
   if (block.kind === "callout") {
     const title = block.props.title ? block.props.title : block.props.tone.replace("-", " ");
     return \`<aside class="callout \${escapeAttr(block.props.tone)}"><div class="callout-title"\${highlightUnsupportedAttrs()}>\${escapeHtml(title)}</div><div class="markdown"\${highlightAnchorAttrs(block, context)}>\${renderMarkdown(block.props.body)}</div></aside>\`;
@@ -3537,6 +3620,222 @@ function highlightAnchorAttrs(block, context) {
 
 function highlightUnsupportedAttrs() {
   return ' data-highlight-unsupported="true"';
+}
+
+function renderDiagram(block) {
+  const title = block.props.title
+    ? \`<h4 class="diagram-title">\${escapeHtml(block.props.title)}</h4>\`
+    : "";
+  return \`
+    <article class="block diagram" data-diagram="\${escapeAttr(block.id)}"\${highlightUnsupportedAttrs()}>
+      \${title}
+      <div class="diagram-body" data-diagram-body>
+        <pre class="diagram-source code-block" data-diagram-source>\${escapeHtml(block.props.body)}</pre>
+      </div>
+    </article>
+  \`;
+}
+
+async function renderDiagrams() {
+  const diagrams = [...document.querySelectorAll("[data-diagram]")];
+  if (diagrams.length === 0) return;
+  let mermaid;
+  try {
+    mermaid = await loadMermaid();
+  } catch (error) {
+    diagrams.forEach((element) => renderDiagramError(element, error));
+    return;
+  }
+  for (const element of diagrams) {
+    if (element.dataset.diagramRendered === "true") continue;
+    const source = element.querySelector("[data-diagram-source]")?.textContent ?? "";
+    const target = element.querySelector("[data-diagram-body]");
+    if (!target || !source.trim()) continue;
+    try {
+      const id = "diagram_" + stableHash(element.dataset.diagram + ":" + source);
+      const result = await mermaid.render(id, source);
+      target.innerHTML = result.svg;
+      result.bindFunctions?.(target);
+      element.dataset.diagramRendered = "true";
+    } catch (error) {
+      renderDiagramError(element, error);
+    }
+  }
+}
+
+function renderDiagramError(element, error) {
+  const target = element.querySelector("[data-diagram-body]");
+  const source = element.querySelector("[data-diagram-source]")?.textContent ?? "";
+  if (!target) return;
+  target.innerHTML = \`
+    <div class="diagram-error">Diagram could not be rendered.</div>
+    <pre class="diagram-source code-block">\${escapeHtml(source || String(error?.message ?? error ?? ""))}</pre>
+  \`;
+  element.dataset.diagramRendered = "error";
+}
+
+function renderChart(block) {
+  return \`
+    <article class="block chart"\${highlightUnsupportedAttrs()}>
+      <h4 class="chart-title">\${escapeHtml(block.props.title)}</h4>
+      <div class="chart-body">\${renderChartSvg(block.props)}</div>
+    </article>
+  \`;
+}
+
+function renderChartSvg(props) {
+  const points = Array.isArray(props.points)
+    ? props.points
+      .map((point) => ({
+        label: String(point?.label ?? ""),
+        value: Number(point?.value)
+      }))
+      .filter((point) => point.label.trim() && Number.isFinite(point.value))
+    : [];
+  if (points.length === 0) {
+    return \`<div class="diagram-error">Chart has no valid points.</div>\`;
+  }
+
+  const width = 720;
+  const height = 340;
+  const margin = { top: 24, right: 26, bottom: 70, left: 62 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const scale = chartScale(props, points);
+  const minValue = scale.minValue;
+  const maxValue = scale.maxValue;
+  const yForValue = (value) => margin.top + ((maxValue - value) / (maxValue - minValue)) * plotHeight;
+  const zeroY = yForValue(0);
+  const ticks = scale.ticks;
+  const chartContent = props.type === "line"
+    ? renderLineChart(points, margin, plotWidth, plotHeight, yForValue)
+    : renderBarChart(points, margin, plotWidth, zeroY, yForValue);
+  const xLabel = props.xLabel ? \`<text class="chart-axis-label" x="\${width / 2}" y="\${height - 10}" text-anchor="middle">\${escapeHtml(props.xLabel)}</text>\` : "";
+  const yLabel = props.yLabel ? \`<text class="chart-axis-label" x="16" y="\${height / 2}" text-anchor="middle" transform="rotate(-90 16 \${height / 2})">\${escapeHtml(props.yLabel)}</text>\` : "";
+
+  return \`
+    <svg class="chart-svg" viewBox="0 0 \${width} \${height}" role="img" aria-label="\${escapeAttr(props.title)}">
+      <title>\${escapeHtml(props.title)}</title>
+      \${ticks.map((tick) => {
+        const y = yForValue(tick);
+        return \`
+          <line class="chart-grid" x1="\${margin.left}" y1="\${formatNumber(y)}" x2="\${width - margin.right}" y2="\${formatNumber(y)}"></line>
+          <text class="chart-value" x="\${margin.left - 10}" y="\${formatNumber(y + 4)}" text-anchor="end">\${escapeHtml(formatTick(tick))}</text>
+        \`;
+      }).join("")}
+      <line class="chart-axis" x1="\${margin.left}" y1="\${formatNumber(margin.top)}" x2="\${margin.left}" y2="\${formatNumber(height - margin.bottom)}"></line>
+      <line class="chart-axis" x1="\${margin.left}" y1="\${formatNumber(zeroY)}" x2="\${width - margin.right}" y2="\${formatNumber(zeroY)}"></line>
+      \${chartContent}
+      \${xLabel}
+      \${yLabel}
+    </svg>
+  \`;
+}
+
+function renderBarChart(points, margin, plotWidth, zeroY, yForValue) {
+  const step = plotWidth / points.length;
+  const barWidth = Math.max(10, Math.min(64, step * 0.58));
+  return points.map((point, index) => {
+    const centerX = margin.left + step * index + step / 2;
+    const y = yForValue(point.value);
+    const top = Math.min(y, zeroY);
+    const height = Math.abs(zeroY - y);
+    return \`
+      <rect class="chart-bar" x="\${formatNumber(centerX - barWidth / 2)}" y="\${formatNumber(top)}" width="\${formatNumber(barWidth)}" height="\${formatNumber(height)}"></rect>
+      <text class="chart-label" x="\${formatNumber(centerX)}" y="\${formatNumber(zeroY + 18)}" text-anchor="middle">\${escapeHtml(truncateChartLabel(point.label))}</text>
+    \`;
+  }).join("");
+}
+
+function renderLineChart(points, margin, plotWidth, plotHeight, yForValue) {
+  const xForIndex = (index) => points.length === 1
+    ? margin.left + plotWidth / 2
+    : margin.left + (index / (points.length - 1)) * plotWidth;
+  const path = points.map((point, index) => {
+    const command = index === 0 ? "M" : "L";
+    return command + formatNumber(xForIndex(index)) + " " + formatNumber(yForValue(point.value));
+  }).join(" ");
+  return \`
+    <path class="chart-line" d="\${escapeAttr(path)}"></path>
+    \${points.map((point, index) => {
+      const x = xForIndex(index);
+      return \`
+        <circle class="chart-point" cx="\${formatNumber(x)}" cy="\${formatNumber(yForValue(point.value))}" r="4"></circle>
+        <text class="chart-label" x="\${formatNumber(x)}" y="\${formatNumber(margin.top + plotHeight + 22)}" text-anchor="middle">\${escapeHtml(truncateChartLabel(point.label))}</text>
+      \`;
+    }).join("")}
+  \`;
+}
+
+function chartScale(props, points) {
+  const values = points.map((point) => point.value);
+  const rawMin = Math.min(0, ...values);
+  const rawMax = Math.max(0, ...values);
+  if (isPercentChart(props, values)) {
+    return { minValue: 0, maxValue: 100, ticks: [0, 25, 50, 75, 100] };
+  }
+  const ticks = chartTicks(rawMin, rawMax);
+  return {
+    minValue: ticks[0],
+    maxValue: ticks[ticks.length - 1],
+    ticks
+  };
+}
+
+function isPercentChart(props, values) {
+  const yLabel = String(props?.yLabel ?? "").toLowerCase();
+  if (!yLabel.includes("%") && !yLabel.includes("percent")) return false;
+  return values.every((value) => value >= 0 && value <= 100);
+}
+
+function chartTicks(minValue, maxValue) {
+  if (minValue === maxValue) {
+    minValue -= 1;
+    maxValue += 1;
+  }
+  const step = niceChartStep(maxValue - minValue);
+  const start = Math.floor(minValue / step) * step;
+  const end = Math.ceil(maxValue / step) * step;
+  const ticks = [];
+  for (let tick = start; tick <= end + step / 2; tick += step) {
+    ticks.push(normalizeChartTick(tick));
+  }
+  return ticks.length >= 2 ? ticks : [start, start + step].map(normalizeChartTick);
+}
+
+function niceChartStep(range) {
+  const targetSteps = 5;
+  const roughStep = Math.abs(range) / targetSteps;
+  if (!Number.isFinite(roughStep) || roughStep === 0) return 1;
+  const exponent = Math.floor(Math.log10(roughStep));
+  const magnitude = 10 ** exponent;
+  const fraction = roughStep / magnitude;
+  let niceFraction = 10;
+  if (fraction <= 1) niceFraction = 1;
+  else if (fraction <= 2) niceFraction = 2;
+  else if (fraction <= 2.5) niceFraction = 2.5;
+  else if (fraction <= 5) niceFraction = 5;
+  return niceFraction * magnitude;
+}
+
+function normalizeChartTick(value) {
+  if (Object.is(value, -0)) return 0;
+  return Math.round(value * 1e12) / 1e12;
+}
+
+function formatTick(value) {
+  if (Math.abs(value) >= 100) return String(Math.round(value));
+  if (Math.abs(value) >= 10) return String(Math.round(value * 10) / 10);
+  return String(Math.round(value * 100) / 100);
+}
+
+function truncateChartLabel(value) {
+  const label = String(value ?? "");
+  return label.length > 14 ? label.slice(0, 13) + "..." : label;
+}
+
+function formatNumber(value) {
+  return String(Math.round(value * 100) / 100);
 }
 
 async function loadChapterHighlights(textbookId, chapterId) {
@@ -5026,6 +5325,21 @@ function loadMonaco() {
     });
   }
   return monacoReady;
+}
+
+function loadMermaid() {
+  if (!mermaidReady) {
+    mermaidReady = import("/__tutor-assets/mermaid/mermaid.esm.min.mjs")
+      .then((module) => {
+        const mermaid = module.default ?? module;
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: "strict"
+        });
+        return mermaid;
+      });
+  }
+  return mermaidReady;
 }
 
 function monacoLanguage(block, file) {
