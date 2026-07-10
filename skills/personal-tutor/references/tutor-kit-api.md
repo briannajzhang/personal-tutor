@@ -44,7 +44,7 @@ tutor init
 tutor init --starter
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
-tutor add block <p|heading|list|codeBlock|mathBlock|diagram|chart|callout|transformation|glossary|quiz|codingProblem>
+tutor add block <p|heading|list|codeBlock|mathBlock|diagram|chart|image|callout|transformation|glossary|quiz|codingProblem>
 tutor list textbooks
 tutor inspect textbook <id>
 tutor compile
@@ -147,6 +147,7 @@ import {
   codingProblem,
   diagram,
   glossary,
+  image,
   list,
   mathBlock,
   p,
@@ -168,6 +169,7 @@ Use blocks by teaching purpose:
 - `mathBlock`: displayed equation or notation.
 - `diagram`: visual flow, relationship, hierarchy, state transition, or system structure.
 - `chart`: small numeric comparison or trend.
+- `image`: durable raster artifact such as a screenshot, source figure, generated illustration, photo, scanned figure, UI capture, or concrete visual example.
 - `callout`: misconception, warning, boundary case, or key idea.
 - `transformation`: inspectable input -> operation -> output worked example.
 - `glossary`: optional compact reference for durable terms the learner has already met and will benefit from retrieving later.
@@ -225,6 +227,20 @@ glossary({
   ]
 });
 ```
+
+Use `image(...)` for durable raster artifacts that ground the learner in visual appearance, context, evidence, examples, source figures, screenshots, generated illustrations, or concrete real-world referents. Images may supplement prose, diagrams, transformations, or practice; they should be educational, alt-described, captioned when useful, and tied to the surrounding explanation. The block records the durable asset, not how it was acquired; surrounding blocks should teach how to inspect the image when the important features are not self-explanatory. Project-bound images should live under `textbooks/<textbook-id>/assets/` and be referenced with `src: "assets/..."`.
+
+```ts
+image({
+  id: "loss-surface",
+  src: "assets/loss-surface.png",
+  alt: "A bowl-shaped loss surface with arrows stepping downhill.",
+  caption: "Gradient descent follows local downhill steps.",
+  credit: "Source or credit when known"
+});
+```
+
+Agents may use generated images, source-derived figures, screenshots, user-provided materials, or online images while authoring. Save the chosen image locally before referencing it. For online images, record source or credit when known; for user-provided PDFs, slides, or notes, preserve, extract, screenshot, or recreate useful visual artifacts when they improve grounding, context, evidence, or learner recognition.
 
 ## Coding Problem Files
 

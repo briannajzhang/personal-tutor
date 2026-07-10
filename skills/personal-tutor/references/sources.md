@@ -48,6 +48,8 @@ Good source notes capture only details that affect generation:
 
 Do not summarize every page by default.
 
+When a source includes a visual artifact that materially improves the next lesson, such as a figure, screenshot, scanned diagram, or slide image, preserve, extract, screenshot, or recreate it as a textbook asset under `textbooks/<textbook-id>/assets/`. Reference it with `image({ src: "assets/..." })` and record source context or credit when known. Do not extract every visual by default.
+
 ## Workflow
 
 Before authoring from sources:

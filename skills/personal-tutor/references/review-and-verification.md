@@ -100,10 +100,13 @@ Every transformation must show a coherent input -> operation -> output relations
 
 ### Visual Coherence
 
-Treat diagrams and charts as visual examples, not practice by themselves.
+Treat images, diagrams, and charts as visual examples, not practice by themselves.
 
 Revise when:
 
+- an educationally important image lacks enough framing, caption/readout, inspection prompts, or companion structure for the learner to interpret its relevant features
+- an image's important regions, parts, states, differences, symptoms, or cues are not accurate or distinguishable enough for the teaching claim
+- an image caption explains the authoring choice instead of giving the learner an inspection task, cue, or readout
 - a diagram's arrows or nodes do not have a clear meaning
 - a diagram's title or readout claims a boundary, ownership model, lifecycle, or state change that the visual does not show
 - arrows mix meanings or omit labels when the payload, action, or responsibility is not obvious

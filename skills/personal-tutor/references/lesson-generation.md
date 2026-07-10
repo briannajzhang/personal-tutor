@@ -179,7 +179,7 @@ Secondary mechanisms introduced but deferred:
 - visible result, output, or conclusion:
 - explanation of why that result follows:
 - representation: `transformation(...)` or ordinary semantic blocks, with reason
-- visual representation, if useful: what the learner should inspect and why `diagram(...)`, `chart(...)`, or none is clearer than prose, list, table, or `transformation(...)`
+- visual representation, if useful: what should be grounded or inspected, which of `image(...)`, `diagram(...)`, `chart(...)`, `transformation(...)`, or none fits, and why; for `image(...)`, name what the learner should notice, what learner action the scaffold should prompt, and whether a caption, inspection list, companion diagram, table, or transformation is needed
 
 ## Practice Plan
 - guided practice:
@@ -199,6 +199,7 @@ For each independent task, list the required concepts and where each was taught 
 ## Blocks To Author
 - `p`:
 - `transformation`:
+- `image` / `diagram` / `chart`: visual grounding or inspection purpose, if a visual block is useful; note whether the visual is for appearance/context/evidence, structure/flow, or numeric comparison, and note any scaffold needed to make image details readable
 - `quiz` / `balancedQuiz`: learner move, question format, and review target
 - `codingProblem`:
 - `glossary`: omit unless there is a later-retrieval reason; if included, name the term cluster and retrieval purpose
