@@ -99,7 +99,7 @@ Usually include:
 - visible result, output, or conclusion
 - explanation of why that result follows
 
-For examples involving data, code, math, diagrams, revisions, evidence, or other artifacts, show the artifacts. Do not only describe the result in prose.
+For examples involving data, code, math, diagrams, images, revisions, evidence, or other artifacts, show the artifacts. Do not only describe the result in prose.
 
 Before an example, tell the learner what to inspect. After an example, explain what happened and why it matters.
 
@@ -114,6 +114,7 @@ Use semantic blocks as teaching moves:
 - `mathBlock`: show displayed equations or formal notation.
 - `diagram`: show a flow, relationship, hierarchy, state transition, or system structure.
 - `chart`: show a small numeric comparison or trend.
+- `image`: show a durable raster artifact such as a screenshot, source figure, generated illustration, photo, scanned figure, UI capture, or concrete visual example.
 - `callout`: protect the learner from a misconception, warning, boundary, or key idea.
 - `transformation`: model an inspectable input-to-result relationship.
 - `glossary`: give compact retrieval support for important terms already introduced in prose.
@@ -122,21 +123,33 @@ Use semantic blocks as teaching moves:
 
 Prefer several semantic blocks over one giant Markdown string.
 
-Before a `codeBlock`, `mathBlock`, table, diagram, formal notation, or example, tell the learner what to inspect. After it, explain what it showed.
+Before a `codeBlock`, `mathBlock`, table, diagram, image, formal notation, or example, tell the learner what to inspect. After it, explain what it showed.
 
 `explanation` and `blurb` are legacy aliases. Do not use them in new material.
 
 ## Choosing Visual Blocks
 
-Use visual blocks when the learner benefits from seeing the relationship directly, not because a chapter needs decoration.
+Use visual blocks when seeing something helps the learner build or check the mental model, not because a chapter needs decoration.
 
-Use `diagram(...)` when the learner needs to trace parts, relationships, ownership, sequence, boundaries, branching, loops, or state changes. Good diagrams make arrow meanings and node labels concrete.
+Use `image(...)` for durable raster artifacts that ground the learner in visual appearance, context, evidence, examples, source figures, screenshots, generated illustrations, or concrete real-world referents. An image can be supportive context; it does not need to carry the whole teaching move, but it should be tied to nearby explanation, alt text, and a useful caption or readout.
+
+When the teaching move depends on the learner noticing particular regions, parts, states, differences, symptoms, or cues inside an image, add the lightest inspection scaffold that makes the image readable. Good scaffolds include a focused caption/readout, numbered inspection prompts, a companion `diagram(...)`, a cue-to-meaning table, or a `transformation(...)`. Do not assume the image is self-explanatory, and do not label every image by default.
+
+For recognition practice, phrase the scaffold as a learner action or cue rather than authoring meta-commentary. Prefer prompts such as "first identify the structures by shape and position" or "scan where edges smear and which distance plane stays sharp" over captions that explain the design choice, such as saying the image is unlabeled on purpose. If visible labels would answer the task too early, use prompts, delayed checks, answer keys, companion diagrams, or cue-to-meaning readouts as appropriate.
+
+Use `diagram(...)` when the learner needs to trace abstract relationships, routes, flows, hierarchies, ownership, sequence, boundaries, branching, handoffs, loops, or state changes. Good diagrams make arrow meanings and node labels concrete.
 
 For diagrams, match the visual shape to the teaching claim. Boundaries should look like zones, flows should label payloads or actions, sequences should preserve order, and state changes should show transitions. A diagram should answer one inspection question: what connects, moves, changes, branches, or owns the work?
 
 Use `chart(...)` when the learner needs to compare numeric magnitude, direction, trend, threshold, or outlier. Good charts use a defined metric or scale.
 
 For charts, make one numeric inspection question visible: what magnitude, direction, trend, threshold, or outlier should the learner compare? Axis labels should name the category or time dimension and the measured unit or denominator, such as `Outcome` and `Percent of checkout attempts`. Avoid vague labels like `Signal`, `Score`, or `Value` unless the surrounding text defines the metric or scale. Avoid mixing different units or denominators in one chart.
+
+When a lesson involves something learners would naturally benefit from seeing, consider `image(...)` even if a diagram or `transformation(...)` is also useful. Use both when helpful: image for grounding, context, evidence, or recognition; diagram for labels, structure, flow, or abstraction; chart for numeric comparison or trend.
+
+Project-bound images belong under `textbooks/<textbook-id>/assets/` and should be referenced with `src: "assets/..."`. The agent may generate images, extract or screenshot useful visuals from user-provided PDFs/slides/notes, use user-provided images, or use online images while authoring. Save the chosen asset locally before referencing it. For online images, include credit or source context when known, especially if the material may be shared.
+
+For generated, extracted, screenshot, user-provided, or online images, audit whether the important visible features are accurate and distinguishable enough for the teaching claim. If not, revise the image choice or add a companion scaffold before relying on it.
 
 Prefer prose, lists, code, math, `transformation(...)`, or a table when the teaching move is qualitative, definitional, or a concrete input-to-output model.
 

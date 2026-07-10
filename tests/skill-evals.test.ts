@@ -53,17 +53,31 @@ const scenarios = [
       "Distills useful teaching context into source-notes",
       "Publishes a small learner-ready slice and leaves the rest planned"
     ]
+  },
+  {
+    id: "visual-grounding-with-supportive-images",
+    query: "Use $personal-tutor to create a beginner textbook on recognizing common photo exposure and focus problems. Build the first chapter around comparing correctly exposed, overexposed, underexposed, motion-blurred, and out-of-focus examples, with checks and practice.",
+    expectedBehavior: [
+      "Considers image blocks when learner recognition depends on visual appearance or concrete examples",
+      "Uses image(...) for durable visual grounding when it adds educational context, or records why another visual block is clearer",
+      "Adds a lightweight inspection scaffold when learners must notice specific regions, states, differences, or cues inside an image",
+      "Phrases recognition scaffolds as learner actions or cues rather than authoring meta-commentary",
+      "Uses diagrams or transformations separately when structure, flow, or input-to-output reasoning is the main teaching move",
+      "Saves any chosen visual assets under the textbook assets directory and references them with assets/... paths",
+      "Keeps visuals educational, captioned or read out in surrounding prose, and connected to practice"
+    ]
   }
 ];
 
 test("skill eval scenarios cover the refocused lesson-authoring workflows", () => {
-  assert.equal(scenarios.length, 5);
+  assert.equal(scenarios.length, 6);
   assert.deepEqual(scenarios.map((scenario) => scenario.id), [
     "seed-beginner-course",
     "continue-existing-textbook",
     "generate-review-quiz",
     "coding-practice-verification",
-    "seed-course-from-sources"
+    "seed-course-from-sources",
+    "visual-grounding-with-supportive-images"
   ]);
 
   for (const scenario of scenarios) {

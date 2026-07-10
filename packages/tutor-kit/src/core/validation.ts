@@ -476,6 +476,11 @@ export function validateBlock(
     return;
   }
 
+  if (block.kind === "image") {
+    validateImage(block.props, `${path}.props`, file, issues);
+    return;
+  }
+
   if (block.kind === "callout") {
     if (!calloutTones.has(block.props.tone as string)) {
       issues.push(issue("Callout tone must be note, caution, or key-idea.", `${path}.props.tone`, file));
@@ -550,6 +555,31 @@ function validateChart(
       issues.push(issue("Chart point value must be a finite number.", `${pointPath}.value`, file));
     }
   });
+}
+
+function validateImage(
+  props: Record<string, unknown>,
+  path: string,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  validateTextProp(props.src, `${path}.src`, file, issues);
+  validateTextProp(props.alt, `${path}.alt`, file, issues);
+  if (props.caption !== undefined) validateTextProp(props.caption, `${path}.caption`, file, issues);
+  if (props.credit !== undefined) validateTextProp(props.credit, `${path}.credit`, file, issues);
+  if (typeof props.src === "string" && !isSafeImageSrc(props.src)) {
+    issues.push(issue(
+      'Image src must reference a textbook asset path such as "assets/example.png".',
+      `${path}.src`,
+      file
+    ));
+  }
+}
+
+function isSafeImageSrc(src: string): boolean {
+  if (!src.startsWith("assets/")) return false;
+  if (src.includes("\\") || src.includes("\0")) return false;
+  return !src.split("/").some((part) => part === "" || part === "." || part === "..");
 }
 
 function validateGlossary(

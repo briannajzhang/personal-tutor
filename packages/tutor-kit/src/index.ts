@@ -1,4 +1,4 @@
-export { balancedQuiz, blurb, callout, chapter, chart, codeBlock, codingProblem, diagram, explanation, glossary, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation } from "./core/builders.js";
+export { balancedQuiz, blurb, callout, chapter, chart, codeBlock, codingProblem, diagram, explanation, glossary, heading, image, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation } from "./core/builders.js";
 export {
   validateChapter,
   validateSection,
@@ -40,6 +40,8 @@ export type {
   GlossaryProps,
   HeadingBlock,
   HeadingProps,
+  ImageBlock,
+  ImageProps,
   ListBlock,
   ListProps,
   LoadedChapter,

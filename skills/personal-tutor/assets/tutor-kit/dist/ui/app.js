@@ -490,7 +490,8 @@ h1 {
   font-size: 1.02em;
 }
 .diagram,
-.chart {
+.chart,
+.image-block {
   margin: 6px 0 16px;
 }
 .diagram-title,
@@ -563,6 +564,26 @@ h1 {
   font-weight: 650;
   letter-spacing: .04em;
   text-transform: uppercase;
+}
+.image-block {
+  display: grid;
+  gap: 9px;
+}
+.image-block-media {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 32%, transparent);
+}
+.image-block-caption {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.image-block-credit {
+  color: var(--muted-2);
 }
 .callout {
   margin: 4px 0 14px;
@@ -3588,6 +3609,9 @@ function renderBlock(block, context) {
   if (block.kind === "chart") {
     return renderChart(block);
   }
+  if (block.kind === "image") {
+    return renderImage(block, context);
+  }
   if (block.kind === "callout") {
     const title = block.props.title ? block.props.title : block.props.tone.replace("-", " ");
     return \`<aside class="callout \${escapeAttr(block.props.tone)}"><div class="callout-title"\${highlightUnsupportedAttrs()}>\${escapeHtml(title)}</div><div class="markdown"\${highlightAnchorAttrs(block, context)}>\${renderMarkdown(block.props.body)}</div></aside>\`;
@@ -3681,6 +3705,39 @@ function renderChart(block) {
       <div class="chart-body">\${renderChartSvg(block.props)}</div>
     </article>
   \`;
+}
+
+function renderImage(block, context) {
+  const src = imageAssetUrl(block.props.src, context);
+  const caption = block.props.caption ? escapeHtml(block.props.caption) : "";
+  const credit = block.props.credit ? \`<span class="image-block-credit">\${escapeHtml(block.props.credit)}</span>\` : "";
+  const separator = caption && credit ? " " : "";
+  const figcaption = caption || credit
+    ? \`<figcaption class="image-block-caption">\${caption}\${separator}\${credit}</figcaption>\`
+    : "";
+  return \`
+    <figure class="block image-block"\${highlightUnsupportedAttrs()}>
+      <img class="image-block-media" src="\${escapeAttr(src)}" alt="\${escapeAttr(block.props.alt)}" loading="lazy" decoding="async">
+      \${figcaption}
+    </figure>
+  \`;
+}
+
+function imageAssetUrl(src, context) {
+  if (!isTextbookAssetSrc(src)) return "";
+  const textbookId = context?.textbookId ?? "";
+  if (!textbookId) return "";
+  return \`/__tutor-assets/textbooks/\${encodeURIComponent(textbookId)}/\${encodeAssetPath(src)}\`;
+}
+
+function isTextbookAssetSrc(src) {
+  if (typeof src !== "string" || !src.startsWith("assets/")) return false;
+  if (src.includes("\\\\") || src.includes("\\0")) return false;
+  return !src.split("/").some((part) => part === "" || part === "." || part === "..");
+}
+
+function encodeAssetPath(src) {
+  return src.split("/").map((part) => encodeURIComponent(part)).join("/");
 }
 
 function renderChartSvg(props) {

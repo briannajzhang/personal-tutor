@@ -124,6 +124,18 @@ export function chart(input) {
         }
     };
 }
+export function image(input) {
+    return {
+        kind: "image",
+        id: requireText(input.id, "image.id"),
+        props: {
+            src: requireText(input.src, "image.src"),
+            alt: requireText(input.alt, "image.alt"),
+            caption: input.caption,
+            credit: input.credit
+        }
+    };
+}
 export function callout(input) {
     return {
         kind: "callout",

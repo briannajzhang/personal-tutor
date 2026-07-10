@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { mkdirSync, appendFileSync, createReadStream, watch, type FSWatcher } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, appendFileSync, createReadStream, existsSync, realpathSync, watch, type FSWatcher } from "node:fs";
+import { join, relative, resolve } from "node:path";
 import { html } from "../ui/app.js";
 import { katexCssPath, katexFontPath, katexJsPath } from "../ui/katex-assets.js";
 import { mermaidAssetPath, mermaidJsPath } from "../ui/mermaid-assets.js";
@@ -80,6 +80,22 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
   const monacoMatch = url.pathname.match(/^\/__tutor-assets\/monaco\/vs\/(.+)$/);
   if (request.method === "GET" && monacoMatch) {
     sendFile(response, monacoAssetPath(decodeURIComponent(monacoMatch[1] ?? "")));
+    return;
+  }
+
+  const textbookAssetMatch = url.pathname.match(/^\/__tutor-assets\/textbooks\/([^/]+)\/(.+)$/);
+  if (request.method === "GET" && textbookAssetMatch) {
+    const workspace = await resolveWorkspace(cwd);
+    const assetPath = resolveTextbookAssetPath(
+      workspace,
+      decodeURIComponent(textbookAssetMatch[1] ?? ""),
+      decodeURIComponent(textbookAssetMatch[2] ?? "")
+    );
+    if (!assetPath) {
+      send(response, 404, "text/plain; charset=utf-8", "Not found");
+      return;
+    }
+    sendFile(response, assetPath);
     return;
   }
 
@@ -301,14 +317,49 @@ function sendFile(response: ServerResponse, path: string): void {
     .pipe(response);
 }
 
+function resolveTextbookAssetPath(workspace: WorkspacePaths, textbookId: string, assetPath: string): string | null {
+  if (!isSafePathPart(textbookId)) return null;
+  if (!assetPath.startsWith("assets/")) return null;
+  if (assetPath.includes("\\") || assetPath.includes("\0")) return null;
+  if (assetPath.split("/").some((part) => !isSafePathPart(part))) return null;
+
+  const textbookRoot = resolve(workspace.textbooksDir, textbookId);
+  const target = resolve(textbookRoot, assetPath);
+  if (!isInside(textbookRoot, target)) return null;
+
+  if (existsSync(target) && existsSync(textbookRoot)) {
+    const realRoot = realpathSync(textbookRoot);
+    const realTarget = realpathSync(target);
+    if (!isInside(realRoot, realTarget)) return null;
+  }
+
+  return target;
+}
+
+function isSafePathPart(value: string): boolean {
+  return value !== "" && value !== "." && value !== ".." && !value.includes("/") && !value.includes("\\") && !value.includes("\0");
+}
+
+function isInside(root: string, target: string): boolean {
+  const path = relative(root, target);
+  return path === "" || (!path.startsWith("..") && !path.startsWith("/") && !path.match(/^[a-zA-Z]:/));
+}
+
 function contentType(path: string): string {
-  if (path.endsWith(".mjs")) return "text/javascript; charset=utf-8";
-  if (path.endsWith(".js")) return "text/javascript; charset=utf-8";
-  if (path.endsWith(".css")) return "text/css; charset=utf-8";
-  if (path.endsWith(".json")) return "application/json; charset=utf-8";
-  if (path.endsWith(".woff2")) return "font/woff2";
-  if (path.endsWith(".woff")) return "font/woff";
-  if (path.endsWith(".ttf")) return "font/ttf";
+  const lowerPath = path.toLowerCase();
+  if (lowerPath.endsWith(".mjs")) return "text/javascript; charset=utf-8";
+  if (lowerPath.endsWith(".js")) return "text/javascript; charset=utf-8";
+  if (lowerPath.endsWith(".css")) return "text/css; charset=utf-8";
+  if (lowerPath.endsWith(".json")) return "application/json; charset=utf-8";
+  if (lowerPath.endsWith(".png")) return "image/png";
+  if (lowerPath.endsWith(".jpg") || lowerPath.endsWith(".jpeg")) return "image/jpeg";
+  if (lowerPath.endsWith(".gif")) return "image/gif";
+  if (lowerPath.endsWith(".webp")) return "image/webp";
+  if (lowerPath.endsWith(".svg")) return "image/svg+xml";
+  if (lowerPath.endsWith(".avif")) return "image/avif";
+  if (lowerPath.endsWith(".woff2")) return "font/woff2";
+  if (lowerPath.endsWith(".woff")) return "font/woff";
+  if (lowerPath.endsWith(".ttf")) return "font/ttf";
   return "application/octet-stream";
 }
 
