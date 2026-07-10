@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { balancedQuiz, callout, chapter, chart, codeBlock, codingProblem, diagram, glossary, heading, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation, validateTextbook } from "../packages/tutor-kit/dist/index.js";
+import { balancedQuiz, callout, chapter, chart, codeBlock, codingProblem, diagram, glossary, heading, image, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation, validateTextbook } from "../packages/tutor-kit/dist/index.js";
 import { clearWorkspaceCaches, discoverTextbookFiles, resolveWorkspace } from "../packages/tutor-kit/dist/compile/discover.js";
 
 test.afterEach(() => {
@@ -105,6 +105,13 @@ test("builders create valid textbooks", () => {
                   { label: "First", value: 8 },
                   { label: "Second", value: 5 }
                 ]
+              }),
+              image({
+                id: "workspace-map",
+                src: "assets/workspace-map.png",
+                alt: "A labeled map of the Tutor Kit workspace folders.",
+                caption: "Textbook content and learner runtime data live in separate directories.",
+                credit: "Generated for this lesson"
               }),
               callout({ id: "note", tone: "key-idea", body: "Blocks are semantic." }),
               glossary({
@@ -370,6 +377,46 @@ test("chart builder preserves structured points and validation rejects malformed
   assert.match(messages, /Text is required/);
   assert.match(messages, /Chart point value must be a finite number/);
   assert.match(messages, /Line charts must contain at least two points/);
+});
+
+test("image builder preserves asset metadata and validation rejects unsafe sources", () => {
+  const built = image({
+    id: "loss-surface",
+    src: "assets/loss-surface.png",
+    alt: "A bowl-shaped loss surface with arrows stepping downhill.",
+    caption: "Gradient descent follows local downhill steps.",
+    credit: "Generated for this lesson"
+  });
+
+  assert.equal(built.kind, "image");
+  assert.equal(built.props.src, "assets/loss-surface.png");
+  assert.equal(built.props.alt, "A bowl-shaped loss surface with arrows stepping downhill.");
+
+  const invalid = textbook({
+    id: "image-validation",
+    title: "Image Validation",
+    chapters: [chapter({
+      id: "broken",
+      title: "Broken",
+      sections: [section({
+        id: "visuals",
+        title: "Visuals",
+        blocks: [{
+          kind: "image",
+          id: "missing-alt",
+          props: { src: "assets/../secret.png", alt: "" }
+        }, {
+          kind: "image",
+          id: "remote-image",
+          props: { src: "https://example.com/image.png", alt: "Remote image" }
+        }]
+      })]
+    })]
+  });
+
+  const messages = validateTextbook(invalid).map((problem) => problem.message).join("\n");
+  assert.match(messages, /Text is required/);
+  assert.match(messages, /Image src must reference a textbook asset path/);
 });
 
 test("transformation builder applies defaults and preserves supported artifacts", () => {

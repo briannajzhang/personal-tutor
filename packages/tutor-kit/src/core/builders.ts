@@ -18,6 +18,8 @@ import type {
   GlossaryBlock,
   HeadingBlock,
   HeadingProps,
+  ImageBlock,
+  ImageProps,
   ListBlock,
   ListProps,
   MathBlock,
@@ -115,6 +117,8 @@ interface ChartInput extends BlockInput {
   yLabel?: string;
   points: ChartPointInput[];
 }
+
+interface ImageInput extends BlockInput, ImageProps {}
 
 interface CalloutInput extends BlockInput {
   tone?: CalloutProps["tone"];
@@ -362,6 +366,19 @@ export function chart(input: ChartInput): ChartBlock {
       xLabel: input.xLabel,
       yLabel: input.yLabel,
       points: requireChartPoints(input.points, "chart.points")
+    }
+  };
+}
+
+export function image(input: ImageInput): ImageBlock {
+  return {
+    kind: "image",
+    id: requireText(input.id, "image.id"),
+    props: {
+      src: requireText(input.src, "image.src"),
+      alt: requireText(input.alt, "image.alt"),
+      caption: input.caption,
+      credit: input.credit
     }
   };
 }

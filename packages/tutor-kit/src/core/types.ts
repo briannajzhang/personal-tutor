@@ -6,6 +6,7 @@ export type BlockKind =
   | "mathBlock"
   | "diagram"
   | "chart"
+  | "image"
   | "callout"
   | "transformation"
   | "codingProblem"
@@ -82,6 +83,13 @@ export interface ChartProps {
   xLabel?: string;
   yLabel?: string;
   points: ChartPoint[];
+}
+
+export interface ImageProps {
+  src: string;
+  alt: string;
+  caption?: string;
+  credit?: string;
 }
 
 export type CalloutTone = "note" | "caution" | "key-idea";
@@ -238,6 +246,7 @@ export type CodeBlock = BaseBlock<"codeBlock", CodeBlockProps>;
 export type MathBlock = BaseBlock<"mathBlock", MathBlockProps>;
 export type DiagramBlock = BaseBlock<"diagram", DiagramProps>;
 export type ChartBlock = BaseBlock<"chart", ChartProps>;
+export type ImageBlock = BaseBlock<"image", ImageProps>;
 export type CalloutBlock = BaseBlock<"callout", CalloutProps>;
 export type TransformationBlock = BaseBlock<"transformation", TransformationProps>;
 export type CodingProblemBlock = BaseBlock<"codingProblem", CodingProblemProps>;
@@ -255,6 +264,7 @@ export type TutorBlock =
   | MathBlock
   | DiagramBlock
   | ChartBlock
+  | ImageBlock
   | CalloutBlock
   | TransformationBlock
   | CodingProblemBlock

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -275,6 +275,9 @@ test("dev server exposes textbooks, chapters, and appends events", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
   initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
+  const assetsDir = join(dir, "textbooks", "getting-started", "assets");
+  mkdirSync(assetsDir, { recursive: true });
+  writeFileSync(join(assetsDir, "tiny.png"), "tiny image");
   const chaptersDir = join(dir, "textbooks", "getting-started", "chapters");
   const welcomePath = join(chaptersDir, "welcome.chapter.ts");
   const welcomeChapter = readFileSync(welcomePath, "utf8");
@@ -321,6 +324,10 @@ export default textbook({
     assert.match(page, /mermaid\.esm\.min\.mjs/);
     assert.match(page, /renderChart/);
     assert.match(page, /renderChartSvg/);
+    assert.match(page, /renderImage/);
+    assert.match(page, /imageAssetUrl/);
+    assert.match(page, /image-block-media/);
+    assert.match(page, /<figure class="block image-block"/);
     assert.match(page, /chart-svg/);
     assert.match(page, /diagram-source/);
     assert.match(page, /transformation-stages/);
@@ -394,6 +401,23 @@ export default textbook({
     assert.equal(monacoResponse.status, 200);
     assert.match(monacoResponse.headers.get("content-type") ?? "", /javascript/);
     await monacoResponse.text();
+
+    const imageResponse = await fetch(`${server.url}/__tutor-assets/textbooks/getting-started/assets/tiny.png`);
+    assert.equal(imageResponse.status, 200);
+    assert.equal(imageResponse.headers.get("content-type"), "image/png");
+    assert.equal(await imageResponse.text(), "tiny image");
+
+    const missingImageResponse = await fetch(`${server.url}/__tutor-assets/textbooks/getting-started/assets/missing.png`);
+    await missingImageResponse.text();
+    assert.equal(missingImageResponse.status, 404);
+
+    const traversalImageResponse = await fetch(`${server.url}/__tutor-assets/textbooks/getting-started/assets/../textbook.ts`);
+    await traversalImageResponse.text();
+    assert.equal(traversalImageResponse.status, 404);
+
+    const nonAssetImageResponse = await fetch(`${server.url}/__tutor-assets/textbooks/getting-started/textbook.ts`);
+    await nonAssetImageResponse.text();
+    assert.equal(nonAssetImageResponse.status, 404);
 
     const textbookResponse = await fetchJson(`${server.url}/api/textbooks/getting-started`);
     assert.equal(textbookResponse.title, "Getting Started");
