@@ -11,14 +11,16 @@ type RenderChartSvg = (props: {
   points: Array<{ label: string; value: number }>;
 }) => string;
 
-function loadRenderChartSvg(): RenderChartSvg {
+function clientScriptWithoutLoad(): string {
   const scripts = [...html("Chart Test").matchAll(/<script(?: [^>]*)?>([\s\S]*?)<\/script>/g)];
   const clientScript = scripts.at(-1)?.[1];
   assert.ok(clientScript);
+  return clientScript.replace(/\nload\(\)\.catch\([\s\S]*$/, "");
+}
 
-  const scriptWithoutLoad = clientScript.replace(/\nload\(\)\.catch\([\s\S]*$/, "");
+function loadRenderChartSvg(): RenderChartSvg {
   const sandbox: { __renderChartSvg?: RenderChartSvg } = {};
-  runInNewContext(`${scriptWithoutLoad}\nglobalThis.__renderChartSvg = renderChartSvg;`, sandbox);
+  runInNewContext(`${clientScriptWithoutLoad()}\nglobalThis.__renderChartSvg = renderChartSvg;`, sandbox);
   assert.equal(typeof sandbox.__renderChartSvg, "function");
   return sandbox.__renderChartSvg;
 }
@@ -69,4 +71,58 @@ test("non-percent charts render readable nice-number ticks", () => {
   assert.doesNotMatch(svg, />120</);
   assert.doesNotMatch(svg, />180</);
   assert.doesNotMatch(svg, />240</);
+});
+
+test("diagram parse errors use Tutor Kit fallback without Mermaid body error SVG", async () => {
+  const sourceElement = { textContent: "flowchart TD\n  A -->" };
+  const target = { innerHTML: "" };
+  const element = {
+    dataset: { diagram: "broken-flow" } as Record<string, string>,
+    querySelector(selector: string) {
+      if (selector === "[data-diagram-source]") return sourceElement;
+      if (selector === "[data-diagram-body]") return target;
+      return null;
+    }
+  };
+  const document = {
+    bodyErrors: [] as string[],
+    querySelectorAll(selector: string) {
+      assert.equal(selector, "[data-diagram]");
+      return [element];
+    },
+    body: {
+      appendChild() {
+        document.bodyErrors.push("mermaid-error-svg");
+      }
+    }
+  };
+  const mermaid = {
+    async parse() {
+      throw new Error("bad mermaid syntax");
+    },
+    async render(_id: string, _source: string, _container: unknown) {
+      document.body.appendChild();
+      throw new Error("render should not run after parse failure");
+    }
+  };
+  const sandbox: {
+    __renderDiagrams?: () => Promise<void>;
+    __mermaidStub: typeof mermaid;
+    document: typeof document;
+  } = {
+    __mermaidStub: mermaid,
+    document
+  };
+
+  runInNewContext(
+    `${clientScriptWithoutLoad()}\nloadMermaid = () => Promise.resolve(__mermaidStub);\nglobalThis.__renderDiagrams = renderDiagrams;`,
+    sandbox
+  );
+
+  await sandbox.__renderDiagrams?.();
+
+  assert.equal(document.bodyErrors.length, 0);
+  assert.equal(element.dataset.diagramRendered, "error");
+  assert.match(target.innerHTML, /Diagram could not be rendered/);
+  assert.match(target.innerHTML, /flowchart TD/);
 });
