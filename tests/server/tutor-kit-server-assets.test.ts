@@ -322,6 +322,11 @@ export default textbook({
     assert.match(page, /renderDiagrams/);
     assert.match(page, /loadMermaid/);
     assert.match(page, /mermaid\.esm\.min\.mjs/);
+    assert.match(page, /suppressErrorRendering: true/);
+    assert.match(page, /mermaid\.parse\(source, \{ suppressErrors: false \}\)/);
+    assert.match(page, /mermaid\.render\(id, source, target\)/);
+    assert.match(page, /overflow-x: auto/);
+    assert.match(page, /overflow-wrap: anywhere/);
     assert.match(page, /renderChart/);
     assert.match(page, /renderChartSvg/);
     assert.match(page, /renderImage/);
