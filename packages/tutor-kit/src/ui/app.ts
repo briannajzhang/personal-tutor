@@ -478,7 +478,11 @@ h1 {
   line-height: 1.55;
 }
 .math-block {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
   margin: 2px 0 14px;
+  padding-bottom: 2px;
   color: var(--accent-2);
   font-size: 23px;
   line-height: 1.4;
@@ -486,6 +490,10 @@ h1 {
 .math-block .katex-display {
   margin: 0;
   text-align: left;
+}
+.math {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .math .katex {
   font-size: 1.02em;
@@ -3679,7 +3687,8 @@ async function renderDiagrams() {
     if (!target || !source.trim()) continue;
     try {
       const id = "diagram_" + stableHash(element.dataset.diagram + ":" + source);
-      const result = await mermaid.render(id, source);
+      await mermaid.parse(source, { suppressErrors: false });
+      const result = await mermaid.render(id, source, target);
       target.innerHTML = result.svg;
       result.bindFunctions?.(target);
       element.dataset.diagramRendered = "true";
@@ -5393,7 +5402,8 @@ function loadMermaid() {
         const mermaid = module.default ?? module;
         mermaid.initialize({
           startOnLoad: false,
-          securityLevel: "strict"
+          securityLevel: "strict",
+          suppressErrorRendering: true
         });
         return mermaid;
       });
