@@ -63,9 +63,13 @@ Examples by subject:
 
 ## Quiz Authoring
 
-Choose the question format by the learner move. Use multiple choice when one prompt asks for one decision, prediction, diagnosis, misconception check, or best answer. Use matching when the learner should map several related items to their meanings, roles, examples, categories, or use cases.
+Choose the question format by the learner move. Use multiple choice when one prompt asks for one decision, prediction, diagnosis, misconception check, or best answer. Use matching when the useful work is organizing a related set well enough to discriminate among its members: terms to meanings, representations to interpretations, tools to use cases, symptoms to causes, examples to categories, or steps to roles.
 
-Matching is strongest for similar-but-different concepts the learner has already met. A recently taught compact table, ladder, glossary, taxonomy, or label set is a useful signal that one matching question may check the map before the quiz returns to scenario judgments. Matching should compress repeated distinction checks, not add bulk.
+Matching is most valuable when neighboring ideas are easy to confuse and later tasks depend on choosing among them. A compact table, ladder, glossary, taxonomy, label set, or comparison is a useful signal to consider matching, especially when several multiple-choice questions would otherwise check the same relationship one item at a time. In that case, one matching question can compress retrieval and discrimination before the quiz returns to scenario-based application.
+
+Do not add matching for variety alone. Use it when it improves the learner move: checking a map, separating similar-but-different ideas, or preparing for later decisions that depend on choosing among those ideas quickly.
+
+After drafting a quiz, scan for clusters of questions that test the same relationship pattern across a related set. If several one-decision questions are mainly checking that map item by item, consider whether one matching question would check the relationship more directly and leave room for scenario-based application.
 
 Use `balancedQuiz(...)` for generated multiple-choice quizzes when answer order does not matter. Use `quiz(...)` when the quiz includes matching or when answer order or question structure should be preserved.
 
