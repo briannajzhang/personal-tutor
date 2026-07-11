@@ -66,18 +66,44 @@ const scenarios = [
       "Saves any chosen visual assets under the textbook assets directory and references them with assets/... paths",
       "Keeps visuals educational, captioned or read out in surrounding prose, and connected to practice"
     ]
+  },
+  {
+    id: "transformation-widget-fit",
+    query: "Use $personal-tutor to add a worked example to the Pandas filtering chapter that shows how a boolean mask keeps rows, and add practice after it.",
+    expectedBehavior: [
+      "Chooses the block shape from the learner move rather than defaulting to a transformation for every input/output relationship",
+      "Uses a transformation when co-locating the starting rows, boolean mask, and kept rows makes the filtering mechanism easier to inspect",
+      "Avoids transformation for definitions, catalogs, broad summaries, dense comparisons, reference coverage, or answer keys before an independent attempt",
+      "Uses ordinary tables, lists, matching quizzes, or practice for category sorting instead of wrapping classification matrices in transformations by default",
+      "Moves broader coverage into ordinary prose, tables, lists, diagrams, images, quizzes, or practice when those better fit the teaching move",
+      "Treats readability and inspectability at normal lesson size as part of choosing between transformation and simpler block combinations",
+      "Adds framing before the worked example and a readout, generalization, boundary case, or learner action before moving into assessment when the mechanism is central"
+    ]
+  },
+  {
+    id: "http-status-block-choice",
+    query: "Use $personal-tutor to create a beginner HTTP API behavior lesson about how one update endpoint can return 401, 403, 404, 409, 422, or 204 depending on request conditions.",
+    expectedBehavior: [
+      "Chooses the block shape from whether the learner is tracing one status decision, comparing several cases, classifying examples, retrieving facts, or practicing a decision",
+      "Uses an ordinary table, list, matching quiz, or practice for the broader condition/status/caller-action matrix",
+      "Does not split classification coverage into separate input and output tables that learners must join with row letters, IDs, or repeated labels",
+      "Uses a transformation only for a representative status decision when the visible condition, server check, and response meaning are clearer together",
+      "Keeps broader status coverage outside the transformation and connected to practice or retrieval"
+    ]
   }
 ];
 
 test("skill eval scenarios cover the refocused lesson-authoring workflows", () => {
-  assert.equal(scenarios.length, 6);
+  assert.equal(scenarios.length, 8);
   assert.deepEqual(scenarios.map((scenario) => scenario.id), [
     "seed-beginner-course",
     "continue-existing-textbook",
     "generate-review-quiz",
     "coding-practice-verification",
     "seed-course-from-sources",
-    "visual-grounding-with-supportive-images"
+    "visual-grounding-with-supportive-images",
+    "transformation-widget-fit",
+    "http-status-block-choice"
   ]);
 
   for (const scenario of scenarios) {
