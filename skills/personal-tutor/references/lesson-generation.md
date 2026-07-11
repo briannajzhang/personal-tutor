@@ -178,8 +178,8 @@ Secondary mechanisms introduced but deferred:
 - operation, reasoning step, or action:
 - visible result, output, or conclusion:
 - explanation of why that result follows:
-- representation: `transformation(...)` or ordinary semantic blocks, with reason
-- visual representation, if useful: what should be grounded or inspected, which of `image(...)`, `diagram(...)`, `chart(...)`, `transformation(...)`, or none fits, and why; for `image(...)`, name what the learner should notice, what learner action the scaffold should prompt, and whether a caption, inspection list, companion diagram, table, or transformation is needed
+- representation: prose plus artifact, table, code block, diagram, image scaffold, transformation, quiz, or practice, with the learner-inspection reason; decide whether the learner is tracing one case, comparing several cases, classifying examples, retrieving facts, or practicing a decision, and choose transformation only when co-locating the starting artifact, reasoning/action, and result makes one visible thread clearer
+- visual representation, if useful: what should be grounded or inspected, which of `image(...)`, `diagram(...)`, `chart(...)`, `transformation(...)`, or none fits, and why; for `image(...)`, name what the learner should notice, what learner action the scaffold should prompt, and whether a caption, inspection list, companion diagram, cue-to-meaning table, or transformation is needed; use transformation with images only when visible cues are being mapped to reasoning or outcomes
 
 ## Practice Plan
 - guided practice:
@@ -198,7 +198,7 @@ For each independent task, list the required concepts and where each was taught 
 
 ## Blocks To Author
 - `p`:
-- `transformation`:
+- worked examples and artifacts: choose prose, table, code block, diagram, image scaffold, transformation, quiz, or practice based on the learner move; prefer ordinary blocks for comparison or classification coverage, and use transformation only when the combined start/action/result view improves inspectability for one visible reasoning thread
 - `image` / `diagram` / `chart`: visual grounding or inspection purpose, if a visual block is useful; note whether the visual is for appearance/context/evidence, structure/flow, or numeric comparison, and note any scaffold needed to make image details readable
 - `quiz` / `balancedQuiz`: learner move, question format, and review target
 - `codingProblem`:

@@ -171,7 +171,7 @@ Use blocks by teaching purpose:
 - `chart`: small numeric comparison or trend.
 - `image`: durable raster artifact such as a screenshot, source figure, generated illustration, photo, scanned figure, UI capture, or concrete visual example.
 - `callout`: misconception, warning, boundary case, or key idea.
-- `transformation`: inspectable input -> operation -> output worked example.
+- `transformation`: inspectable input -> operation -> output worked example; use for worked relationships, not broad comparisons or reference coverage.
 - `glossary`: optional compact reference for durable terms the learner has already met and will benefit from retrieving later.
 - `quiz` or `balancedQuiz`: local checks, chapter review, and practice tests.
 - `codingProblem`: runnable or checkable learner practice.

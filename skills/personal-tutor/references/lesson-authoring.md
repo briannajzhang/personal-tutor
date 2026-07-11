@@ -133,7 +133,7 @@ Use visual blocks when seeing something helps the learner build or check the men
 
 Use `image(...)` for durable raster artifacts that ground the learner in visual appearance, context, evidence, examples, source figures, screenshots, generated illustrations, or concrete real-world referents. An image can be supportive context; it does not need to carry the whole teaching move, but it should be tied to nearby explanation, alt text, and a useful caption or readout.
 
-When the teaching move depends on the learner noticing particular regions, parts, states, differences, symptoms, or cues inside an image, add the lightest inspection scaffold that makes the image readable. Good scaffolds include a focused caption/readout, numbered inspection prompts, a companion `diagram(...)`, a cue-to-meaning table, or a `transformation(...)`. Do not assume the image is self-explanatory, and do not label every image by default.
+When the teaching move depends on the learner noticing particular regions, parts, states, differences, symptoms, or cues inside an image, add the lightest inspection scaffold that makes the image readable. Good scaffolds include a focused caption/readout, numbered inspection prompts, a companion `diagram(...)`, a cue-to-meaning table, or a `transformation(...)`. Use images for recognition and grounding; use transformations only when the learner should inspect how visible cues lead to reasoning or outcomes. Do not force a whole cue catalog into one transformation. Do not assume the image is self-explanatory, and do not label every image by default.
 
 For recognition practice, phrase the scaffold as a learner action or cue rather than authoring meta-commentary. Prefer prompts such as "first identify the structures by shape and position" or "scan where edges smear and which distance plane stays sharp" over captions that explain the design choice, such as saying the image is unlabeled on purpose. If visible labels would answer the task too early, use prompts, delayed checks, answer keys, companion diagrams, or cue-to-meaning readouts as appropriate.
 
@@ -177,56 +177,15 @@ Do not place visible definitions immediately before definition-recall questions 
 
 ## Transformation Blocks
 
-Use `transformation(...)` when all 4 conditions are true:
+Use `transformation(...)` when seeing a starting artifact, reasoning move or action, and result together makes a mechanism easier to inspect. The widget should make the relationship clearer than ordinary prose, a list, table, code block, diagram, image scaffold, quiz, or practice would.
 
-1. There is a concrete starting artifact, context, or state.
-2. There is a specific operation, rule, reasoning move, or action.
-3. There is a visible result, output, conclusion, or changed artifact.
-4. The learner benefits from inspecting the relationship.
+Distinguish worked decisions from classification coverage. Use a transformation when one representative case needs the starting artifact, reasoning/action, and result visible together. When the learner is sorting several examples into categories, prefer a table, list, matching quiz, or practice unless the transformation view makes the decision process more inspectable.
 
-Example:
+The learner should be able to follow one visible thread from starting artifact through reasoning/action to result. If the block depends on row IDs, letters, or repeated labels to connect many cases across separate panels, it is probably cross-reference or classification work; use a single table, list, quiz, or practice unless the split view materially clarifies one decision path.
 
-```ts
-transformation({
-  id: "left-join-preservation",
-  title: "Inspect: How LEFT JOIN Preserves Rows",
-  focus: "Track what happens to the customer without a matching order.",
-  inputLabel: "Starting tables",
-  operationLabel: "Query",
-  outputLabel: "Result",
-  input: [
-    {
-      label: "customers",
-      format: "table",
-      columns: ["customer_id", "name"],
-      rows: [["1", "Ada"], ["2", "Lin"]]
-    },
-    {
-      label: "orders",
-      format: "table",
-      columns: ["customer_id", "total"],
-      rows: [["1", "40"]]
-    }
-  ],
-  operation: {
-    format: "code",
-    language: "sql",
-    body: "SELECT customers.customer_id, customers.name, orders.total\nFROM customers\nLEFT JOIN orders ON customers.customer_id = orders.customer_id;"
-  },
-  output: [
-    {
-      format: "table",
-      columns: ["customer_id", "name", "total"],
-      rows: [["1", "Ada", "40"], ["2", "Lin", "NULL"]]
-    }
-  ],
-  explanation: "Lin has no matching order, but LEFT JOIN preserves every customer row and fills the missing order value with NULL."
-});
-```
+Keep the worked relationship small enough to read at normal lesson size. If the artifact becomes a catalog, broad comparison, summary, dense reference table, generic before/after decoration, or answer key before the learner has attempted the task, use another teaching move.
 
-Do not use transformations for definitions, summaries, broad overviews, or ordinary practice prompts. A transformation is a modeled example, not learner practice.
-
-Surrounding content should add a distinct teaching move: problem framing, readout, generalization, boundary case, check, or practice.
+Labels, focus text, and surrounding prose should clarify the domain roles and inspection task. Use nearby framing or readout when the built-in explanation is not enough for the learner to generalize the mechanism. Put broader coverage in ordinary semantic blocks, checks, or practice.
 
 ## Quizzes In Lessons
 
