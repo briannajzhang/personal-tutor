@@ -92,11 +92,21 @@ If runnable practice is omitted, record the learner-facing reason.
 
 ### Transformation Coherence
 
-For each central worked example, check whether it has concrete input, a specific operation, a visible result, and learner benefit from inspecting the relationship.
-
-If yes, use `transformation(...)` unless ordinary semantic blocks are clearer.
+For each central worked example, check whether a transformation makes the relationship more inspectable than simpler prose, table, code, diagram, image scaffold, quiz, or practice blocks.
 
 Every transformation must show a coherent input -> operation -> output relationship. If the explanation relies on a baseline, temporary state, intermediate result, rejected input, or comparison output, that artifact should be visible.
+
+Treat density as a signal to reconsider the teaching move, not as an automatic failure. Wide tables, long expressions, many output artifacts, or page/mobile overflow often mean the example is trying to provide reference coverage instead of one inspectable worked relationship.
+
+Revise when:
+
+- the learner has to decode generic labels to identify the starting artifact, operation, or result
+- the learner must match row letters, IDs, or repeated labels across panels to understand the result; consider a consolidated table or one representative worked case plus broader coverage elsewhere
+- the block is a broad reference summary, dense answer key, or cue catalog instead of one coherent worked relationship
+- the block mainly classifies several examples where a table, list, matching quiz, or practice would be clearer
+- a needed baseline, intermediate state, rejected case, or comparison is missing from the visible artifacts
+- the rendered artifact is too wide or dense to inspect comfortably; consider splitting it, transposing it, showing one representative case plus broader coverage elsewhere, or using another block type
+- a central mechanism jumps straight from transformation to assessment before the learner gets a readout, generalization, boundary case, misconception, or next action
 
 ### Visual Coherence
 
@@ -118,6 +128,7 @@ Revise when:
 - one chart mixes unlike metrics, units, or denominators
 - generic chart labels such as `Signal`, `Value`, or `Score` create ambiguity
 - a qualitative tradeoff would be clearer as prose, a list, a table, or `transformation(...)`
+- an image-adjacent transformation tries to carry a full cue catalog instead of mapping selected visible cues to reasoning or outcomes
 - a visual lacks nearby framing for what to inspect or a readout of what it shows
 
 ### Glossary Fit
