@@ -18,8 +18,13 @@ let routeToken = 0;
 
 async function load() {
   window.addEventListener("popstate", () => { void renderRoute(); });
-  window.addEventListener("resize", scheduleTransformationLayouts);
+  window.addEventListener("resize", handleViewportResize);
   await renderRoute();
+}
+
+function handleViewportResize() {
+  scheduleTransformationLayouts();
+  syncChapterToolsDisclosure();
 }
 
 async function fetchJson(url, options) {
@@ -1182,16 +1187,24 @@ async function renderChapter(textbookId, chapterId) {
       </div>
       <div class="chapter-layout">
         <aside class="chapter-index" aria-label="Chapter sections">
-          <div class="index-label">Contents</div>
-          <div class="index-list">
-            \${chapter.sections.map((section) => \`
-              <a class="index-link" href="#\${escapeAttr(anchorId(section.id))}">\${escapeHtml(section.title)}</a>
-              \${section.subsections.map((subsection) => \`
-                <a class="index-link subsection" href="#\${escapeAttr(anchorId(subsection.id))}">\${escapeHtml(subsection.title)}</a>
+          <details data-chapter-tools open>
+            <summary class="chapter-tools-summary">
+              <span>Chapter tools</span>
+              <span class="chapter-tools-summary-meta">Contents and highlights</span>
+            </summary>
+            <div class="chapter-tools-body">
+              <div class="index-label">Contents</div>
+              <div class="index-list">
+                \${chapter.sections.map((section) => \`
+                  <a class="index-link" href="#\${escapeAttr(anchorId(section.id))}">\${escapeHtml(section.title)}</a>
+                  \${section.subsections.map((subsection) => \`
+                    <a class="index-link subsection" href="#\${escapeAttr(anchorId(subsection.id))}">\${escapeHtml(subsection.title)}</a>
+                  \`).join("")}
               \`).join("")}
-            \`).join("")}
-          </div>
-          <div class="chapter-highlights" data-highlight-list hidden></div>
+              </div>
+              <div class="chapter-highlights" data-highlight-list hidden></div>
+            </div>
+          </details>
         </aside>
         <div class="chapter-content">
           \${chapter.sections.map((section) => renderSection(section, renderContext)).join("")}
@@ -1200,6 +1213,7 @@ async function renderChapter(textbookId, chapterId) {
       </div>
     </section>
   \`;
+  syncChapterToolsDisclosure();
   bindCrumbs();
   bindChapterIndex();
   bindChapterNavigation(textbookId);
@@ -1215,6 +1229,15 @@ async function renderChapter(textbookId, chapterId) {
   if (document.fonts?.ready) void document.fonts.ready.then(scheduleTransformationLayouts);
   finishRouteLoad(token);
   scrollToHashTarget(window.location.hash, "auto");
+}
+
+function syncChapterToolsDisclosure() {
+  const disclosure = document.querySelector("[data-chapter-tools]");
+  if (!disclosure) return;
+  const compact = window.matchMedia?.("(max-width: 860px)").matches ?? window.innerWidth <= 860;
+  if (disclosure.dataset.compact === String(compact)) return;
+  disclosure.dataset.compact = String(compact);
+  disclosure.open = !compact;
 }
 
 function renderChapterNavigation(chapter) {

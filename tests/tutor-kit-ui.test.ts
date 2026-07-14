@@ -49,6 +49,37 @@ test("client includes one copy of each shared highlight helper", () => {
   assert.doesNotMatch(script, /highlightAnchorForNode/);
 });
 
+test("chapter tools collapse only when entering the mobile layout", () => {
+  let compact = true;
+  const disclosure = { dataset: {} as Record<string, string>, open: true };
+  const sandbox: {
+    __syncChapterToolsDisclosure?: () => void;
+    window: { innerWidth: number; matchMedia: () => { matches: boolean } };
+    document: { querySelector: () => typeof disclosure };
+  } = {
+    window: { innerWidth: 390, matchMedia: () => ({ matches: compact }) },
+    document: { querySelector: () => disclosure }
+  };
+  runInNewContext(
+    `${clientScriptWithoutLoad()}\nglobalThis.__syncChapterToolsDisclosure = syncChapterToolsDisclosure;`,
+    sandbox
+  );
+
+  sandbox.__syncChapterToolsDisclosure?.();
+  assert.equal(disclosure.open, false);
+  disclosure.open = true;
+  sandbox.__syncChapterToolsDisclosure?.();
+  assert.equal(disclosure.open, true);
+
+  compact = false;
+  sandbox.__syncChapterToolsDisclosure?.();
+  assert.equal(disclosure.open, true);
+
+  compact = true;
+  sandbox.__syncChapterToolsDisclosure?.();
+  assert.equal(disclosure.open, false);
+});
+
 test("flashcard body and star are separate native buttons", () => {
   const sandbox: {
     __emptyGlossaryStudyState?: (textbookId: string) => Record<string, unknown>;

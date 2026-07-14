@@ -211,6 +211,9 @@ h1 {
   border-top: 1px solid var(--line);
   padding-top: 18px;
 }
+.chapter-tools-summary {
+  display: none;
+}
 .index-label {
   color: var(--accent-2);
   font-size: 11px;
@@ -2066,6 +2069,47 @@ body.route-loading {
   }
   .chapter-index {
     position: static;
+    border-bottom: 1px solid var(--line);
+    padding-top: 0;
+  }
+  .chapter-tools-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    color: var(--ink);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 620;
+    list-style: none;
+    padding: 13px 0;
+  }
+  .chapter-tools-summary::-webkit-details-marker {
+    display: none;
+  }
+  .chapter-tools-summary::after {
+    content: "+";
+    color: var(--accent-2);
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1;
+    margin-left: auto;
+  }
+  [data-chapter-tools][open] > .chapter-tools-summary::after {
+    content: "−";
+  }
+  .chapter-tools-summary:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 42%, transparent);
+    outline-offset: 4px;
+  }
+  .chapter-tools-summary-meta {
+    color: var(--muted-2);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .chapter-tools-body {
+    border-top: 1px solid color-mix(in srgb, var(--line) 58%, transparent);
+    padding: 18px 0 4px;
   }
   .chapter-navigation {
     grid-template-columns: 1fr;
@@ -2205,4 +2249,3 @@ body.route-loading {
   }
 }`;
 }
-
