@@ -3,6 +3,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { configTemplate, packageJsonTemplate, registryTemplate, tsconfigTemplate, welcomeTextbookTemplate, welcomeChapterTemplate, welcomeProblemMainTemplate, welcomeProblemSolutionTemplate, welcomeProblemTestsTemplate } from "../templates/workspace.js";
 import { coreBlocksTemplate, chapterTemplate, courseTemplate, textbookTemplate } from "../templates/blocks.js";
+export const blockKinds = ["p", "heading", "list", "codeBlock", "mathBlock", "diagram", "chart", "image", "component", "callout", "transformation", "glossary", "quiz", "codingProblem"];
 export function initWorkspace(cwd, options = {}) {
     const result = { created: [], skipped: [] };
     ensureDir(cwd);
@@ -44,11 +45,11 @@ export function addChapter(cwd, textbookId, id, title) {
 export function addBlock(cwd, kind) {
     const result = { created: [], skipped: [] };
     ensureDir(join(cwd, "tutor", "blocks"));
-    if (["p", "heading", "list", "codeBlock", "mathBlock", "diagram", "chart", "image", "callout", "transformation", "glossary", "quiz", "codingProblem", "core"].includes(kind)) {
+    if (kind === "core" || blockKinds.includes(kind)) {
         writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);
         return result;
     }
-    throw new Error(`Unknown block "${kind}". Available blocks: p, heading, list, codeBlock, mathBlock, diagram, chart, image, callout, transformation, glossary, quiz, codingProblem.`);
+    throw new Error(`Unknown block "${kind}". Available blocks: ${blockKinds.join(", ")}.`);
 }
 export function addWidget(cwd, kind) {
     return addBlock(cwd, kind);

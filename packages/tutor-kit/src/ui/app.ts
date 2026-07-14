@@ -17,6 +17,7 @@ export function html(title: string): string {
     </div>
     <script src="/__tutor-assets/katex/katex.min.js"></script>
     <script src="/__tutor-assets/monaco/vs/loader.js"></script>
+    <script type="module" src="/@vite/client"></script>
     <script>${clientJs()}</script>
   </body>
 </html>`;

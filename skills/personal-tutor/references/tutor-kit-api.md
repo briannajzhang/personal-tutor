@@ -144,6 +144,8 @@ import {
   balancedQuiz,
   callout,
   chart,
+  component,
+  componentModule,
   chapter,
   codeBlock,
   codingProblem,
@@ -172,6 +174,7 @@ Use blocks by teaching purpose:
 - `diagram`: visual flow, relationship, hierarchy, state transition, or system structure.
 - `chart`: small numeric comparison or trend.
 - `image`: durable raster artifact such as a screenshot, source figure, generated illustration, photo, scanned figure, UI capture, or concrete visual example.
+- `component`: trusted frontend module for an interaction, simulation, animation, or specialized visual.
 - `callout`: misconception, warning, boundary case, or key idea.
 - `transformation`: inspectable input -> operation -> output worked example; use for worked relationships, not broad comparisons or reference coverage.
 - `glossary`: optional compact reference for durable terms the learner has already met and will benefit from retrieving later.
@@ -243,6 +246,67 @@ image({
 ```
 
 Agents may use generated images, source-derived figures, screenshots, user-provided materials, or online images while authoring. Save the chosen image locally before referencing it. For online images, record source or credit when known; for user-provided PDFs, slides, or notes, preserve, extract, screenshot, or recreate useful visual artifacts when they improve grounding, context, evidence, or learner recognition.
+
+## Custom Components
+
+Use built in blocks when they can express the teaching move. Use `component(...)` when the learner needs a custom interaction, animation, simulation, or frontend library.
+
+Reference the source module from the chapter without importing it on the server:
+
+```ts
+import { component, componentModule, type JsonValue } from "tutor-kit";
+
+interface ExplorerProps extends JsonValue {
+  initialValue: number;
+}
+
+const explorer = componentModule<ExplorerProps>(
+  import.meta.url,
+  "../components/explorer.tsx"
+);
+
+component({
+  id: "threshold-explorer",
+  title: "Threshold explorer",
+  module: explorer,
+  props: { initialValue: 5 }
+});
+```
+
+The browser module exports one framework neutral definition:
+
+```ts
+import { defineComponent } from "tutor-kit/client";
+
+export default defineComponent<ExplorerProps>(
+  async ({ root, host, props, signal, location, services }) => {
+    root.textContent = String(props.initialValue);
+
+    return async () => {
+      // Stop workers, observers, timers, and framework roots here.
+    };
+  }
+);
+```
+
+The context provides the mount `root`, the surrounding `host`, JSON props, an abort signal, the textbook and block location, and small services for textbook assets, events, and theme values. Cleanup must release every resource created by the component.
+
+Components may use TypeScript, JSX, CSS, JSON, local assets, workers, WebAssembly, literal dynamic imports, and packages installed in the workspace. Install packages in the workspace `package.json`. Tutor Kit does not install missing component packages.
+
+Add `tutor/frontend.config.ts` only when a framework or transform needs Vite configuration:
+
+```ts
+import { defineFrontendConfig } from "tutor-kit";
+import react from "@vitejs/plugin-react";
+
+export default defineFrontendConfig({
+  plugins: [react()]
+});
+```
+
+The Vite root, base, application type, middleware server, and build output belong to Tutor Kit and cannot be replaced. Component code runs directly in the lesson page without an iframe or shadow root. It can access the full page, browser storage, Tutor Kit services, and the network. Create and run components only in a trusted local course.
+
+Run `tutor compile` after changing component imports or Vite configuration. Then use `tutor dev` and verify the control, animation, focus behavior, cleanup on navigation, and any live update that matters.
 
 ## Coding Problem Files
 

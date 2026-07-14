@@ -14,7 +14,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=20.19"
   },
   "keywords": [
     "codex",
@@ -32,9 +32,11 @@
     "build:skill:check": "npm run build && node scripts/build-skill.mjs --check",
     "prepack": "npm run build:skill",
     "test": "npm run build && node --import tsx --test tests/*.test.ts tests/server/*.test.ts",
+    "test:browser": "npm run build && playwright test",
     "tutor": "tsx packages/tutor-kit/src/cli/index.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "^22.19.19",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"

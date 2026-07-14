@@ -116,6 +116,6 @@ The example shows common syntax, not a required chapter shape. Use it as a seed 
 
 ## Full expressive surface
 
-Tutor Kit also provides `heading`, `mathBlock`, `diagram`, `chart`, `image`, `customBlock`, `callout`, `transformation`, `glossary`, `quiz`, `codingProblem`, `subsection`, and `projectFiles`.
+Tutor Kit also provides `heading`, `mathBlock`, `diagram`, `chart`, `image`, `component`, `callout`, `transformation`, `glossary`, `quiz`, `codingProblem`, `subsection`, and `projectFiles`.
 
-Use native TypeScript objects and custom blocks when the lesson benefits from an unusual representation or interaction. The compact workflow changes what instructions are loaded by default. It does not restrict the authoring API or lesson shape.
+Use a custom component when the lesson needs an unusual interaction that built in blocks cannot express. Put its browser source in the textbook workspace, reference it with `componentModule(import.meta.url, path)`, and export a definition made with `defineComponent(...)` from `tutor-kit/client`. Run `tutor compile` after adding the component or any frontend package. The compact workflow does not restrict the authoring API or lesson shape.

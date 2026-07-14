@@ -72,8 +72,9 @@ tutor doctor --textbook <id> --record
 `brief` summarizes the workspace, `progress` compacts learner activity, and the
 recorded doctor command writes verification evidence. New textbooks keep the
 learner profile, course map, and active publication contract in one `course.md`
-file. The full TypeScript block API remains available for advanced lessons and
-custom interactions.
+file. The full TypeScript block API remains available for advanced lessons.
+Trusted workspaces can also mount custom frontend modules directly in the lesson
+page through Tutor Kit's Vite pipeline.
 
 ## Development
 

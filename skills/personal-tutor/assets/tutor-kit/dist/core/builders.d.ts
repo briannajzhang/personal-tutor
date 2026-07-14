@@ -1,4 +1,4 @@
-import type { BlurbBlock, CalloutBlock, CalloutProps, ChartBlock, ChartType, CodingProblemBlock, CodingProblemFile, CodeBlock, DiagramBlock, DiagramProps, GlossaryBlock, HeadingBlock, HeadingProps, ImageBlock, ImageProps, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, ChapterRole, SectionRole, Section, Subsection, Textbook, Chapter, TransformationArtifact, TransformationBlock, TransformationLayout, TutorBlock } from "./types.js";
+import type { BlurbBlock, CalloutBlock, CalloutProps, ChartBlock, ChartType, CodingProblemBlock, CodingProblemFile, CodeBlock, ComponentBlock, ComponentModule, DiagramBlock, DiagramProps, GlossaryBlock, HeadingBlock, HeadingProps, ImageBlock, ImageProps, JsonValue, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, ChapterRole, SectionRole, Section, Subsection, Textbook, Chapter, TransformationArtifact, TransformationBlock, TransformationLayout, TutorBlock } from "./types.js";
 interface SubsectionInput {
     id: string;
     title: string;
@@ -63,6 +63,11 @@ interface ChartInput extends BlockInput {
     points: ChartPointInput[];
 }
 interface ImageInput extends BlockInput, ImageProps {
+}
+interface ComponentInput<Props extends JsonValue> extends BlockInput {
+    title?: string;
+    module: ComponentModule<Props>;
+    props: Props;
 }
 interface CalloutInput extends BlockInput {
     tone?: CalloutProps["tone"];
@@ -176,6 +181,8 @@ export declare function mathBlock(input: MathBlockInput): MathBlock;
 export declare function diagram(input: DiagramInput): DiagramBlock;
 export declare function chart(input: ChartInput): ChartBlock;
 export declare function image(input: ImageInput): ImageBlock;
+export declare function componentModule<Props extends JsonValue = JsonValue>(baseUrl: string, path: string): ComponentModule<Props>;
+export declare function component<Props extends JsonValue = JsonValue>(input: ComponentInput<Props>): ComponentBlock<Props>;
 export declare function callout(input: CalloutInput): CalloutBlock;
 export declare function glossary(input: GlossaryInput): GlossaryBlock;
 export declare function transformation(input: TransformationInput): TransformationBlock;

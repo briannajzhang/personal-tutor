@@ -54,7 +54,7 @@ Treat the progress summary as evidence, not a command. The agent still decides w
 
 Use any mix of blocks that serves the teaching move. Ordinary prose, lists, code, math, and quizzes cover many lessons. A diagram can reveal structure or flow. A chart can support a defined numeric comparison. An image can ground visual appearance or evidence. A transformation can keep an input, operation, and output visible together. A coding problem can provide direct execution feedback.
 
-Use `customBlock(...)` only when manipulation, simulation, reveal, or another interaction cannot be expressed clearly with built-in blocks. Native Tutor Kit TypeScript is always available, so unusual subjects are not limited to the common path.
+Use `component(...)` only when manipulation, simulation, animation, reveal, or another interaction cannot be expressed clearly with built in blocks. A component may use normal frontend source files and installed packages. Treat it as trusted application code.
 
 ## Final reflection
 

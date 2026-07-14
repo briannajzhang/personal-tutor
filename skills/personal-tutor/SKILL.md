@@ -17,7 +17,7 @@ Treat richness as a strong creative direction, not a required schema. Choose, co
 4. Read `references/quality-core.md` and `references/authoring-quickstart.md` before authoring.
 5. Ask at most one intake question, and only when its answer would materially change the course. Otherwise infer sensible defaults and record them briefly in `course.md`.
 6. Publish the smallest useful learner-ready unit. This is usually one chapter, a focused revision, or a practice set. Keep future work as short entries in `course.md`.
-7. Author native Tutor Kit TypeScript. Every built-in block and custom TypeScript remain available. Choose the simplest block that expresses the learner move clearly.
+7. Author native Tutor Kit TypeScript. Every built-in block and custom TypeScript remain available. Prefer built in blocks when they express the learner move clearly. Use a custom `component(...)` only when the lesson needs interaction, animation, or a frontend library that the built in blocks do not provide.
 8. For continuation, run `node <skill-dir>/scripts/tutor-kit.mjs progress --textbook <id>` and use the summary to choose review, repair, or new material. Do not read raw `events.jsonl` unless the summary is insufficient.
 9. Verify with `node <skill-dir>/scripts/tutor-kit.mjs doctor --textbook <id> --record`. Tutor Kit writes `compile-result.md`; do not duplicate the result in model-written review notes.
 10. Start the Tutor Kit app with `tutor dev` after creating a new learner workspace or when the user asks to study or open the material. Keep it running and report the localhost URL. Do not restart it after every edit.
@@ -38,6 +38,7 @@ Use a longer chapter spec only for a high-risk chapter, such as a complex simula
 - Aim for enough depth that the learner can see how the central idea works, inspect it in concrete cases, try it, and learn from the result.
 - Enrich a lesson with contrasting examples, misconceptions, visuals, simulations, retrieval, projects, or alternate explanations when they improve learning.
 - Prefer meaningful learner choices and visible consequences over passive reading when interaction fits the subject.
+- A custom component is trusted application code. It may use browser APIs and installed frontend packages. Create one only in a trusted local workspace.
 - Use runnable practice when execution gives the learner useful feedback.
 - Let short lessons stay short when that best serves the request. Do not require a block count, section pattern, quiz, exercise type, visual, or review format.
 - Use learner history to change the next publication, not merely to describe prior scores.

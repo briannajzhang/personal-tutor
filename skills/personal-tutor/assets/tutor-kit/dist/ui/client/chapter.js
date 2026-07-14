@@ -63,6 +63,7 @@ async function renderChapter(textbookId, chapterId) {
   bindCodingProblems(chapter);
   scheduleTransformationLayouts();
   void renderDiagrams();
+  mountRenderedComponents();
   if (document.fonts?.ready) void document.fonts.ready.then(scheduleTransformationLayouts);
   finishRouteLoad(token);
   scrollToHashTarget(window.location.hash, "auto");
@@ -163,6 +164,7 @@ function renderSection(section, context) {
 }
 
 async function renderRoute() {
+  await unmountAllComponents();
   const route = parseRoute(window.location.pathname);
   try {
     if (route.kind === "chapter") {
@@ -265,6 +267,9 @@ function navigateChapter(textbookId, chapterId, scrollToTop = false) {
 }
 
 function renderBlock(block, context) {
+  if (block.kind === "component") {
+    return renderComponent(block, context);
+  }
   if (block.kind === "p" || block.kind === "explanation" || block.kind === "blurb") {
     const title = block.props.title ? \`<h4 class="local-heading">\${escapeHtml(block.props.title)}</h4>\` : "";
     return \`<article class="block">\${title}<div class="markdown"\${highlightAnchorAttrs(block, context)}>\${renderMarkdown(block.props.body)}</div></article>\`;

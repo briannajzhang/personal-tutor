@@ -3,3 +3,5 @@ packages/*/dist/
 *.tsbuildinfo
 .DS_Store
 .idea/
+test-results/
+playwright-report/

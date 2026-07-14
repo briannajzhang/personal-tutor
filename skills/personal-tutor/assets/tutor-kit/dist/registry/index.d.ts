@@ -39,6 +39,11 @@ export declare const builtInBlockRegistry: {
         title: string;
         create: typeof import("../index.js").image;
     };
+    component: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").component;
+    };
     callout: {
         kind: string;
         title: string;
@@ -105,6 +110,11 @@ export declare const builtInWidgetRegistry: {
         kind: string;
         title: string;
         create: typeof import("../index.js").image;
+    };
+    component: {
+        kind: string;
+        title: string;
+        create: typeof import("../index.js").component;
     };
     callout: {
         kind: string;

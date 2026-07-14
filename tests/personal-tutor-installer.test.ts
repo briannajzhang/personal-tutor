@@ -58,6 +58,7 @@ test("personal-tutor installer installs bundled Tutor Kit dependencies", () => {
   assert.doesNotMatch(args, /--prefix/);
   assert.match(args, /--omit=dev/);
   assert.ok(existsSync(join(installedSkill, "assets", "tutor-kit", "node_modules", "tsx", "package.json")));
+  assert.ok(existsSync(join(installedSkill, "assets", "tutor-kit", "node_modules", "vite", "package.json")));
 });
 
 test("personal-tutor installer supports top-level version flag", () => {
@@ -121,6 +122,8 @@ write(join(nodeModules, "tsx", "package.json"), JSON.stringify({
 write(join(nodeModules, "tsx", "esm", "api.js"), "export function register() { return { unregister: async () => {} }; }\\n");
 write(join(nodeModules, "typescript", "package.json"), JSON.stringify({ main: "index.js" }, null, 2));
 write(join(nodeModules, "typescript", "index.js"), "module.exports = {};\\n");
+write(join(nodeModules, "vite", "package.json"), JSON.stringify({ type: "module", main: "index.js" }, null, 2));
+write(join(nodeModules, "vite", "index.js"), "export const build = async () => {}; export const createServer = async () => ({}); export const loadConfigFromFile = async () => null; export const mergeConfig = (left, right) => ({ ...left, ...right }); export const normalizePath = (value) => value;\\n");
 write(join(nodeModules, "katex", "package.json"), JSON.stringify({ main: "dist/katex.min.js" }, null, 2));
 write(join(nodeModules, "katex", "dist", "katex.min.css"), "/* fake katex */\\n");
 write(join(nodeModules, "katex", "dist", "katex.min.js"), "window.katex = {};\\n");
