@@ -498,7 +498,7 @@ test("validation rejects malformed transformation artifacts", () => {
   assert.match(messages, /cells must be strings/);
 });
 
-test("visual example blocks do not satisfy chapter practice requirements", () => {
+test("validation does not impose practice requirements on visual chapters", () => {
   const example = transformation({
     id: "worked-example",
     title: "Practice: Starting State To Result",
@@ -531,8 +531,8 @@ test("visual example blocks do not satisfy chapter practice requirements", () =>
   });
 
   const messages = validateTextbook(built).map((problem) => problem.message).join("\n");
-  assert.match(messages, /exposition-heavy/);
-  assert.match(messages, /missing a retrieval, review, or mastery-check move/);
+  assert.doesNotMatch(messages, /exposition-heavy/);
+  assert.doesNotMatch(messages, /missing a retrieval, review, or mastery-check move/);
 });
 
 test("validation rejects malformed quiz blocks", () => {
@@ -592,7 +592,7 @@ test("validation rejects malformed quiz blocks", () => {
   assert.match(messages, /difficulty must be easy, medium, or hard/);
 });
 
-test("validation flags non-trivial chapters without review quizzes", () => {
+test("validation accepts concrete review tasks without requiring a review quiz", () => {
   const built = textbook({
     id: "programming",
     title: "Programming",
@@ -639,6 +639,7 @@ test("validation flags non-trivial chapters without review quizzes", () => {
           section({
             id: "practice",
             title: "Practice",
+            role: "review",
             blocks: [
               list({
                 id: "tasks",
@@ -654,9 +655,9 @@ test("validation flags non-trivial chapters without review quizzes", () => {
     ]
   });
 
-  assert.match(
+  assert.doesNotMatch(
     validateTextbook(built).map((issue) => issue.message).join("\n"),
-    /Non-trivial chapter should end with a review quiz/
+    /missing a retrieval, review, or mastery-check move/
   );
 });
 
@@ -709,7 +710,7 @@ test("validation rejects chapters containing both review and practice-test quizz
   );
 });
 
-test("validation rejects non-trivial chapters with review quizzes outside the final section", () => {
+test("validation allows a review quiz before a final transfer task", () => {
   const built = textbook({
     id: "review-placement",
     title: "Review Placement",
@@ -750,7 +751,7 @@ test("validation rejects non-trivial chapters with review quizzes outside the fi
     })]
   });
 
-  assert.match(
+  assert.doesNotMatch(
     validateTextbook(built).map((issue) => issue.message).join("\n"),
     /review quiz must appear in the chapter's final section/
   );
@@ -849,7 +850,7 @@ test("validation accepts a dedicated practice-test chapter without a review quiz
   assert.doesNotMatch(messages, /must not contain both review and practice-test quizzes/);
 });
 
-test("validation rejects inconsistent chapter descriptions", () => {
+test("validation allows chapter descriptions to vary by chapter", () => {
   const built = textbook({
     id: "descriptions",
     title: "Descriptions",
@@ -868,7 +869,7 @@ test("validation rejects inconsistent chapter descriptions", () => {
     ]
   });
 
-  assert.match(
+  assert.doesNotMatch(
     validateTextbook(built).map((issue) => issue.message).join("\n"),
     /Chapter descriptions should be used consistently/
   );
@@ -1025,7 +1026,7 @@ test("validation rejects instruction chapters containing practice-test quizzes",
   );
 });
 
-test("validation rejects non-trivial instruction chapters without a final review role", () => {
+test("validation allows instruction chapters to combine practice and review", () => {
   const built = textbook({
     id: "instruction",
     title: "Instruction",
@@ -1069,7 +1070,7 @@ test("validation rejects non-trivial instruction chapters without a final review
     })]
   });
 
-  assert.match(
+  assert.doesNotMatch(
     validateTextbook(built).map((issue) => issue.message).join("\n"),
     /must end with a section whose role is review/
   );
@@ -1615,7 +1616,7 @@ test("validation rejects invalid coding-problem verification mappings", () => {
   assert.match(messages, /reference file does not exist/);
 });
 
-test("validation flags exposition-heavy chapters without practice moves", () => {
+test("validation does not impose practice quotas on exposition chapters", () => {
   const built = textbook({
     id: "history",
     title: "History",
@@ -1639,13 +1640,13 @@ test("validation flags exposition-heavy chapters without practice moves", () => 
     ]
   });
 
-  assert.match(
+  assert.doesNotMatch(
     validateTextbook(built).map((issue) => issue.message).join("\n"),
     /exposition-heavy/
   );
 });
 
-test("validation flags code-heavy chapters without coding problems", () => {
+test("validation allows code examples without forcing runnable practice", () => {
   const built = textbook({
     id: "pandas",
     title: "Pandas",
@@ -1676,7 +1677,7 @@ test("validation flags code-heavy chapters without coding problems", () => {
     ]
   });
 
-  assert.match(
+  assert.doesNotMatch(
     validateTextbook(built).map((issue) => issue.message).join("\n"),
     /no codingProblem/
   );

@@ -103,7 +103,7 @@ test("targeted compile ignores unrelated broken textbooks", async () => {
   assert.equal(result.textbookCount, 1);
 });
 
-test("compile rejects textbooks that fail learning heuristics", async () => {
+test("compile accepts structurally valid chapters without pedagogical quotas", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
   initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
@@ -125,6 +125,5 @@ export default chapter({
 `);
 
   const result = await compileWorkspace(dir);
-  assert.equal(result.ok, false, result.output);
-  assert.match(result.output, /exposition-heavy/);
+  assert.equal(result.ok, true, result.output);
 });

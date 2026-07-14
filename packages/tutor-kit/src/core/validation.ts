@@ -26,7 +26,6 @@ const sectionRoles = new Set(["instruction", "practice", "review", "assessment"]
 const transformationFormats = new Set(["markdown", "code", "math", "table"]);
 const transformationLayouts = new Set(["auto", "flow", "compare"]);
 const taskVerbPattern = /^(write|predict|explain|compare|classify|debug|diagnose|fix|implement|solve|justify|design|create|trace|identify|rewrite|describe|test|name|build|apply|refactor|interpret|spot)\b/i;
-const reviewHintPattern = /\b(check|self-check|review|recall|retrieval|mastery|quiz|practice|try|exercise|explain|predict|compare|debug|apply|test)\b/i;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -79,16 +78,6 @@ function validateTextbookHeuristics(textbook: Record<string, unknown>, file?: st
 
   const quizBlocks = collectTextbookBlocks(textbook).filter(isQuizBlock);
   const answerPositions = collectFourChoiceAnswerPositions(quizBlocks);
-  const chapters = textbook.chapters.filter(isRecord);
-  const describedChapterCount = chapters.filter((chapter) => hasText(chapter.description)).length;
-
-  if (describedChapterCount > 0 && describedChapterCount < chapters.length) {
-    issues.push(issue(
-      "Chapter descriptions should be used consistently across a textbook: provide descriptions for all chapters or none.",
-      "chapters",
-      file
-    ));
-  }
 
   if (
     answerPositions.total >= 24 &&
@@ -135,18 +124,17 @@ export function validateChapter(value: unknown, file?: string): ValidationIssue[
     }
   }
 
-  issues.push(...validateChapterLearningHeuristics(value as unknown as Chapter, file));
+  issues.push(...validateChapterRoleConsistency(value as unknown as Chapter, file));
 
   return issues;
 }
 
-function validateChapterLearningHeuristics(chapter: Chapter, file?: string): ValidationIssue[] {
+function validateChapterRoleConsistency(chapter: Chapter, file?: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const blocks = collectChapterBlocks(chapter);
   const quizBlocks = blocks.filter(isQuizBlock);
   const reviewQuizzes = quizBlocks.filter((block) => block.props.mode === "review");
   const practiceTestQuizzes = quizBlocks.filter((block) => block.props.mode === "practice-test");
-  const isPracticeTestChapter = practiceTestQuizzes.length > 0;
   const chapterRole = chapter.role;
   const finalSection = chapter.sections.at(-1);
 
@@ -162,24 +150,6 @@ function validateChapterLearningHeuristics(chapter: Chapter, file?: string): Val
     if (practiceTestQuizzes.length > 0) {
       issues.push(issue(
         "Instruction chapters must not contain practice-test quizzes. Put cumulative assessment in a cumulative-checkpoint chapter.",
-        "sections",
-        file
-      ));
-    }
-    if (blocks.length >= 8 && finalSection?.role !== "review") {
-      issues.push(issue(
-        "Non-trivial instruction chapters must end with a section whose role is review.",
-        "sections",
-        file
-      ));
-    }
-    if (
-      blocks.length >= 8 &&
-      finalSection?.role === "review" &&
-      !collectSectionBlocks(finalSection).some((block) => isQuizBlock(block) && block.props.mode === "review")
-    ) {
-      issues.push(issue(
-        "The final review section of a non-trivial instruction chapter must contain a review quiz.",
         "sections",
         file
       ));
@@ -216,110 +186,6 @@ function validateChapterLearningHeuristics(chapter: Chapter, file?: string): Val
         file
       ));
     }
-  }
-
-  if (blocks.length < 4) return issues;
-
-  if (blocks.length >= 8 && quizBlocks.length === 0) {
-    issues.push(issue(
-      "Non-trivial chapter should include at least one quiz block.",
-      "sections",
-      file
-    ));
-  }
-
-  if (blocks.length >= 8 && reviewQuizzes.length === 0 && !isPracticeTestChapter) {
-    issues.push(issue(
-      "Non-trivial chapter should end with a review quiz.",
-      "sections",
-      file
-    ));
-  }
-
-  if (blocks.length >= 8 && reviewQuizzes.length > 0) {
-    const finalSectionHasReview = finalSection !== undefined &&
-      collectSectionBlocks(finalSection).some((block) => isQuizBlock(block) && block.props.mode === "review");
-    if (!finalSectionHasReview) {
-      issues.push(issue(
-        "Non-trivial chapter review quiz must appear in the chapter's final section.",
-        "sections",
-        file
-      ));
-    }
-  }
-
-  if (chapter.sections.length >= 3 && !isPracticeTestChapter && !quizBlocks.some((block) => block.props.mode === "check")) {
-    issues.push(issue(
-      "Chapter with several sections should include at least one check quiz before the final review.",
-      "sections",
-      file
-    ));
-  }
-
-  if (chapter.sections.length < 2) {
-    issues.push(issue(
-      "Non-trivial chapter has fewer than 2 sections. Split concept introduction, examples, practice, and review into clearer teaching moves.",
-      "sections",
-      file
-    ));
-  }
-
-  const subsectionCount = chapter.sections.reduce(
-    (count, section) => count + section.subsections.length,
-    0
-  );
-
-  if (blocks.length >= 8 && subsectionCount === 0) {
-    issues.push(issue(
-      "Substantial chapter has no subsections. Add a focused worked example, misconception, boundary case, or practice cluster when useful.",
-      "sections",
-      file
-    ));
-  }
-
-  const hasPracticeMove = blocks.some((block) => (
-    block.kind === "codingProblem" ||
-    block.kind === "quiz" ||
-    looksLikeTaskList(block) ||
-    (!isVisualExampleBlock(block) && blockText(block).some((text) => reviewHintPattern.test(text)))
-  ));
-
-  if (!hasPracticeMove) {
-    issues.push(issue(
-      "Chapter appears exposition-heavy. Add guided or independent practice with concrete learner tasks.",
-      "sections",
-      file
-    ));
-  }
-
-  const hasReviewMove = blocks.some((block) => (
-    block.kind === "quiz" ||
-    looksLikeTaskList(block) ||
-    (!isVisualExampleBlock(block) && blockText(block).some((text) => reviewHintPattern.test(text)))
-  ));
-
-  if (!hasReviewMove) {
-    issues.push(issue(
-      "Chapter is missing a retrieval, review, or mastery-check move.",
-      "sections",
-      file
-    ));
-  }
-
-  const hasCodeExample = blocks.some((block) => (
-    block.kind === "codeBlock" &&
-    isRecord(block.props) &&
-    typeof block.props.language === "string" &&
-    block.props.language.trim().length > 0
-  ));
-  const hasCodingProblem = blocks.some((block) => block.kind === "codingProblem");
-
-  if (hasCodeExample && !hasCodingProblem) {
-    issues.push(issue(
-      "Programming-oriented chapter has code examples but no codingProblem for runnable independent practice.",
-      "sections",
-      file
-    ));
   }
 
   return issues;
@@ -1165,36 +1031,6 @@ function isQuizBlock(block: TutorBlock): block is TutorBlock & { props: { mode?:
   return block.kind === "quiz" && isRecord(block.props);
 }
 
-function blockText(block: TutorBlock): string[] {
-  const texts = [block.id];
-  if (!isRecord(block.props)) return texts;
-
-  if (typeof block.props.title === "string") texts.push(block.props.title);
-  if (typeof block.props.text === "string") texts.push(block.props.text);
-  if (typeof block.props.body === "string") texts.push(block.props.body);
-  if (typeof block.props.prompt === "string") texts.push(block.props.prompt);
-  if (Array.isArray(block.props.entries)) {
-    for (const entry of block.props.entries) {
-      if (!isRecord(entry)) continue;
-      if (typeof entry.term === "string") texts.push(entry.term);
-      if (typeof entry.definition === "string") texts.push(entry.definition);
-    }
-  }
-  if (Array.isArray(block.props.items)) {
-    for (const item of block.props.items) {
-      if (typeof item === "string") texts.push(item);
-    }
-  }
-  if (Array.isArray(block.props.questions)) {
-    for (const question of block.props.questions) {
-      if (!isRecord(question)) continue;
-      if (typeof question.prompt === "string") texts.push(question.prompt);
-      if (typeof question.explanation === "string") texts.push(question.explanation);
-    }
-  }
-  return texts;
-}
-
 function looksLikeTaskList(block: TutorBlock): boolean {
   if (block.kind !== "list" || !isRecord(block.props) || !Array.isArray(block.props.items)) {
     return false;
@@ -1204,8 +1040,4 @@ function looksLikeTaskList(block: TutorBlock): boolean {
     typeof item === "string" &&
     (item.includes("?") || taskVerbPattern.test(item.trim()))
   ));
-}
-
-function isVisualExampleBlock(block: TutorBlock): boolean {
-  return block.kind === "transformation" || block.kind === "diagram" || block.kind === "chart";
 }
