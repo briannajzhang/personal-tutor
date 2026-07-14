@@ -1,22 +1,16 @@
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, resolve, sep } from "node:path";
-import { spawn } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { loadTextbooks, resolveWorkspace } from "./discover.js";
-const defaultRunner = { timeoutMs: 8000, maxOutputBytes: 65536 };
-const defaultRuntimeCommands = {
-    python: { envVar: "PYTHON", command: "python3" },
-    javascript: { envVar: "NODE", command: "node" },
-    typescript: { envVar: "TSX", command: "tsx" },
-    cpp: { envVar: "CXX", command: "c++" }
-};
+import { runShell, writeProblemFiles } from "../core/command-runner.js";
+import { collectChapterBlocks } from "../core/traversal.js";
 export async function verifyCodingProblems(cwd, options = {}) {
     const workspace = await resolveWorkspace(cwd);
     const loaded = await loadTextbooks(cwd, options);
     if (loaded.issues.length > 0) {
         return failure(0, loaded.issues.map((issue) => issue.message));
     }
-    const problems = loaded.chapters.flatMap((loadedChapter) => (collectBlocks(loadedChapter.chapter)
+    const problems = loaded.chapters.flatMap((loadedChapter) => (collectChapterBlocks(loadedChapter.chapter)
         .filter((block) => block.kind === "codingProblem")
         .map((problem) => ({
         label: `${loadedChapter.textbookId}/${loadedChapter.chapter.id}/${problem.id}`,
@@ -72,7 +66,7 @@ async function verifyProblem(problem, config) {
 async function runVariant(problem, command, overlays, config) {
     const root = mkdtempSync(resolve(tmpdir(), "tutor-verify-"));
     try {
-        writeFiles(root, problem.props.files, overlays);
+        writeProblemFiles(root, problem.props.files, overlays);
         if (problem.props.setup) {
             const setup = await runShell(problem.props.setup.command, root, problem.props.language, config);
             if (setup.exitCode !== 0 || setup.timedOut)
@@ -84,55 +78,8 @@ async function runVariant(problem, command, overlays, config) {
         rmSync(root, { recursive: true, force: true });
     }
 }
-function writeFiles(root, files, overlays) {
-    for (const file of files) {
-        const target = resolve(root, file.path);
-        if (target !== root && !target.startsWith(root + sep))
-            throw new Error(`Coding problem file escapes temp directory: ${file.path}`);
-        mkdirSync(dirname(target), { recursive: true });
-        writeFileSync(target, overlays[file.path] ?? file.content);
-    }
-}
-async function runShell(command, cwd, language, config) {
-    const timeoutMs = config.timeoutMs ?? defaultRunner.timeoutMs;
-    const maxOutputBytes = config.maxOutputBytes ?? defaultRunner.maxOutputBytes;
-    let stdout = "";
-    let stderr = "";
-    let timedOut = false;
-    return await new Promise((resolvePromise) => {
-        const child = spawn(command, { cwd, env: runnerEnv(language, config), shell: true });
-        const timer = setTimeout(() => {
-            timedOut = true;
-            child.kill("SIGKILL");
-        }, timeoutMs);
-        child.stdout.on("data", (chunk) => { stdout = appendLimited(stdout, chunk, maxOutputBytes); });
-        child.stderr.on("data", (chunk) => { stderr = appendLimited(stderr, chunk, maxOutputBytes); });
-        child.on("close", (exitCode, signal) => {
-            clearTimeout(timer);
-            resolvePromise({ exitCode, signal, stdout, stderr, timedOut });
-        });
-    });
-}
-function runnerEnv(language, config) {
-    const env = { ...process.env };
-    for (const [runtime, preset] of Object.entries(defaultRuntimeCommands)) {
-        env[preset.envVar] = config.runtimes?.[runtime]?.command ?? preset.command;
-    }
-    Object.assign(env, config.runtimes?.[language]?.env ?? {});
-    return env;
-}
-function appendLimited(current, chunk, limit) {
-    const combined = Buffer.concat([Buffer.from(current), chunk]);
-    return combined.subarray(0, limit).toString("utf8");
-}
 function formatShell(result) {
     return result.stderr.trim() || result.stdout.trim() || `exit code ${result.exitCode}`;
-}
-function collectBlocks(chapter) {
-    return chapter.sections.flatMap((section) => [
-        ...section.blocks,
-        ...section.subsections.flatMap((subsection) => subsection.blocks)
-    ]);
 }
 function failure(problemCount, messages) {
     return {

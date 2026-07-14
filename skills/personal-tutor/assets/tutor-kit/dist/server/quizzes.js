@@ -1,6 +1,6 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
+import { appendEvent, isStringRecord, readJsonFile, relativeDataPath, requireNonNegativeInteger, requireString, safeSegment, writeJsonFile } from "./shared.js";
 const emptyState = () => ({
     selectedAnswers: {},
     submitted: false,
@@ -69,12 +69,12 @@ export async function submitQuizAttempt(cwd, body) {
 }
 function quizPaths(cwd, dataDir, request) {
     const absolutePath = join(dataDir, "quiz-state", safeSegment(requireString(request.textbookId, "textbookId")), safeSegment(requireString(request.chapterId, "chapterId")), `${safeSegment(requireString(request.quizId, "quizId"))}.json`);
-    return { absolutePath, path: relative(cwd, absolutePath).replaceAll("\\", "/") };
+    return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
 }
 function readState(path) {
-    if (!existsSync(path))
+    const parsed = readJsonFile(path);
+    if (!parsed)
         return emptyState();
-    const parsed = JSON.parse(readFileSync(path, "utf8"));
     return {
         selectedAnswers: quizAnswerRecord(parsed.selectedAnswers),
         submitted: parsed.submitted === true,
@@ -86,8 +86,7 @@ function readState(path) {
     };
 }
 function writeState(path, state) {
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, `${JSON.stringify(state, null, 2)}\n`);
+    writeJsonFile(path, state);
 }
 function responseList(value) {
     if (!Array.isArray(value))
@@ -124,28 +123,5 @@ function requireQuizAnswer(value, label) {
     if (isStringRecord(value))
         return { ...value };
     throw new Error(`${label} must be a string or string record`);
-}
-function isStringRecord(value) {
-    return typeof value === "object" &&
-        value !== null &&
-        !Array.isArray(value) &&
-        Object.values(value).every((entry) => typeof entry === "string");
-}
-function requireString(value, label) {
-    if (typeof value !== "string" || value.trim().length === 0)
-        throw new Error(`${label} is required`);
-    return value;
-}
-function requireNonNegativeInteger(value, label) {
-    if (!Number.isInteger(value) || value < 0)
-        throw new Error(`${label} must be a non-negative integer`);
-    return value;
-}
-function safeSegment(value) {
-    return value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
-}
-function appendEvent(dataDir, event) {
-    mkdirSync(dataDir, { recursive: true });
-    appendFileSync(join(dataDir, "events.jsonl"), `${JSON.stringify({ ...event, createdAt: new Date().toISOString() })}\n`);
 }
 //# sourceMappingURL=quizzes.js.map

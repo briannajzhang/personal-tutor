@@ -2,7 +2,7 @@ import { join, relative, resolve } from "node:path";
 import { existsSync } from "node:fs";
 import { loadTextbooks, resolveWorkspace } from "./discover.js";
 import { typecheckWorkspace } from "./typecheck.js";
-import { summarizeTextbook } from "../core/validation.js";
+import { summarizeTextbook } from "../core/traversal.js";
 export async function compileWorkspace(cwd, options = {}) {
     const root = resolve(cwd);
     const workspace = await resolveWorkspace(root);

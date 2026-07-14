@@ -1,6 +1,6 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
+import { appendEvent, readJsonFile, relativeDataPath, requireString, safeSegment, writeJsonFile } from "./shared.js";
 const emptyState = () => ({
     starredTermIds: [],
     ratings: {},
@@ -70,12 +70,12 @@ export async function submitGlossaryStudyRating(cwd, body) {
 }
 function glossaryStudyPaths(cwd, dataDir, request) {
     const absolutePath = join(dataDir, "glossary-study-state", `${safeSegment(requireString(request.textbookId, "textbookId"))}.json`);
-    return { absolutePath, path: relative(cwd, absolutePath).replaceAll("\\", "/") };
+    return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
 }
 function readState(path) {
-    if (!existsSync(path))
+    const parsed = readJsonFile(path);
+    if (!parsed)
         return emptyState();
-    const parsed = JSON.parse(readFileSync(path, "utf8"));
     return {
         starredTermIds: stringList(parsed.starredTermIds),
         ratings: ratingRecord(parsed.ratings),
@@ -88,8 +88,7 @@ function readState(path) {
     };
 }
 function writeState(path, state) {
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, `${JSON.stringify(state, null, 2)}\n`);
+    writeJsonFile(path, state);
 }
 function appendStarEvents(dataDir, textbookId, previous, next) {
     const previousSet = new Set(previous);
@@ -147,11 +146,6 @@ function glossaryRating(value) {
 function glossaryStudySet(value, fallback) {
     return value === "starred" || value === "all" ? value : fallback;
 }
-function requireString(value, label) {
-    if (typeof value !== "string" || value.trim().length === 0)
-        throw new Error(`${label} is required`);
-    return value;
-}
 function optionalString(value, fallback) {
     if (value === null)
         return null;
@@ -159,12 +153,5 @@ function optionalString(value, fallback) {
 }
 function nonNegativeInteger(value, fallback) {
     return Number.isInteger(value) && value >= 0 ? value : fallback;
-}
-function safeSegment(value) {
-    return value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
-}
-function appendEvent(dataDir, event) {
-    mkdirSync(dataDir, { recursive: true });
-    appendFileSync(join(dataDir, "events.jsonl"), `${JSON.stringify({ ...event, createdAt: new Date().toISOString() })}\n`);
 }
 //# sourceMappingURL=glossary-study.js.map

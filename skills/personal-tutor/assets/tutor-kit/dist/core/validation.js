@@ -1,5 +1,7 @@
 import { existsSync, realpathSync, statSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
+import { collectChapterBlocks, collectSectionBlocks } from "./traversal.js";
+export { summarizeChapter, summarizeSection, summarizeSubsection, summarizeTextbook } from "./traversal.js";
 const calloutTones = new Set(["note", "caution", "key-idea"]);
 const listStyles = new Set(["bullet", "number"]);
 const headingLevels = new Set([4, 5]);
@@ -824,19 +826,6 @@ function validateMarkupText(value, path, file, issues) {
         issues.push(issue("Markdown has an unmatched code fence.", path, file));
     }
 }
-function collectChapterBlocks(chapter) {
-    const blocks = [];
-    for (const section of chapter.sections) {
-        blocks.push(...collectSectionBlocks(section));
-    }
-    return blocks;
-}
-function collectSectionBlocks(section) {
-    return [
-        ...section.blocks,
-        ...section.subsections.flatMap((subsection) => subsection.blocks)
-    ];
-}
 function collectTextbookBlocks(textbook) {
     const blocks = [];
     if (!Array.isArray(textbook.chapters))
@@ -931,37 +920,5 @@ function looksLikeTaskList(block) {
 }
 function isVisualExampleBlock(block) {
     return block.kind === "transformation" || block.kind === "diagram" || block.kind === "chart";
-}
-export function summarizeSubsection(subsection) {
-    return { blocks: subsection.blocks.length };
-}
-export function summarizeSection(section) {
-    let blocks = section.blocks.length;
-    for (const subsection of section.subsections) {
-        blocks += summarizeSubsection(subsection).blocks;
-    }
-    return { subsections: section.subsections.length, blocks };
-}
-export function summarizeChapter(chapter) {
-    let subsections = 0;
-    let blocks = 0;
-    for (const section of chapter.sections) {
-        const summary = summarizeSection(section);
-        subsections += summary.subsections;
-        blocks += summary.blocks;
-    }
-    return { sections: chapter.sections.length, subsections, blocks };
-}
-export function summarizeTextbook(textbook) {
-    let sections = 0;
-    let subsections = 0;
-    let blocks = 0;
-    for (const chapter of textbook.chapters) {
-        const summary = summarizeChapter(chapter);
-        sections += summary.sections;
-        subsections += summary.subsections;
-        blocks += summary.blocks;
-    }
-    return { chapters: textbook.chapters.length, sections, subsections, blocks };
 }
 //# sourceMappingURL=validation.js.map

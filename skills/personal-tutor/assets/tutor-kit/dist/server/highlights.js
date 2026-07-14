@@ -1,6 +1,6 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
+import { appendEvent, readJsonFile, relativeDataPath, requireNonNegativeInteger, requireString, safeSegment, writeJsonFile } from "./shared.js";
 const emptyState = () => ({ highlights: [], updatedAt: null });
 export async function loadHighlights(cwd, query) {
     const workspace = await resolveWorkspace(cwd);
@@ -100,12 +100,12 @@ function appendHighlightEvents(dataDir, previous, next) {
 }
 function highlightPaths(cwd, dataDir, request) {
     const absolutePath = join(dataDir, "highlights", safeSegment(requireString(request.textbookId, "textbookId")), `${safeSegment(requireString(request.chapterId, "chapterId"))}.json`);
-    return { absolutePath, path: relative(cwd, absolutePath).replaceAll("\\", "/") };
+    return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
 }
 function readState(path) {
-    if (!existsSync(path))
+    const parsed = readJsonFile(path);
+    if (!parsed)
         return emptyState();
-    const parsed = JSON.parse(readFileSync(path, "utf8"));
     return {
         highlights: Array.isArray(parsed.highlights) ? parsed.highlights.map(highlightFromStored).filter(Boolean) : [],
         updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null
@@ -122,8 +122,7 @@ function highlightFromStored(value) {
     }
 }
 function writeState(path, state) {
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, `${JSON.stringify(state, null, 2)}\n`);
+    writeJsonFile(path, state);
 }
 function highlightColor(value) {
     if (value === "yellow" || value === undefined)
@@ -140,23 +139,5 @@ function stringValue(value) {
 }
 function optionalString(value) {
     return typeof value === "string" && value.trim().length > 0 ? value : undefined;
-}
-function requireString(value, label) {
-    if (typeof value !== "string" || value.trim().length === 0)
-        throw new Error(`${label} is required`);
-    return value;
-}
-function requireNonNegativeInteger(value, label) {
-    if (!Number.isInteger(value) || value < 0)
-        throw new Error(`${label} must be a non-negative integer`);
-    return value;
-}
-function safeSegment(value) {
-    const segment = value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
-    return segment === "." || segment === ".." ? "_" : segment;
-}
-function appendEvent(dataDir, event) {
-    mkdirSync(dataDir, { recursive: true });
-    appendFileSync(join(dataDir, "events.jsonl"), `${JSON.stringify({ ...event, createdAt: new Date().toISOString() })}\n`);
 }
 //# sourceMappingURL=highlights.js.map

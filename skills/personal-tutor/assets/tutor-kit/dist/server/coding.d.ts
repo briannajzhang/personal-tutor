@@ -1,3 +1,4 @@
+import { type ShellResult } from "../core/command-runner.js";
 interface CodingRequestBase {
     textbookId?: unknown;
     chapterId?: unknown;
@@ -9,15 +10,6 @@ interface CodingRunRequest extends CodingRequestBase {
 }
 interface CodingDraftRequest extends CodingRequestBase {
     files?: unknown;
-}
-interface ShellResult {
-    exitCode: number | null;
-    signal: string | null;
-    stdout: string;
-    stderr: string;
-    timedOut: boolean;
-    durationMs: number;
-    truncated: boolean;
 }
 interface RunResult extends ShellResult {
     ok: boolean;

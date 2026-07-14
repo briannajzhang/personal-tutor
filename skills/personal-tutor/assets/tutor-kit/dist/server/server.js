@@ -1,16 +1,17 @@
 import { createServer } from "node:http";
-import { mkdirSync, appendFileSync, createReadStream, existsSync, realpathSync, watch } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { mkdirSync, createReadStream, existsSync, realpathSync, watch } from "node:fs";
+import { relative, resolve } from "node:path";
 import { html } from "../ui/app.js";
 import { katexCssPath, katexFontPath, katexJsPath } from "../ui/katex-assets.js";
 import { mermaidAssetPath, mermaidJsPath } from "../ui/mermaid-assets.js";
 import { monacoAssetPath } from "../ui/monaco-assets.js";
 import { invalidateWorkspaceCaches, loadTextbooks, resolveWorkspace } from "../compile/discover.js";
-import { summarizeChapter, summarizeTextbook } from "../core/validation.js";
+import { summarizeChapter, summarizeTextbook } from "../core/traversal.js";
 import { loadCodingDraft, loadCodingFeedback, runCodingProblem, saveCodingDraft } from "./coding.js";
 import { loadGlossaryStudyState, saveGlossaryStudyState, submitGlossaryStudyRating } from "./glossary-study.js";
 import { deleteHighlight, loadHighlights, saveHighlight } from "./highlights.js";
 import { loadQuizState, saveQuizState, submitQuizAttempt } from "./quizzes.js";
+import { appendEvent } from "./shared.js";
 export async function startDevServer(options) {
     const workspace = await resolveWorkspace(options.cwd);
     mkdirSync(workspace.dataDir, { recursive: true });
@@ -160,8 +161,7 @@ async function handleRequest(cwd, request, response) {
     if (request.method === "POST" && url.pathname === "/api/events") {
         const workspace = await resolveWorkspace(cwd);
         const payload = await readJson(request);
-        mkdirSync(workspace.dataDir, { recursive: true });
-        appendFileSync(join(workspace.dataDir, "events.jsonl"), `${JSON.stringify({ ...payload, createdAt: new Date().toISOString() })}\n`);
+        appendEvent(workspace.dataDir, payload);
         sendJson(response, 201, { ok: true });
         return;
     }
