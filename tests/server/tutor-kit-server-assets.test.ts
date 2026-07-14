@@ -43,7 +43,6 @@ function assertGlossaryAssets(page: string) {
     /renderGlossary/,
     /renderTextbookGlossary/,
     /loadTextbook/,
-    /textbookCache/,
     /glossaryStudyStates/,
     /collectTextbookGlossaryEntries/,
     /glossaryEntryId/,

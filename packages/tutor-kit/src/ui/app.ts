@@ -2220,7 +2220,6 @@ body.route-loading {
 function clientJs(): string {
   return `
 let textbooks = [];
-const textbookCache = new Map();
 const glossaryStudyStates = new Map();
 let activeChapter = null;
 let activeChapterHighlights = [];
@@ -2233,7 +2232,6 @@ let mermaidReady = null;
 let routeToken = 0;
 
 async function load() {
-  textbooks = await fetchJson("/api/textbooks");
   window.addEventListener("popstate", () => { void renderRoute(); });
   window.addEventListener("resize", scheduleTransformationLayouts);
   await renderRoute();
@@ -2252,13 +2250,13 @@ async function fetchJson(url, options) {
 }
 
 async function loadTextbook(textbookId) {
-  if (textbookCache.has(textbookId)) return textbookCache.get(textbookId);
-  const textbook = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}\`);
-  textbookCache.set(textbookId, textbook);
-  return textbook;
+  return fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}\`);
 }
 
-function renderHome() {
+async function renderHome() {
+  const token = beginRouteLoad("Loading textbooks...");
+  textbooks = await fetchJson("/api/textbooks");
+  if (token !== routeToken) return;
   const totalChapters = textbooks.reduce((sum, textbook) => sum + textbook.chapterCount, 0);
   const meta = textbooks.length === 0 ? "No textbooks yet" : \`\${textbooks.length} textbooks / \${totalChapters} chapters\`;
   document.querySelector("#main").innerHTML = \`
@@ -2273,6 +2271,7 @@ function renderHome() {
   document.querySelectorAll("[data-textbook]").forEach((button) => {
     button.addEventListener("click", () => navigateTextbook(button.dataset.textbook));
   });
+  finishRouteLoad(token);
 }
 
 function renderTextbookRows() {
@@ -2308,7 +2307,7 @@ function renderEmptyTextbooks() {
 }
 
 async function renderTextbook(textbookId) {
-  const token = textbookCache.has(textbookId) ? ++routeToken : beginRouteLoad("Loading textbook...");
+  const token = beginRouteLoad("Loading textbook...");
   const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
   const glossaryEntries = collectTextbookGlossaryEntries(textbook);
@@ -2348,7 +2347,7 @@ async function renderTextbook(textbookId) {
 }
 
 async function renderTextbookGlossary(textbookId) {
-  const token = textbookCache.has(textbookId) ? ++routeToken : beginRouteLoad("Loading glossary...");
+  const token = beginRouteLoad("Loading glossary...");
   const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
   const entries = collectTextbookGlossaryEntries(textbook);
@@ -2380,7 +2379,7 @@ async function renderTextbookGlossary(textbookId) {
 }
 
 async function renderTextbookGlossaryStudy(textbookId) {
-  const token = textbookCache.has(textbookId) ? ++routeToken : beginRouteLoad("Loading study session...");
+  const token = beginRouteLoad("Loading study session...");
   const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
   const entries = collectTextbookGlossaryEntries(textbook);
@@ -3518,9 +3517,7 @@ async function renderRoute() {
       });
       return;
     }
-    routeToken += 1;
-    finishRouteLoad(routeToken);
-    renderHome();
+    await renderHome();
   } catch (error) {
     finishRouteLoad();
     if (isNotFoundError(error)) {

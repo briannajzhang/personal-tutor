@@ -29,6 +29,34 @@ function tickLabels(svg: string): string[] {
   return [...svg.matchAll(/<text class="chart-value"[^>]*>([^<]+)<\/text>/g)].map((match) => match[1]);
 }
 
+test("textbook loads always fetch current source data", async () => {
+  let requestCount = 0;
+  const sandbox: {
+    __loadTextbook?: (textbookId: string) => Promise<{ revision: number }>;
+    fetch: (url: string) => Promise<{ ok: boolean; json: () => Promise<{ revision: number }> }>;
+  } = {
+    async fetch(url) {
+      assert.equal(url, "/api/textbooks/course");
+      requestCount += 1;
+      return {
+        ok: true,
+        async json() {
+          return { revision: requestCount };
+        }
+      };
+    }
+  };
+
+  runInNewContext(
+    `${clientScriptWithoutLoad()}\nglobalThis.__loadTextbook = loadTextbook;`,
+    sandbox
+  );
+
+  assert.deepEqual(await sandbox.__loadTextbook?.("course"), { revision: 1 });
+  assert.deepEqual(await sandbox.__loadTextbook?.("course"), { revision: 2 });
+  assert.equal(requestCount, 2);
+});
+
 test("percent charts render a clean 0 to 100 y-axis", () => {
   const renderChartSvg = loadRenderChartSvg();
   const svg = renderChartSvg({
