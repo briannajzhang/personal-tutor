@@ -22,9 +22,10 @@ The default deliverable is maintained Tutor Kit source, not a conversational exp
 For broad learning requests, publish a small verified slice now and leave the rest as a planned backlog:
 
 - Create or continue one textbook for the requested subject.
-- Plan the whole course/module arc in `curriculum-map.md`.
+- Plan the whole course or module arc briefly in `course.md`.
 - Publish the first or next 1-2 learner-ready chapters.
-- Persist `prompt.md`, `chapter-specs.md`, `review-notes.md`, and `compile-result.md`.
+- Keep learner context, the course map, and the active publication contract concise in `course.md`.
+- Let `doctor --record` write `compile-result.md`.
 - When sources are provided, persist `materials-index.md` and `source-notes.md`.
 - Do not create placeholder future `.chapter.ts` files.
 
@@ -47,13 +48,13 @@ Use focused material mode when the user asks for a specific durable artifact, su
 
 If the user asks for a complete textbook or large batch, still publish incrementally in verified batches. A plan can be broad; the current publication should be learner-ready.
 
-## Tailoring Intake
+## Tailoring intake
 
-Inspect the workspace first, then ask a concise intake before authoring. Ask only questions whose answers will change the lesson design, practice, difficulty, or sequencing.
+Run `tutor brief` first. Ask at most one intake question, and only when its answer will materially change lesson design, practice, difficulty, or sequencing. Infer the remaining profile from the request and record it briefly in `course.md`.
 
 If sources are involved, inspect existing source artifacts before intake and ask only unresolved choices that affect generation.
 
-For a new course/module, ask 3-5 of:
+When one question is needed for a new course, choose the highest value unresolved question from:
 
 - What should you be able to do with this subject?
 - What background should the material assume?
@@ -62,7 +63,7 @@ For a new course/module, ask 3-5 of:
 - Which practice mix do you want: quizzes, written exercises, runnable/checkable tasks, projects, or a blend?
 - Is there a time horizon or chapter size to target?
 
-For continuation, ask 2-4 of:
+For continuation, use `tutor progress --textbook <id>` first. Ask one question only when learner activity and existing course state do not resolve choices such as:
 
 - Should the next publication introduce new material, add practice, add review, or repair a weak chapter?
 - What felt too easy, too hard, or unclear in the existing material?
@@ -76,7 +77,7 @@ For focused quizzes/practice, ask only what is missing:
 - number of questions/tasks
 - desired format and feedback style
 
-If the user declines intake or asks the agent to choose, use the defaults below and record them in `prompt.md` or `curriculum-map.md`.
+If the user asks the agent to choose, use the defaults below and record them in `course.md`.
 
 ## Learner Defaults
 
@@ -104,7 +105,7 @@ If the user asks for a quick overview, cheat sheet, cram plan, or lightweight in
 
 ## Curriculum Maps
 
-Before writing chapter prose, create or update `curriculum-map.md`.
+Keep the course map in `course.md`. Older workspaces may continue using `curriculum-map.md`.
 
 A good curriculum map includes:
 
@@ -124,11 +125,11 @@ Use concept-based chapter names. Avoid schedule labels such as `Week 1` unless t
 
 For broad requests, either cover the expected beginner core scope in the plan or clearly label the artifact as a scoped module and record what is deferred.
 
-## Chapter Specs
+## Chapter specs
 
-Write chapter specs before authoring new or substantially revised chapters. Store them in `chapter-specs.md`.
+For an ordinary chapter, use the short active publication fields in `course.md`: outcome, ideas worth developing, possible worked examples, likely learner difficulty, and practice or feedback opportunities. Write a longer `chapter-specs.md` entry only when the chapter has unusual prerequisite, source, assessment, visual, or interaction risk.
 
-Use this format for each active chapter:
+When a longer spec is warranted, use this format for the risky parts rather than filling every field mechanically:
 
 ```md
 # Chapter Spec: <chapter title>
@@ -216,27 +217,26 @@ Reject vague specs before writing prose. A spec should instantiate examples and 
 2. Run `tutor list textbooks` and inspect existing candidates.
 3. Add one textbook for the requested subject if no suitable textbook exists.
 4. If sources are provided, create or update `materials-index.md` and `source-notes.md`.
-5. Save the original request in `prompt.md`.
-6. Draft `curriculum-map.md`.
-7. Draft specs only for chapters being published now, usually 1-2 chapters.
-8. Author complete learner-ready chapters.
-9. Add purposeful practice, quizzes, review, and coding problems where they fit the learner outcome.
-10. Run the acceptance gate and revise blocking issues.
-11. Run compile/doctor and coding-problem verification when present.
-12. Record evidence and next-publication notes.
+5. Record the learner, outcome, short course map, and active publication contract in `course.md`.
+6. Add a longer spec only when the publication has unusual risk.
+7. Author complete learner-ready chapters.
+8. Add purposeful practice, quizzes, review, and coding problems where they fit the learner outcome.
+9. Run the acceptance gate and revise blocking issues.
+10. Run `doctor --textbook <id> --record`.
+11. Update the next publication entry in `course.md` only if the plan changed.
 
 ## Continuation Workflow
 
-1. Inspect `tutor.config.ts`, the relevant `textbook.ts`, existing chapter files, planning artifacts, source artifacts when present, and recent events if they inform review needs.
+1. Run `tutor brief --textbook <id>` and `tutor progress --textbook <id>`, then inspect only the course and chapter files needed for the decision.
 2. Choose the smallest useful publication:
    - improve the active chapter
    - add focused practice/review material
    - publish the next planned chapter
    - publish a dedicated practice-test chapter
-3. Update `curriculum-map.md` and `chapter-specs.md` before authoring.
+3. Update the active publication fields in `course.md`. Use a longer chapter spec only when risk warrants it.
 4. Publish only learner-ready material.
 5. Run review and verification.
-6. Record what changed and what should be published next.
+6. Let `doctor --record` write verification evidence, then update the next course-map item if needed.
 
 ## Focused Material Workflow
 
@@ -248,7 +248,7 @@ For a request to add practice questions, quizzes, exercises, or coding practice:
 4. Choose the question format by the learner move before choosing the builder. Use `balancedQuiz(...)` for generated multiple-choice checks when one-decision questions fit and answer order does not matter; use `quiz(...)` for matching relationship checks or preserved answer structure.
 5. Add concrete tasks or coding problems when the learner must produce, debug, design, transform, or implement.
 6. Verify that practice does not require untaught moves.
-7. Compile and record evidence.
+7. Run `doctor --textbook <id> --record`.
 
 ## Scope And Pacing Rules
 

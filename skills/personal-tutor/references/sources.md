@@ -57,7 +57,7 @@ Before authoring from sources:
 - Read existing `materials-index.md` and relevant `source-notes.md` sections
 - Add new source entries with stable lowercase kebab-case IDs
 - Extract only notes that are useful for the next publication or planned course arc
-- Reflect source-driven scope, terminology, examples, or practice in `curriculum-map.md`
+- Reflect source-driven scope, terminology, examples, or practice in `course.md`
 - Write or update specs only for chapters being published now
 
 When continuing a textbook, use existing source notes first. Reopen raw sources only when the notes are insufficient for the next small publication and the path or URL is available.

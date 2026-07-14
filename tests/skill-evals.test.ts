@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 
 const scenarios = [
@@ -6,21 +8,23 @@ const scenarios = [
     id: "seed-beginner-course",
     query: "Use $personal-tutor to teach me SQL from scratch.",
     expectedBehavior: [
-      "Initializes or reuses a Tutor Kit workspace",
+      "Uses tutor brief to inspect or initializes a Tutor Kit workspace",
       "Creates one SQL textbook if none fits",
-      "Persists prompt, curriculum map, chapter specs, review notes, and compile evidence",
-      "Publishes 1-2 learner-ready chapters with examples, quizzes, practice, and review",
-      "Leaves future chapters as planned backlog rather than placeholder chapter files"
+      "Keeps learner context, course map, and active publication state in one compact course file",
+      "Publishes 1-2 rich learner-ready chapters using examples, practice, feedback, visuals, or interaction when they improve learning",
+      "Leaves future chapters as planned backlog rather than placeholder chapter files",
+      "Lets doctor --record write verification evidence"
     ]
   },
   {
     id: "continue-existing-textbook",
     query: "Use $personal-tutor to continue the existing statistics textbook with the next lesson.",
     expectedBehavior: [
-      "Inspects the existing textbook, chapters, planning artifacts, and relevant learner history",
-      "Updates the curriculum map and chapter specs before authoring",
+      "Uses tutor brief and tutor progress before opening only the relevant source files",
+      "Uses weak tags and failed practice to choose repair, review, or new material",
+      "Updates only the changed part of course.md and adds a longer spec only for unusual risk",
       "Publishes the next smallest useful learner-ready chapter or improvement",
-      "Runs compile or doctor and records the result"
+      "Runs doctor --record and does not rewrite its evidence"
     ]
   },
   {
@@ -110,4 +114,26 @@ test("skill eval scenarios cover the refocused lesson-authoring workflows", () =
     assert.match(scenario.query, /\$personal-tutor/);
     assert.ok(scenario.expectedBehavior.length >= 4, `${scenario.id} should have a useful behavior rubric`);
   }
+});
+
+test("default skill path stays compact while preserving the quality contract", () => {
+  const root = join(process.cwd(), "skills", "personal-tutor");
+  const skill = readFileSync(join(root, "SKILL.md"), "utf8");
+  const quality = readFileSync(join(root, "references", "quality-core.md"), "utf8");
+  const quickstart = readFileSync(join(root, "references", "authoring-quickstart.md"), "utf8");
+  const defaultWords = `${skill}\n${quality}\n${quickstart}`.trim().split(/\s+/).length;
+
+  assert.ok(defaultWords < 3500, `default instruction path should stay below 3500 words, found ${defaultWords}`);
+  assert.match(skill, /normal path stops after the two required references/i);
+  assert.match(skill, /Every built-in block and custom TypeScript remain available/i);
+  assert.match(quality, /Teach the mechanism/i);
+  assert.match(quality, /Make an example inspectable/i);
+  assert.match(quality, /Invite learner action/i);
+  assert.match(quality, /Give useful feedback/i);
+  assert.match(quality, /Adapt from evidence/i);
+  assert.match(quality, /chapter shape fit this subject and learner/i);
+  assert.match(quality, /not acceptance criteria/i);
+  assert.match(quality, /Do not confuse richness with length or block count/i);
+  assert.match(quickstart, /not a required chapter shape/i);
+  assert.match(quickstart, /does not restrict the authoring API/i);
 });

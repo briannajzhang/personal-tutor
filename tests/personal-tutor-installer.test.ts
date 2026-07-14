@@ -25,7 +25,7 @@ test("personal-tutor installer copies the skill into a skills directory", () => 
 
   const installedSkill = join(skillsDir, "personal-tutor");
   assert.match(output, /Installed personal-tutor skill/);
-  assert.match(output, /practice-heavy Tutor Kit lesson with quizzes and verified exercises/);
+  assert.match(output, /rich, flexible Tutor Kit lesson with deep explanation, concrete examples, meaningful practice, and helpful interaction/);
   assert.doesNotMatch(output, /study plan/i);
   assert.ok(existsSync(join(installedSkill, "SKILL.md")));
   assert.ok(existsSync(join(installedSkill, "agents", "openai.yaml")));

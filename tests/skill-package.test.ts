@@ -9,9 +9,11 @@ const referencesDir = join(skillDir, "references");
 const assetDir = join(skillDir, "assets", "tutor-kit");
 
 const expectedReferences = [
+  "authoring-quickstart.md",
   "lesson-authoring.md",
   "lesson-generation.md",
   "practice-and-assessment.md",
+  "quality-core.md",
   "review-and-verification.md",
   "sources.md",
   "tutor-kit-api.md"
@@ -118,7 +120,7 @@ test("OpenAI UI metadata matches the refocused skill", () => {
   const metadata = readFileSync(join(skillDir, "agents", "openai.yaml"), "utf8");
 
   assert.match(metadata, /display_name: "Personal Tutor"/);
-  assert.match(metadata, /short_description: ".*Tutor Kit.*"/);
+  assert.match(metadata, /short_description: "Rich Tutor Kit lessons and practice"/);
   assert.match(metadata, /default_prompt: "Use \$personal-tutor /);
   assert.match(metadata, /start the local Tutor Kit app/i);
   assert.doesNotMatch(metadata, /study plan/i);

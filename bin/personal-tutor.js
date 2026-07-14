@@ -130,7 +130,7 @@ function installSkill(options) {
   if (options.installDeps) console.log("- bundled Tutor Kit CLI: verified");
   console.log("");
   console.log("Try it in Codex with:");
-  console.log("Use $personal-tutor to create a practice-heavy Tutor Kit lesson with quizzes and verified exercises.");
+  console.log("Use $personal-tutor to create a rich, flexible Tutor Kit lesson with deep explanation, concrete examples, meaningful practice, and helpful interaction.");
 }
 
 function installTutorKitDependencies(skillDir) {

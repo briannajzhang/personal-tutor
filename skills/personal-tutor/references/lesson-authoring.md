@@ -16,34 +16,33 @@ Use this reference when writing learner-facing Tutor Kit chapters, sections, exa
 - Titles and descriptions
 - Anti-patterns
 
-## Learning Contract
+## Rich lesson prompts
 
-Every durable lesson should help the learner do something, not only read about something.
+Aim to help the learner do something, not only read about something. Treat the following moves as a rich default and a source of ideas. They are not a required chapter schema.
 
-Non-trivial chapters should include:
+Depending on the subject and scope, consider:
 
 - a learner-facing goal or problem
 - plain definitions before important terms are used
 - explanation of the central mechanism
-- at least one worked example with inspectable input and result
+- worked examples with inspectable input and result
 - local concept checks near major ideas, examples, traps, or boundary cases
 - guided practice
 - independent practice
 - retrieval or self-test prompts
 - a final review or mastery check
-- at least one realistic misconception, trap, or boundary case
+- realistic misconceptions, traps, or boundary cases
 
-A chapter is incomplete if the learner is never asked to use, test, predict, compare, classify, explain, debug, or create with the idea.
+A lesson often becomes richer when the learner can use, test, predict, compare, classify, explain, debug, or create with the idea. Let a deliberately brief lesson stay brief when that matches the request.
 
 ## Chapter Structure
 
 Use sections and subsections as teaching structure, not decoration.
 
-- Treat a chapter as non-trivial unless it is intentionally tiny.
-- For non-trivial chapters, use at least 2 sections.
-- Substantial chapters should usually include at least 1 subsection.
-- Separate concept introduction, worked example, practice, and review when the learner benefits from the structure.
-- Instructional chapters should normally end with a dedicated final section whose role is `"review"`.
+- Use sections and subsections when they help the learner see the teaching structure.
+- Separate concept introduction, worked examples, exploration, practice, and review when that improves the learning flow.
+- Combine or omit those parts when a different shape works better.
+- Use semantic roles when they clarify purpose. No role or section count is required for an ordinary lesson.
 
 Use roles:
 

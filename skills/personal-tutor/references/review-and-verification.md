@@ -1,6 +1,6 @@
 # Review And Verification
 
-Use this reference before finalizing Tutor Kit lesson material.
+Use this reference when the user asks for a strict pedagogical audit or when a high-risk publication needs deeper review. Ordinary lesson generation uses the reflection prompts in `quality-core.md` and recorded `doctor` output instead.
 
 ## Contents
 
@@ -16,19 +16,19 @@ Use this reference before finalizing Tutor Kit lesson material.
 
 ## Review Loop
 
-Use this loop for every generated or revised publication:
+For a strict audit or high-risk publication, use this loop:
 
 1. Review the drafted material against the acceptance gate.
 2. Revise blocking issues before adding more chapters.
 3. Run `tutor doctor` when possible.
 4. If `doctor` is too broad because unrelated material is broken, run targeted `tutor compile --textbook <textbook-id>` and coding verification for the changed textbook.
-5. Record review, compile, and verification evidence.
+5. Run `doctor --textbook <id> --record` so Tutor Kit records compile and coding verification evidence.
 
 Do not claim the workspace is healthy unless the relevant command actually passed.
 
 ## Acceptance Gate
 
-Reject and revise if any item fails.
+When a strict audit was requested, revise any item that fails or explain why it does not apply.
 
 ### Scope Honesty
 
@@ -148,7 +148,7 @@ If a glossary does not earn its place, omit it.
 
 ## Authoring Validation Notes
 
-Ordinary generation should create concise `review-notes.md`:
+Ordinary generation should not create `review-notes.md`. Tutor Kit records compile and coding verification evidence. Use `review-notes.md` only for a requested pedagogical audit or for evidence Tutor Kit cannot observe, such as representative custom interaction paths or a source interpretation decision.
 
 ```md
 # Review Notes
@@ -171,7 +171,7 @@ Pass/Fail:
 
 Do not write full per-chapter score tables during ordinary generation unless the user asks for a strict audit.
 
-If no revisions were applied, explain why the first draft passed every blocking gate.
+When review notes are warranted and no revisions were needed, record only the concrete evidence that resolved the risk.
 
 ## Pedagogical Audit
 
@@ -191,46 +191,19 @@ Score chapters on:
 
 Revise any category below 4 before finalizing. Scores of 4 or 5 must cite concrete chapter content, examples, blocks, or questions.
 
-## Compile Evidence
+## Compile evidence
 
-Record compile or doctor results in `compile-result.md`:
-
-```md
-# Compile Result
-
-## Command
-`tutor doctor --textbook <textbook-id>`
-
-## Result
-Passed/Failed:
-
-## Scope
-full workspace / textbook <id>
-
-## Errors Fixed
-- ...
-
-## Remaining Known Issues
-- ...
-```
-
-Prefer:
+Run the recorded doctor command:
 
 ```bash
-tutor doctor
+tutor doctor --textbook <textbook-id> --record
 ```
 
-Or:
-
-```bash
-tutor doctor --textbook <textbook-id>
-```
-
-Use `tutor compile` plus coding verification when that is clearer for the task.
+Tutor Kit writes `compile-result.md`. Use unrecorded `tutor compile` for a quick intermediate check.
 
 ## Coding Verification Evidence
 
-For textbooks with coding problems, record:
+For textbooks with coding problems, `doctor --record` records:
 
 - command run
 - starter result
@@ -261,7 +234,7 @@ Revise before finalizing when material is:
 - thin on practice
 - missing local checks
 - missing chapter review
-- missing or outdated chapter specs
+- missing or outdated risk notes when a high-risk chapter needs them
 - using quiz modes incorrectly
 - using prose-only programming exercises where runnable practice would help
 - containing under-specified coding problems

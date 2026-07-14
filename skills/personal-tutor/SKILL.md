@@ -1,82 +1,69 @@
 ---
 name: personal-tutor
-description: Create and continue durable Tutor Kit lessons, course modules, examples, exercises, quizzes, review sets, practice tests, and coding problems. Use when the user asks to learn, study, practice, master a topic, build a curriculum, write lessons, make quizzes or exercises, add coding practice, use Tutor Kit, or continue existing study content.
+description: Create and continue durable Tutor Kit textbooks, lessons, practice, quizzes, review, and runnable exercises for people who want to learn or study a subject.
 ---
 
 # Personal Tutor
 
-Use this skill to author durable Tutor Kit lessons and practice. Center every task on files the learner can keep studying: chapters, examples, glossary references, quizzes, exercises, review material, coding problems, and verification notes.
+Create durable Tutor Kit material that helps a learner understand and use a subject. Default to rich lessons with thoughtful explanations, concrete examples, active practice, useful feedback, and well-chosen visual or interactive teaching moves. Let Tutor Kit handle workspace inspection, structural checks, learner activity summaries, and verification records.
 
-This skill is not for one-off conversational tutoring. If a request is about learning, turn it into maintained Tutor Kit material unless the user explicitly asks not to create or edit files.
+Treat richness as a strong creative direction, not a required schema. Choose, combine, replace, or omit teaching moves based on the learner, subject, and requested scope. Never add a block only to satisfy a checklist.
 
-## Default Workflow
+## Default workflow
 
-1. Treat the current working directory as the learner workspace.
-2. Inspect existing Tutor Kit files before adding content:
-   - `tutor.config.ts`
-   - `textbooks/*/textbook.ts`
-   - `textbooks/*/chapters/*.chapter.ts`
-   - authoring artifacts such as `prompt.md`, `curriculum-map.md`, `chapter-specs.md`, `materials-index.md`, `source-notes.md`, `review-notes.md`, and `compile-result.md`
-3. If Tutor Kit files are missing, initialize the workspace with `node <skill-dir>/scripts/tutor-kit.mjs init`.
-4. Run a short tailoring intake before authoring unless the request and existing artifacts already answer it. Ask 3-5 questions that change the material: learner background, concrete goal, desired depth/pace, preferred practice style, time horizon, and whether runnable/checkable exercises are wanted. Do not ask about facts discoverable from the workspace. Record answers in `prompt.md` or `curriculum-map.md`.
-5. Decide the smallest durable publication:
-   - **Seed course/module**: create a new textbook and publish the first 1-2 learner-ready chapters.
-   - **Continuation**: improve the active chapter or publish the next 1-2 planned chapters.
-   - **Focused material**: add or revise a lesson section, practice set, quiz, review set, practice-test chapter, or coding problem inside an existing textbook.
-6. Plan before authoring. Keep future chapters in `curriculum-map.md` or `chapter-specs.md` until they are ready.
-7. Author Tutor Kit TypeScript modules, not hand-edited JSON.
-8. Use semantic blocks as teaching moves: `p`, `heading`, `list`, `codeBlock`, `mathBlock`, `diagram`, `chart`, `image`, `callout`, `transformation`, `glossary`, `quiz`, `balancedQuiz`, and `codingProblem`.
-9. Verify before finalizing with `tutor doctor`, or with `tutor compile` plus `tutor verify coding-problems --textbook <textbook-id>` when coding problems exist.
-10. Record review, compile, and coding-problem verification evidence in the textbook directory.
-11. Start the local Tutor Kit app for the user with `tutor dev` unless they explicitly ask not to. Keep it running and report the localhost URL.
+1. Treat the current directory as the learner workspace.
+2. Run `node <skill-dir>/scripts/tutor-kit.mjs brief`. This is the default inspection step. Read only the textbook, course state, chapter source, and source notes needed for the current publication.
+3. If Tutor Kit files are missing, run `node <skill-dir>/scripts/tutor-kit.mjs init` and add a textbook.
+4. Read `references/quality-core.md` and `references/authoring-quickstart.md` before authoring.
+5. Ask at most one intake question, and only when its answer would materially change the course. Otherwise infer sensible defaults and record them briefly in `course.md`.
+6. Publish the smallest useful learner-ready unit. This is usually one chapter, a focused revision, or a practice set. Keep future work as short entries in `course.md`.
+7. Author native Tutor Kit TypeScript. Every built-in block and custom TypeScript remain available. Choose the simplest block that expresses the learner move clearly.
+8. For continuation, run `node <skill-dir>/scripts/tutor-kit.mjs progress --textbook <id>` and use the summary to choose review, repair, or new material. Do not read raw `events.jsonl` unless the summary is insufficient.
+9. Verify with `node <skill-dir>/scripts/tutor-kit.mjs doctor --textbook <id> --record`. Tutor Kit writes `compile-result.md`; do not duplicate the result in model-written review notes.
+10. Start the Tutor Kit app with `tutor dev` after creating a new learner workspace or when the user asks to study or open the material. Keep it running and report the localhost URL. Do not restart it after every edit.
 
-## Core Rules
+## Course state
 
-- A published chapter must have a real `.chapter.ts` file, be imported by `textbook.ts`, appear in the ordered `chapters` array, and pass verification.
-- Do not create placeholder future chapter files.
-- Do not answer broad learning requests with only a roadmap. Create or continue a Tutor Kit course/module with learner-ready material now.
-- Do not silently use generic defaults before intake. If the user skips intake or asks the agent to choose, record the chosen defaults.
-- Do not make exposition-only chapters. Every non-trivial lesson needs examples, checks, practice, and review.
-- Use quizzes for fast diagnosis, retrieval, local checks, chapter review, and cumulative practice tests.
-- Use runnable `codingProblem(...)` blocks when the learner should implement, debug, refactor, query, transform, or test code or code-like artifacts.
-- Keep runtime learner history in `tutor-data/events.jsonl`; inspect it only when it helps choose review or continuation work. Do not edit it to fake progress.
-- Start or keep the Tutor Kit app running after verified authoring work, unless the user explicitly opts out. Report the URL.
+New textbooks use one compact `course.md` file for learner context, the course outcome, the course map, and the active publication contract. Update only the parts that changed.
 
-## Tutor Kit Command Wrapper
+Older workspaces may contain `prompt.md`, `curriculum-map.md`, `chapter-specs.md`, or `review-notes.md`. Reuse them when they contain useful information. Do not create them in a new workspace unless the task needs the extra detail.
 
-Use the bundled Tutor Kit wrapper by default so generated material matches the skill's shipped runtime:
+Use a longer chapter spec only for a high-risk chapter, such as a complex simulation, a source-sensitive lesson, or an assessment with many prerequisites.
+
+## Authoring principles
+
+- A published chapter must be imported by `textbook.ts`, appear in its ordered chapter list, and pass `doctor`.
+- Do not create placeholder chapter files.
+- Do not respond to a broad learning request with only a roadmap. Publish useful lesson material now.
+- Aim for enough depth that the learner can see how the central idea works, inspect it in concrete cases, try it, and learn from the result.
+- Enrich a lesson with contrasting examples, misconceptions, visuals, simulations, retrieval, projects, or alternate explanations when they improve learning.
+- Prefer meaningful learner choices and visible consequences over passive reading when interaction fits the subject.
+- Use runnable practice when execution gives the learner useful feedback.
+- Let short lessons stay short when that best serves the request. Do not require a block count, section pattern, quiz, exercise type, visual, or review format.
+- Use learner history to change the next publication, not merely to describe prior scores.
+- Do not edit runtime history to fake progress.
+
+## Reference routing
+
+Read only references that apply to the current task:
+
+- `references/quality-core.md`: required compact prompts for rich teaching.
+- `references/authoring-quickstart.md`: required common API and command path.
+- `references/lesson-generation.md`: course seeding, continuation, scope, and larger planning work.
+- `references/lesson-authoring.md`: detailed guidance for visuals, transformations, glossaries, and custom interactions.
+- `references/practice-and-assessment.md`: quizzes, cumulative assessment, and runnable coding problems.
+- `references/sources.md`: user-provided or named sources.
+- `references/review-and-verification.md`: strict pedagogical audits and advanced verification review.
+- `references/tutor-kit-api.md`: complete API, uncommon blocks, configuration, and troubleshooting.
+
+The normal path stops after the two required references. Load the detailed references only when the requested feature or a verification failure calls for them.
+
+## Command wrapper
+
+Use the bundled wrapper so the authoring API, compiler, and UI stay on the same version:
 
 ```bash
 node <skill-dir>/scripts/tutor-kit.mjs <command>
 ```
 
-Use a workspace `tutor <command>` only when the user explicitly wants a separately installed Tutor Kit CLI.
-
-Examples:
-
-```bash
-node <skill-dir>/scripts/tutor-kit.mjs init
-node <skill-dir>/scripts/tutor-kit.mjs doctor --textbook sql-foundations
-node <skill-dir>/scripts/tutor-kit.mjs verify coding-problems --textbook sql-foundations
-node <skill-dir>/scripts/tutor-kit.mjs dev
-```
-
-## Reference Routing
-
-Read only the reference files needed for the current job:
-
-- `references/tutor-kit-api.md`: commands, workspace layout, builders, block API, and UI server behavior.
-- `references/lesson-generation.md`: seed course, continuation, focused material, learner defaults, curriculum maps, and chapter specs.
-- `references/sources.md`: source intake, source notes, and source-grounded generation.
-- `references/lesson-authoring.md`: learning contract, prose style, semantic blocks, examples, transformations, and chapter structure.
-- `references/practice-and-assessment.md`: quizzes, exercises, review questions, practice-test chapters, coding problems, and verification metadata.
-- `references/review-and-verification.md`: acceptance gate, authoring review, compile evidence, doctor, coding verification, and revision loop.
-
-Default read path for new or continued material:
-
-1. `references/tutor-kit-api.md`
-2. `references/lesson-generation.md`
-3. `references/sources.md` when sources are involved
-4. `references/lesson-authoring.md`
-5. `references/practice-and-assessment.md`
-6. `references/review-and-verification.md`
+Use a separately installed `tutor` command only when the user explicitly requests it.

@@ -1,6 +1,6 @@
 # Practice And Assessment
 
-Use this reference when authoring quizzes, exercises, review questions, practice-test chapters, coding problems, or other learner tasks.
+Use this reference when authoring quizzes, exercises, review questions, practice-test chapters, coding problems, or other learner tasks. Treat the practice patterns as ways to enrich a lesson, not as required quotas. Choose the mix and amount that fit the learner and request.
 
 ## Contents
 
@@ -16,9 +16,9 @@ Use this reference when authoring quizzes, exercises, review questions, practice
 
 ## Practice Principles
 
-Practice should reveal whether the learner can use the idea.
+Aim for practice that reveals whether the learner can use the idea.
 
-Good practice gives at least one of:
+Useful practice often gives one or more of:
 
 - concrete input
 - concrete scenario
@@ -37,7 +37,7 @@ The following are not enough by themselves:
 - "Explain this concept in your own words" as the only practice mode.
 - A list of broad suggestions with no input, expected output, scenario, or target behavior.
 
-At least 40% of learner-facing content in a practice-heavy chapter should be practice-oriented. Practice should move from supported to more independent work.
+In a chapter that is explicitly practice heavy, devote substantial space to learner work. Move from support toward independence when that progression helps.
 
 ## Practice Taxonomy
 
@@ -112,7 +112,7 @@ For matching explanations, explain the shared sorting rule or decision test, not
 
 ## Review Sets
 
-Every non-trivial instructional chapter should end with a dedicated final review section.
+For a substantial instructional chapter, consider a clear review or transfer moment near the end. It can be a section, quiz, concrete task, reflection, project step, or another fitting form.
 
 Review should usually include:
 
@@ -211,7 +211,7 @@ Before finalizing:
 1. Confirm the starter fails for the intended assertion reason.
 2. Confirm the reference solution passes.
 3. Distinguish setup/runtime failures from assertion failures.
-4. Record evidence in `compile-result.md`.
+4. Run `doctor --textbook <id> --record`; Tutor Kit writes the evidence to `compile-result.md`.
 
 Run:
 

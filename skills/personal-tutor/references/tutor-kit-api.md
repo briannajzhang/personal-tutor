@@ -46,11 +46,14 @@ tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
 tutor add block <p|heading|list|codeBlock|mathBlock|diagram|chart|image|callout|transformation|glossary|quiz|codingProblem>
 tutor list textbooks
+tutor brief
+tutor brief --textbook <textbook-id> --json
+tutor progress --textbook <textbook-id>
 tutor inspect textbook <id>
 tutor compile
 tutor compile --textbook <textbook-id>
 tutor doctor
-tutor doctor --textbook <textbook-id>
+tutor doctor --textbook <textbook-id> --record
 tutor verify coding-problems
 tutor verify coding-problems --textbook <textbook-id>
 tutor dev
@@ -66,12 +69,9 @@ tutor.config.ts
 textbooks/
   <textbook-id>/
     textbook.ts
-    prompt.md
-    curriculum-map.md
-    chapter-specs.md
+    course.md
     materials-index.md
     source-notes.md
-    review-notes.md
     compile-result.md
     chapters/
       <chapter-id>.chapter.ts
@@ -85,7 +85,9 @@ tutor-data/
   feedback/
 ```
 
-Authored curriculum lives in `textbooks/<textbook-id>/textbook.ts` and chapter modules. Optional source artifacts such as `materials-index.md` and `source-notes.md` preserve source context for future generation. Runtime learner activity lives under `tutor-data/`.
+Authored curriculum lives in `textbooks/<textbook-id>/textbook.ts` and chapter modules. `course.md` keeps the learner profile, course map, and current publication contract in one short file. Optional source artifacts such as `materials-index.md` and `source-notes.md` preserve source context for future generation. Runtime learner activity lives under `tutor-data/`.
+
+`tutor brief` gives the agent a compact workspace view. `tutor progress` reduces raw learner events into quiz results, weak tags, coding status, glossary review, and a suggested next move. `tutor doctor --textbook <id> --record` writes `compile-result.md` automatically.
 
 ## Textbook And Chapter Modules
 
@@ -131,7 +133,7 @@ export default chapter({
 
 Use stable lowercase kebab-case IDs. Keep textbook IDs unique across the workspace, chapter IDs unique within a textbook, section IDs unique within a chapter, and block IDs unique within their section or subsection.
 
-Generated instructional chapters should normally set `role: "instruction"` and end with a final section whose `role` is `"review"`. Dedicated cumulative practice-test chapters should set `role: "cumulative-checkpoint"` and end with an `"assessment"` section.
+Roles are optional for ordinary chapters. Use `role: "instruction"`, `"practice"`, or `"review"` when the label helps express the section's purpose. When you explicitly choose `role: "cumulative-checkpoint"`, use an `"assessment"` section and the matching practice-test semantics.
 
 ## Semantic Block Builders
 
