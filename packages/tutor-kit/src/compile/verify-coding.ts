@@ -1,17 +1,10 @@
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, resolve, sep } from "node:path";
-import { spawn } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { loadTextbooks, resolveWorkspace } from "./discover.js";
-import type { CodeRunnerConfig, CodingProblemBlock, CodingProblemFile, TutorBlock } from "../core/types.js";
-
-interface ShellResult {
-  exitCode: number | null;
-  signal: string | null;
-  stdout: string;
-  stderr: string;
-  timedOut: boolean;
-}
+import type { CodeRunnerConfig, CodingProblemBlock } from "../core/types.js";
+import { runShell, writeProblemFiles, type ShellResult } from "../core/command-runner.js";
+import { collectChapterBlocks } from "../core/traversal.js";
 
 export interface CodingProblemVerificationResult {
   ok: boolean;
@@ -19,14 +12,6 @@ export interface CodingProblemVerificationResult {
   problemCount: number;
   passedCount: number;
 }
-
-const defaultRunner = { timeoutMs: 8000, maxOutputBytes: 65536 };
-const defaultRuntimeCommands: Record<string, { envVar: string; command: string }> = {
-  python: { envVar: "PYTHON", command: "python3" },
-  javascript: { envVar: "NODE", command: "node" },
-  typescript: { envVar: "TSX", command: "tsx" },
-  cpp: { envVar: "CXX", command: "c++" }
-};
 
 export async function verifyCodingProblems(
   cwd: string,
@@ -39,7 +24,7 @@ export async function verifyCodingProblems(
   }
 
   const problems = loaded.chapters.flatMap((loadedChapter) => (
-    collectBlocks(loadedChapter.chapter)
+    collectChapterBlocks(loadedChapter.chapter)
       .filter((block): block is CodingProblemBlock => block.kind === "codingProblem")
       .map((problem) => ({
         label: `${loadedChapter.textbookId}/${loadedChapter.chapter.id}/${problem.id}`,
@@ -99,7 +84,7 @@ async function runVariant(
 ): Promise<{ setupFailed: boolean; result: ShellResult }> {
   const root = mkdtempSync(resolve(tmpdir(), "tutor-verify-"));
   try {
-    writeFiles(root, problem.props.files, overlays);
+    writeProblemFiles(root, problem.props.files, overlays);
     if (problem.props.setup) {
       const setup = await runShell(problem.props.setup.command, root, problem.props.language, config);
       if (setup.exitCode !== 0 || setup.timedOut) return { setupFailed: true, result: setup };
@@ -110,59 +95,8 @@ async function runVariant(
   }
 }
 
-function writeFiles(root: string, files: CodingProblemFile[], overlays: Record<string, string>): void {
-  for (const file of files) {
-    const target = resolve(root, file.path);
-    if (target !== root && !target.startsWith(root + sep)) throw new Error(`Coding problem file escapes temp directory: ${file.path}`);
-    mkdirSync(dirname(target), { recursive: true });
-    writeFileSync(target, overlays[file.path] ?? file.content);
-  }
-}
-
-async function runShell(command: string, cwd: string, language: string, config: CodeRunnerConfig): Promise<ShellResult> {
-  const timeoutMs = config.timeoutMs ?? defaultRunner.timeoutMs;
-  const maxOutputBytes = config.maxOutputBytes ?? defaultRunner.maxOutputBytes;
-  let stdout = "";
-  let stderr = "";
-  let timedOut = false;
-  return await new Promise((resolvePromise) => {
-    const child = spawn(command, { cwd, env: runnerEnv(language, config), shell: true });
-    const timer = setTimeout(() => {
-      timedOut = true;
-      child.kill("SIGKILL");
-    }, timeoutMs);
-    child.stdout.on("data", (chunk) => { stdout = appendLimited(stdout, chunk, maxOutputBytes); });
-    child.stderr.on("data", (chunk) => { stderr = appendLimited(stderr, chunk, maxOutputBytes); });
-    child.on("close", (exitCode, signal) => {
-      clearTimeout(timer);
-      resolvePromise({ exitCode, signal, stdout, stderr, timedOut });
-    });
-  });
-}
-
-function runnerEnv(language: string, config: CodeRunnerConfig): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = { ...process.env };
-  for (const [runtime, preset] of Object.entries(defaultRuntimeCommands)) {
-    env[preset.envVar] = config.runtimes?.[runtime]?.command ?? preset.command;
-  }
-  Object.assign(env, config.runtimes?.[language]?.env ?? {});
-  return env;
-}
-
-function appendLimited(current: string, chunk: Buffer, limit: number): string {
-  const combined = Buffer.concat([Buffer.from(current), chunk]);
-  return combined.subarray(0, limit).toString("utf8");
-}
-
 function formatShell(result: ShellResult): string {
   return result.stderr.trim() || result.stdout.trim() || `exit code ${result.exitCode}`;
-}
-
-function collectBlocks(chapter: { sections: Array<{ blocks: TutorBlock[]; subsections: Array<{ blocks: TutorBlock[] }> }> }): TutorBlock[] {
-  return chapter.sections.flatMap((section) => [
-    ...section.blocks,
-    ...section.subsections.flatMap((subsection) => subsection.blocks)
-  ]);
 }
 
 function failure(problemCount: number, messages: string[]): CodingProblemVerificationResult {

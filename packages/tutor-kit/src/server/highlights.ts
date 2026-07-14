@@ -1,6 +1,14 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
+import {
+  appendEvent,
+  readJsonFile,
+  relativeDataPath,
+  requireNonNegativeInteger,
+  requireString,
+  safeSegment,
+  writeJsonFile
+} from "./shared.js";
 
 type HighlightColor = "yellow";
 type HighlightStatus = "attached" | "changed" | "unresolved";
@@ -157,12 +165,12 @@ function highlightPaths(cwd: string, dataDir: string, request: Pick<HighlightReq
     safeSegment(requireString(request.textbookId, "textbookId")),
     `${safeSegment(requireString(request.chapterId, "chapterId"))}.json`
   );
-  return { absolutePath, path: relative(cwd, absolutePath).replaceAll("\\", "/") };
+  return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
 }
 
 function readState(path: string): HighlightState {
-  if (!existsSync(path)) return emptyState();
-  const parsed = JSON.parse(readFileSync(path, "utf8")) as Partial<HighlightState>;
+  const parsed = readJsonFile<Partial<HighlightState>>(path);
+  if (!parsed) return emptyState();
   return {
     highlights: Array.isArray(parsed.highlights) ? parsed.highlights.map(highlightFromStored).filter(Boolean) as Highlight[] : [],
     updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null
@@ -179,8 +187,7 @@ function highlightFromStored(value: unknown): Highlight | null {
 }
 
 function writeState(path: string, state: HighlightState): void {
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(state, null, 2)}\n`);
+  writeJsonFile(path, state);
 }
 
 function highlightColor(value: unknown): HighlightColor {
@@ -199,24 +206,4 @@ function stringValue(value: unknown): string {
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim().length > 0 ? value : undefined;
-}
-
-function requireString(value: unknown, label: string): string {
-  if (typeof value !== "string" || value.trim().length === 0) throw new Error(`${label} is required`);
-  return value;
-}
-
-function requireNonNegativeInteger(value: unknown, label: string): number {
-  if (!Number.isInteger(value) || (value as number) < 0) throw new Error(`${label} must be a non-negative integer`);
-  return value as number;
-}
-
-function safeSegment(value: string): string {
-  const segment = value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
-  return segment === "." || segment === ".." ? "_" : segment;
-}
-
-function appendEvent(dataDir: string, event: Record<string, unknown>): void {
-  mkdirSync(dataDir, { recursive: true });
-  appendFileSync(join(dataDir, "events.jsonl"), `${JSON.stringify({ ...event, createdAt: new Date().toISOString() })}\n`);
 }

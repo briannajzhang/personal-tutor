@@ -3,11 +3,16 @@ import { dirname, isAbsolute, relative, resolve } from "node:path";
 import type {
   Chapter,
   Section,
-  Subsection,
-  Textbook,
   TutorBlock,
   ValidationIssue
 } from "./types.js";
+import { collectChapterBlocks, collectSectionBlocks } from "./traversal.js";
+export {
+  summarizeChapter,
+  summarizeSection,
+  summarizeSubsection,
+  summarizeTextbook
+} from "./traversal.js";
 
 const calloutTones = new Set(["note", "caution", "key-idea"]);
 const listStyles = new Set(["bullet", "number"]);
@@ -1113,21 +1118,6 @@ function validateMarkupText(
   }
 }
 
-function collectChapterBlocks(chapter: Chapter): TutorBlock[] {
-  const blocks: TutorBlock[] = [];
-  for (const section of chapter.sections) {
-    blocks.push(...collectSectionBlocks(section));
-  }
-  return blocks;
-}
-
-function collectSectionBlocks(section: Section): TutorBlock[] {
-  return [
-    ...section.blocks,
-    ...section.subsections.flatMap((subsection) => subsection.blocks)
-  ];
-}
-
 function collectTextbookBlocks(textbook: Record<string, unknown>): TutorBlock[] {
   const blocks: TutorBlock[] = [];
   if (!Array.isArray(textbook.chapters)) return blocks;
@@ -1218,45 +1208,4 @@ function looksLikeTaskList(block: TutorBlock): boolean {
 
 function isVisualExampleBlock(block: TutorBlock): boolean {
   return block.kind === "transformation" || block.kind === "diagram" || block.kind === "chart";
-}
-
-export function summarizeSubsection(subsection: Subsection): { blocks: number } {
-  return { blocks: subsection.blocks.length };
-}
-
-export function summarizeSection(section: Section): { subsections: number; blocks: number } {
-  let blocks = section.blocks.length;
-  for (const subsection of section.subsections) {
-    blocks += summarizeSubsection(subsection).blocks;
-  }
-  return { subsections: section.subsections.length, blocks };
-}
-
-export function summarizeChapter(chapter: Chapter): { sections: number; subsections: number; blocks: number } {
-  let subsections = 0;
-  let blocks = 0;
-  for (const section of chapter.sections) {
-    const summary = summarizeSection(section);
-    subsections += summary.subsections;
-    blocks += summary.blocks;
-  }
-  return { sections: chapter.sections.length, subsections, blocks };
-}
-
-export function summarizeTextbook(textbook: Textbook): {
-  chapters: number;
-  sections: number;
-  subsections: number;
-  blocks: number;
-} {
-  let sections = 0;
-  let subsections = 0;
-  let blocks = 0;
-  for (const chapter of textbook.chapters) {
-    const summary = summarizeChapter(chapter);
-    sections += summary.sections;
-    subsections += summary.subsections;
-    blocks += summary.blocks;
-  }
-  return { chapters: textbook.chapters.length, sections, subsections, blocks };
 }

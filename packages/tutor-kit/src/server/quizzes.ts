@@ -1,6 +1,15 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
+import {
+  appendEvent,
+  isStringRecord,
+  readJsonFile,
+  relativeDataPath,
+  requireNonNegativeInteger,
+  requireString,
+  safeSegment,
+  writeJsonFile
+} from "./shared.js";
 
 interface QuizStateRequest {
   textbookId?: unknown;
@@ -113,12 +122,12 @@ function quizPaths(cwd: string, dataDir: string, request: QuizStateRequest): { a
     safeSegment(requireString(request.chapterId, "chapterId")),
     `${safeSegment(requireString(request.quizId, "quizId"))}.json`
   );
-  return { absolutePath, path: relative(cwd, absolutePath).replaceAll("\\", "/") };
+  return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
 }
 
 function readState(path: string): QuizState {
-  if (!existsSync(path)) return emptyState();
-  const parsed = JSON.parse(readFileSync(path, "utf8")) as Partial<QuizState>;
+  const parsed = readJsonFile<Partial<QuizState>>(path);
+  if (!parsed) return emptyState();
   return {
     selectedAnswers: quizAnswerRecord(parsed.selectedAnswers),
     submitted: parsed.submitted === true,
@@ -131,8 +140,7 @@ function readState(path: string): QuizState {
 }
 
 function writeState(path: string, state: QuizState): void {
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(state, null, 2)}\n`);
+  writeJsonFile(path, state);
 }
 
 function responseList(value: unknown): QuizAttempt["responses"] {
@@ -167,30 +175,4 @@ function requireQuizAnswer(value: unknown, label: string): QuizAnswer {
   if (typeof value === "string") return value;
   if (isStringRecord(value)) return { ...value };
   throw new Error(`${label} must be a string or string record`);
-}
-
-function isStringRecord(value: unknown): value is Record<string, string> {
-  return typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value) &&
-    Object.values(value).every((entry) => typeof entry === "string");
-}
-
-function requireString(value: unknown, label: string): string {
-  if (typeof value !== "string" || value.trim().length === 0) throw new Error(`${label} is required`);
-  return value;
-}
-
-function requireNonNegativeInteger(value: unknown, label: string): number {
-  if (!Number.isInteger(value) || (value as number) < 0) throw new Error(`${label} must be a non-negative integer`);
-  return value as number;
-}
-
-function safeSegment(value: string): string {
-  return value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
-}
-
-function appendEvent(dataDir: string, event: Record<string, unknown>): void {
-  mkdirSync(dataDir, { recursive: true });
-  appendFileSync(join(dataDir, "events.jsonl"), `${JSON.stringify({ ...event, createdAt: new Date().toISOString() })}\n`);
 }

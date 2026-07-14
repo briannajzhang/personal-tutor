@@ -1,6 +1,13 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
+import {
+  appendEvent,
+  readJsonFile,
+  relativeDataPath,
+  requireString,
+  safeSegment,
+  writeJsonFile
+} from "./shared.js";
 
 type GlossaryRatingValue = "again" | "knew-it";
 type GlossaryStudySet = "all" | "starred";
@@ -117,12 +124,12 @@ function glossaryStudyPaths(cwd: string, dataDir: string, request: GlossaryStudy
     "glossary-study-state",
     `${safeSegment(requireString(request.textbookId, "textbookId"))}.json`
   );
-  return { absolutePath, path: relative(cwd, absolutePath).replaceAll("\\", "/") };
+  return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
 }
 
 function readState(path: string): GlossaryStudyState {
-  if (!existsSync(path)) return emptyState();
-  const parsed = JSON.parse(readFileSync(path, "utf8")) as Partial<GlossaryStudyState>;
+  const parsed = readJsonFile<Partial<GlossaryStudyState>>(path);
+  if (!parsed) return emptyState();
   return {
     starredTermIds: stringList(parsed.starredTermIds),
     ratings: ratingRecord(parsed.ratings),
@@ -136,8 +143,7 @@ function readState(path: string): GlossaryStudyState {
 }
 
 function writeState(path: string, state: GlossaryStudyState): void {
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(state, null, 2)}\n`);
+  writeJsonFile(path, state);
 }
 
 function appendStarEvents(dataDir: string, textbookId: string, previous: string[], next: string[]): void {
@@ -194,11 +200,6 @@ function glossaryStudySet(value: unknown, fallback: GlossaryStudySet): GlossaryS
   return value === "starred" || value === "all" ? value : fallback;
 }
 
-function requireString(value: unknown, label: string): string {
-  if (typeof value !== "string" || value.trim().length === 0) throw new Error(`${label} is required`);
-  return value;
-}
-
 function optionalString(value: unknown, fallback: string | null): string | null {
   if (value === null) return null;
   return typeof value === "string" && value.trim().length > 0 ? value : fallback;
@@ -206,13 +207,4 @@ function optionalString(value: unknown, fallback: string | null): string | null 
 
 function nonNegativeInteger(value: unknown, fallback: number): number {
   return Number.isInteger(value) && (value as number) >= 0 ? value as number : fallback;
-}
-
-function safeSegment(value: string): string {
-  return value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
-}
-
-function appendEvent(dataDir: string, event: Record<string, unknown>): void {
-  mkdirSync(dataDir, { recursive: true });
-  appendFileSync(join(dataDir, "events.jsonl"), `${JSON.stringify({ ...event, createdAt: new Date().toISOString() })}\n`);
 }
