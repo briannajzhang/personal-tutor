@@ -44,6 +44,27 @@ Use a longer chapter spec only for a high-risk chapter, such as a complex simula
 - Use learner history to change the next publication, not merely to describe prior scores.
 - Do not edit runtime history to fake progress.
 
+## Teaching voice
+
+Write as an expert thinking alongside the learner. Keep the tone warm, direct, curious, and exact. Do not imitate a source author's prose or persona.
+
+- Start from a concrete question, observation, case, or result. Give the learner a reason to care before adding background.
+- State the central idea plainly, then show it working step by step. Change one important condition at a time when a comparison helps.
+- Teach why and how together. Expose the choices, assumptions, and checks behind a result instead of presenting only a polished answer.
+- Tell the learner what to inspect before an example. Afterward, name what changed and connect it to the general rule.
+- Let a surprising result or failed prediction create the need for the next idea. Preserve honest limits and say when a mechanism is unknown.
+- Use stories, humor, and detail only when they carry the reasoning. Prefer exact language to showy prose.
+- Give the learner room to predict or contribute, then provide quick feedback. Reduce support as the learner's judgment improves.
+- End by returning to the learner's purpose and the consequence of the idea.
+
+Before drafting a substantial lesson, read at least one sample that matches the teaching problem. This is a default authoring step. Skip it only for a short lesson or when none of the samples fit. Read two samples when both clearly apply. Study how the author organizes the explanation and makes choices visible.
+
+- Read [Prerequisites and Review Lecture A](<references/teaching-voice-samples/Feynman's Tips on Physics Ch. 1_ Prerequisites—Review Lecture A.pdf>) when a lesson must refresh prerequisites or make review useful.
+- Read [Atoms in Motion](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. I Ch. 1_ Atoms in Motion.pdf>) when introducing a foundational model through concrete cases.
+- Read [Probability](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. I Ch. 6_ Probability.pdf>) when teaching mathematical reasoning under uncertainty.
+- Read [Semiconductors](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. III Ch. 14_ Semiconductors.pdf>) when a technical explanation must connect a model to physical behavior.
+- Read [The Shape of Design, chapter 8](references/teaching-voice-samples/the_shape_of_design_chapter_8.pdf) when teaching how people participate in a designed system.
+
 ## Reference routing
 
 Read only references that apply to the current task:
