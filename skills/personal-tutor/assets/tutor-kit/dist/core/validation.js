@@ -1,3 +1,5 @@
+import { existsSync, realpathSync, statSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve } from "node:path";
 const calloutTones = new Set(["note", "caution", "key-idea"]);
 const listStyles = new Set(["bullet", "number"]);
 const headingLevels = new Set([4, 5]);
@@ -389,6 +391,9 @@ function validateImage(props, path, file, issues) {
     if (typeof props.src === "string" && !isSafeImageSrc(props.src)) {
         issues.push(issue('Image src must reference a textbook asset path such as "assets/example.png".', `${path}.src`, file));
     }
+    else if (typeof props.src === "string" && file && !imageAssetExists(props.src, file)) {
+        issues.push(issue(`Image asset does not exist inside the textbook directory: ${props.src}`, `${path}.src`, file));
+    }
 }
 function isSafeImageSrc(src) {
     if (!src.startsWith("assets/"))
@@ -396,6 +401,24 @@ function isSafeImageSrc(src) {
     if (src.includes("\\") || src.includes("\0"))
         return false;
     return !src.split("/").some((part) => part === "" || part === "." || part === "..");
+}
+function imageAssetExists(src, textbookFile) {
+    const textbookDir = dirname(textbookFile);
+    const target = resolve(textbookDir, src);
+    if (!existsSync(target))
+        return false;
+    try {
+        const realTextbookDir = realpathSync(textbookDir);
+        const realTarget = realpathSync(target);
+        const pathFromTextbook = relative(realTextbookDir, realTarget);
+        return statSync(realTarget).isFile()
+            && pathFromTextbook !== ""
+            && !pathFromTextbook.startsWith("..")
+            && !isAbsolute(pathFromTextbook);
+    }
+    catch {
+        return false;
+    }
 }
 function validateGlossary(props, path, file, issues) {
     if (props.title !== undefined)

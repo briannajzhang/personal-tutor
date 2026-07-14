@@ -5,6 +5,9 @@ interface GlossaryStudyStateRequest {
     starredTermIds?: unknown;
     lastStudySet?: unknown;
     currentCardIndex?: unknown;
+    cardOrder?: unknown;
+    currentTermId?: unknown;
+    sessionCompleted?: unknown;
 }
 interface GlossaryStudyRatingRequest {
     textbookId?: unknown;
@@ -23,6 +26,9 @@ interface GlossaryStudyState {
     ratings: Record<string, GlossaryTermRating>;
     lastStudySet: GlossaryStudySet;
     currentCardIndex: number;
+    cardOrder: string[];
+    currentTermId: string | null;
+    sessionCompleted: boolean;
     updatedAt: string | null;
 }
 export declare function loadGlossaryStudyState(cwd: string, query: URLSearchParams): Promise<GlossaryStudyState & {

@@ -66,7 +66,7 @@ export function splitHighlightRange(highlight, removal) {
     }
     return pieces;
 }
-function selectionFullyCovered(selection, ranges) {
+export function selectionFullyCovered(selection, ranges) {
     const sorted = ranges
         .filter((range) => rangesOverlap(selection, range))
         .map((range) => ({

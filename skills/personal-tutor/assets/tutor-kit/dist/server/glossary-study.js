@@ -6,6 +6,9 @@ const emptyState = () => ({
     ratings: {},
     lastStudySet: "all",
     currentCardIndex: 0,
+    cardOrder: [],
+    currentTermId: null,
+    sessionCompleted: false,
     updatedAt: null
 });
 export async function loadGlossaryStudyState(cwd, query) {
@@ -26,6 +29,9 @@ export async function saveGlossaryStudyState(cwd, body) {
         starredTermIds,
         lastStudySet: glossaryStudySet(body.lastStudySet, previous.lastStudySet),
         currentCardIndex: nonNegativeInteger(body.currentCardIndex, previous.currentCardIndex),
+        cardOrder: body.cardOrder === undefined ? previous.cardOrder : stringList(body.cardOrder),
+        currentTermId: optionalString(body.currentTermId, previous.currentTermId),
+        sessionCompleted: typeof body.sessionCompleted === "boolean" ? body.sessionCompleted : previous.sessionCompleted,
         updatedAt: now
     };
     writeState(paths.absolutePath, next);
@@ -75,6 +81,9 @@ function readState(path) {
         ratings: ratingRecord(parsed.ratings),
         lastStudySet: glossaryStudySet(parsed.lastStudySet, "all"),
         currentCardIndex: nonNegativeInteger(parsed.currentCardIndex, 0),
+        cardOrder: stringList(parsed.cardOrder),
+        currentTermId: optionalString(parsed.currentTermId, null),
+        sessionCompleted: parsed.sessionCompleted === true,
         updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null
     };
 }
@@ -142,6 +151,11 @@ function requireString(value, label) {
     if (typeof value !== "string" || value.trim().length === 0)
         throw new Error(`${label} is required`);
     return value;
+}
+function optionalString(value, fallback) {
+    if (value === null)
+        return null;
+    return typeof value === "string" && value.trim().length > 0 ? value : fallback;
 }
 function nonNegativeInteger(value, fallback) {
     return Number.isInteger(value) && value >= 0 ? value : fallback;

@@ -35,3 +35,4 @@ export declare function rangesTouchOrOverlap(left: Pick<HighlightRange, "startOf
 export declare function classifyHighlightSelection(selection: Pick<HighlightRange, "startOffset" | "endOffset">, ranges: HighlightRange[]): SelectionClassification;
 export declare function touchedHighlightRanges(selection: Pick<HighlightRange, "startOffset" | "endOffset">, ranges: HighlightRange[]): HighlightRange[];
 export declare function splitHighlightRange(highlight: HighlightRange, removal: Pick<HighlightRange, "startOffset" | "endOffset">): Array<Omit<HighlightRange, "id">>;
+export declare function selectionFullyCovered(selection: Pick<HighlightRange, "startOffset" | "endOffset">, ranges: HighlightRange[]): boolean;
