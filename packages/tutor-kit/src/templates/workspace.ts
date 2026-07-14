@@ -93,7 +93,7 @@ export default chapter({
         }),
         p({
           id: "planning-artifacts",
-          body: "Generated textbooks may also include authoring artifacts such as \`prompt.md\`, \`curriculum-map.md\`, \`chapter-specs.md\`, \`review-notes.md\`, and \`compile-result.md\`. These files are not learner history; they preserve the plan and review trail for future edits."
+          body: "Generated textbooks use a compact \`course.md\` for learner context, the course map, and the active publication. Tutor Kit writes \`compile-result.md\` when recorded verification runs. These files are not learner history."
         }),
         list({
           id: "workspace-guided-practice",

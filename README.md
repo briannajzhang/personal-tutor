@@ -61,6 +61,20 @@ tests/                      scaffold and validation tests
 Learner memory is not stored in this repo by default. The skill treats the
 user's current folder as the learner workspace and creates visible files there.
 
+Tutor Kit keeps the model-facing workflow compact:
+
+```bash
+tutor brief
+tutor progress --textbook <id>
+tutor doctor --textbook <id> --record
+```
+
+`brief` summarizes the workspace, `progress` compacts learner activity, and the
+recorded doctor command writes verification evidence. New textbooks keep the
+learner profile, course map, and active publication contract in one `course.md`
+file. The full TypeScript block API remains available for advanced lessons and
+custom interactions.
+
 ## Development
 
 ```bash

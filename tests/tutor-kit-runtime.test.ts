@@ -55,7 +55,7 @@ test("init and add commands create expected workspace files", () => {
   assert.match(readFileSync(join(dir, "tutor", "blocks", "core.tsx"), "utf8"), /image/);
 });
 
-test("addTextbook creates durable authoring artifacts without touching runtime history", () => {
+test("addTextbook creates one compact course file without touching runtime history", () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
   initWorkspace(dir);
   const eventsPath = join(dir, "tutor-data", "events.jsonl");
@@ -65,24 +65,20 @@ test("addTextbook creates durable authoring artifacts without touching runtime h
   const created = relativePaths(dir, result.created);
 
   assert.deepEqual(created, [
-    "textbooks/sql/chapter-specs.md",
-    "textbooks/sql/compile-result.md",
-    "textbooks/sql/curriculum-map.md",
-    "textbooks/sql/prompt.md",
-    "textbooks/sql/review-notes.md",
+    "textbooks/sql/course.md",
     "textbooks/sql/textbook.ts"
   ]);
   assert.deepEqual(readdirSync(join(dir, "textbooks", "sql", "chapters")), []);
   assert.equal(readFileSync(eventsPath, "utf8"), "{\"type\":\"quiz_checked\"}\n");
   assert.equal(result.created.some((path) => relative(dir, path).startsWith("tutor-data")), false);
 
-  writeFileSync(join(dir, "textbooks", "sql", "prompt.md"), "# Prompt\n\nLearner wants SQL for analytics.\n");
+  writeFileSync(join(dir, "textbooks", "sql", "course.md"), "# Course: SQL Foundations\n\nLearner wants SQL for analytics.\n");
   const repeated = addTextbook(dir, "sql", "SQL Foundations");
   assert.equal(repeated.created.length, 0);
   assert.deepEqual(relativePaths(dir, repeated.skipped), created);
   assert.equal(
-    readFileSync(join(dir, "textbooks", "sql", "prompt.md"), "utf8"),
-    "# Prompt\n\nLearner wants SQL for analytics.\n"
+    readFileSync(join(dir, "textbooks", "sql", "course.md"), "utf8"),
+    "# Course: SQL Foundations\n\nLearner wants SQL for analytics.\n"
   );
 });
 

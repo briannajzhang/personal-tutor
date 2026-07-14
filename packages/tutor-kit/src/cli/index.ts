@@ -5,12 +5,17 @@ import { verifyCodingProblems } from "../compile/verify-coding.js";
 import { loadTextbooks } from "../compile/discover.js";
 import { startDevServer } from "../server/server.js";
 import { addBlock, addChapter, addTextbook, initWorkspace, printWriteResult } from "./workspace.js";
+import { createWorkspaceBrief, formatWorkspaceBrief } from "./brief.js";
+import { formatProgress, summarizeProgress } from "./progress.js";
+import { recordDoctorEvidence } from "./evidence.js";
 
 interface ParsedArgs {
   cwd: string;
   port: number;
   packageSpec?: string;
   starter: boolean;
+  json: boolean;
+  record: boolean;
   textbookId?: string;
   command: string[];
 }
@@ -62,6 +67,18 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (command === "brief") {
+    const brief = await createWorkspaceBrief(args.cwd, { textbookId: args.textbookId });
+    console.log(args.json ? JSON.stringify(brief) : formatWorkspaceBrief(brief));
+    return;
+  }
+
+  if (command === "progress") {
+    const progress = await summarizeProgress(args.cwd, { textbookId: args.textbookId });
+    console.log(args.json ? JSON.stringify(progress) : formatProgress(progress));
+    return;
+  }
+
   if (command === "inspect" && subcommand === "textbook") {
     const id = rest[0];
     if (!id) throw new Error("Usage: tutor inspect textbook <id>");
@@ -90,8 +107,9 @@ async function main(): Promise<void> {
     const compile = await compileWorkspace(args.cwd, { textbookId: args.textbookId });
     const output = ["Tutor doctor", "", compile.output];
     let ok = compile.ok;
+    let verification;
     if (compile.ok) {
-      const verification = await verifyCodingProblems(args.cwd, { textbookId: args.textbookId });
+      verification = await verifyCodingProblems(args.cwd, { textbookId: args.textbookId });
       output.push("", verification.problemCount === 0
         ? [
           "Coding problem verification skipped",
@@ -100,6 +118,11 @@ async function main(): Promise<void> {
         ].join("\n")
         : verification.output);
       ok = verification.ok;
+    }
+    if (args.record) {
+      if (!args.textbookId) throw new Error("doctor --record requires --textbook <id>");
+      const path = await recordDoctorEvidence(args.cwd, args.textbookId, compile, verification);
+      output.push("", `Evidence recorded: ${path}`);
     }
     console.log(output.join("\n"));
     process.exitCode = ok ? 0 : 1;
@@ -128,6 +151,8 @@ function parseArgs(argv: string[]): ParsedArgs {
   let port = 4177;
   let packageSpec: string | undefined = process.env.TUTOR_KIT_PACKAGE_SPEC;
   let starter = false;
+  let json = false;
+  let record = false;
   let textbookId: string | undefined;
   const command: string[] = [];
 
@@ -156,6 +181,14 @@ function parseArgs(argv: string[]): ParsedArgs {
       starter = true;
       continue;
     }
+    if (arg === "--json") {
+      json = true;
+      continue;
+    }
+    if (arg === "--record") {
+      record = true;
+      continue;
+    }
     if (arg === "--textbook") {
       const value = argv[++i];
       if (!value) throw new Error("--textbook requires an id");
@@ -165,7 +198,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     command.push(arg);
   }
 
-  return { cwd: resolve(cwd), port, packageSpec, starter, textbookId, command };
+  return { cwd: resolve(cwd), port, packageSpec, starter, json, record, textbookId, command };
 }
 
 function titleFromId(id: string): string {
@@ -186,9 +219,11 @@ Usage:
   tutor [--cwd path] add chapter <textbook-id> <id> [title]
   tutor [--cwd path] add block <p|heading|list|codeBlock|mathBlock|diagram|chart|image|callout|transformation|glossary|quiz|codingProblem>
   tutor [--cwd path] list textbooks
+  tutor [--cwd path] brief [--textbook textbook-id] [--json]
+  tutor [--cwd path] progress [--textbook textbook-id] [--json]
   tutor [--cwd path] inspect textbook <id>
   tutor [--cwd path] compile [--textbook textbook-id]
-  tutor [--cwd path] doctor [--textbook textbook-id]
+  tutor [--cwd path] doctor [--textbook textbook-id] [--record]
   tutor [--cwd path] verify coding-problems [--textbook textbook-id]
   tutor [--cwd path] dev [--port 4177]
 `;

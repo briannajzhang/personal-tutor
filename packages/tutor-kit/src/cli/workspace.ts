@@ -15,6 +15,7 @@ import {
 import {
   coreBlocksTemplate,
   chapterTemplate,
+  courseTemplate,
   textbookTemplate
 } from "../templates/blocks.js";
 
@@ -60,11 +61,7 @@ export function addTextbook(cwd: string, id: string, title: string): WriteResult
   const result: WriteResult = { created: [], skipped: [] };
   ensureDir(join(cwd, "textbooks", id, "chapters"));
   writeIfMissing(join(cwd, "textbooks", id, "textbook.ts"), textbookTemplate(id, title), result);
-  writeIfMissing(join(cwd, "textbooks", id, "prompt.md"), "# Prompt\n\n", result);
-  writeIfMissing(join(cwd, "textbooks", id, "curriculum-map.md"), `# Curriculum Map: ${title}\n\n`, result);
-  writeIfMissing(join(cwd, "textbooks", id, "chapter-specs.md"), "# Chapter Specs\n\n", result);
-  writeIfMissing(join(cwd, "textbooks", id, "review-notes.md"), "# Review Notes\n\n", result);
-  writeIfMissing(join(cwd, "textbooks", id, "compile-result.md"), "# Compile Result\n\n", result);
+  writeIfMissing(join(cwd, "textbooks", id, "course.md"), courseTemplate(title), result);
   return result;
 }
 
