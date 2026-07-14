@@ -6,12 +6,14 @@ import { blocksClientJs } from "./client/blocks.js";
 import { quizzesClientJs } from "./client/quizzes.js";
 import { codingClientJs } from "./client/coding.js";
 import { shellClientJs } from "./client/shell.js";
+import { componentsClientJs } from "./client/components.js";
 import { highlightClientJs } from "./highlight-client.js";
 
 export function clientJs(): string {
   return [
     highlightClientJs(),
     coreClientJs(),
+    componentsClientJs(),
     glossaryClientJs(),
     chapterClientJs(),
     highlightsClientJs(),

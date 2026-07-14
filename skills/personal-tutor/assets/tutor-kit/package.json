@@ -12,11 +12,18 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
     }
   },
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
     "build": "rm -rf dist && tsc -b --force && chmod +x dist/cli/index.js"
   },
@@ -25,7 +32,8 @@
     "mermaid": "^11.16.0",
     "monaco-editor": "^0.52.2",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vite": "^8.1.4"
   },
   "devDependencies": {
     "@types/node": "^22.13.5"

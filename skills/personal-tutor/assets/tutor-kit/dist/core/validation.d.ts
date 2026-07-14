@@ -5,3 +5,4 @@ export declare function validateChapter(value: unknown, file?: string): Validati
 export declare function validateSection(value: unknown, file?: string): ValidationIssue[];
 export declare function validateSubsection(value: unknown, file?: string): ValidationIssue[];
 export declare function validateBlock(block: unknown, path: string, file: string | undefined, issues: ValidationIssue[]): void;
+export declare function isJsonData(value: unknown, seen?: Set<object>): boolean;

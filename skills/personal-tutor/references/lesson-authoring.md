@@ -114,6 +114,7 @@ Use semantic blocks as teaching moves:
 - `diagram`: show a flow, relationship, hierarchy, state transition, or system structure.
 - `chart`: show a small numeric comparison or trend.
 - `image`: show a durable raster artifact such as a screenshot, source figure, generated illustration, photo, scanned figure, UI capture, or concrete visual example.
+- `component`: mount trusted frontend code for an interaction, simulation, or animation that built in blocks cannot express.
 - `callout`: protect the learner from a misconception, warning, boundary, or key idea.
 - `transformation`: model an inspectable input-to-result relationship.
 - `glossary`: give compact retrieval support for important terms already introduced in prose.
@@ -121,6 +122,8 @@ Use semantic blocks as teaching moves:
 - `codingProblem`: create runnable or checkable practice.
 
 Prefer several semantic blocks over one giant Markdown string.
+
+Prefer built in blocks before creating a component. When a component is justified, keep one clear teaching purpose, give the learner a meaningful control, and show a visible consequence. The component runs in the lesson page and can use the DOM, SVG, Canvas, WebGL, workers, browser storage, and installed frontend packages. It is trusted application code, not isolated content.
 
 Before a `codeBlock`, `mathBlock`, table, diagram, image, formal notation, or example, tell the learner what to inspect. After it, explain what it showed.
 

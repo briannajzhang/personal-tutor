@@ -1,6 +1,7 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isJsonData } from "./validation.js";
 function requireText(value, label) {
     if (typeof value !== "string" || value.trim().length === 0) {
         throw new Error(`${label} is required`);
@@ -133,6 +134,35 @@ export function image(input) {
             alt: requireText(input.alt, "image.alt"),
             caption: input.caption,
             credit: input.credit
+        }
+    };
+}
+export function componentModule(baseUrl, path) {
+    let sourcePath;
+    try {
+        sourcePath = fileURLToPath(new URL(requireText(path, "componentModule.path"), baseUrl));
+    }
+    catch {
+        throw new Error("componentModule requires a valid file base URL and relative path");
+    }
+    if (!existsSync(sourcePath)) {
+        throw new Error(`Component module does not exist: ${sourcePath}`);
+    }
+    return { kind: "component-module", sourcePath };
+}
+export function component(input) {
+    if (!input.module || input.module.kind !== "component-module" || typeof input.module.sourcePath !== "string") {
+        throw new Error("component.module must come from componentModule()");
+    }
+    if (!isJsonData(input.props))
+        throw new Error("component.props must be JSON serializable");
+    return {
+        kind: "component",
+        id: requireText(input.id, "component.id"),
+        props: {
+            title: input.title,
+            module: input.module,
+            props: input.props
         }
     };
 }

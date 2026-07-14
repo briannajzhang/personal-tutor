@@ -4,7 +4,7 @@ import { compileWorkspace } from "../compile/compile.js";
 import { verifyCodingProblems } from "../compile/verify-coding.js";
 import { loadTextbooks } from "../compile/discover.js";
 import { startDevServer } from "../server/server.js";
-import { addBlock, addChapter, addTextbook, initWorkspace, printWriteResult } from "./workspace.js";
+import { addBlock, addChapter, addTextbook, blockKinds, initWorkspace, printWriteResult } from "./workspace.js";
 import { createWorkspaceBrief, formatWorkspaceBrief } from "./brief.js";
 import { formatProgress, summarizeProgress } from "./progress.js";
 import { recordDoctorEvidence } from "./evidence.js";
@@ -91,7 +91,7 @@ async function main(): Promise<void> {
 
   if (command === "add" && (subcommand === "block" || subcommand === "widget")) {
     const kind = rest[0];
-    if (!kind) throw new Error("Usage: tutor add block <p|heading|list|codeBlock|mathBlock|diagram|chart|image|callout|transformation|glossary|quiz|codingProblem>");
+    if (!kind) throw new Error(`Usage: tutor add block <${blockKinds.join("|")}>`);
     console.log(printWriteResult(`Added block ${kind}`, addBlock(args.cwd, kind)));
     return;
   }
@@ -217,7 +217,7 @@ Usage:
   tutor [--cwd path] --package-spec file:/path/to/tutor-kit init [--starter]
   tutor [--cwd path] add textbook <id> [title]
   tutor [--cwd path] add chapter <textbook-id> <id> [title]
-  tutor [--cwd path] add block <p|heading|list|codeBlock|mathBlock|diagram|chart|image|callout|transformation|glossary|quiz|codingProblem>
+  tutor [--cwd path] add block <${blockKinds.join("|")}>
   tutor [--cwd path] list textbooks
   tutor [--cwd path] brief [--textbook textbook-id] [--json]
   tutor [--cwd path] progress [--textbook textbook-id] [--json]

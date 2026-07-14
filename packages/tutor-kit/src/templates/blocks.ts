@@ -17,6 +17,7 @@ export const coreBlocks = {
   diagram: { kind: "diagram", title: "Diagram" },
   chart: { kind: "chart", title: "Chart" },
   image: { kind: "image", title: "Image" },
+  component: { kind: "component", title: "Component" },
   callout: { kind: "callout", title: "Callout" },
   transformation: { kind: "transformation", title: "Transformation" },
   glossary: { kind: "glossary", title: "Glossary" },

@@ -29,6 +29,8 @@ export interface InitWorkspaceOptions {
   starter?: boolean;
 }
 
+export const blockKinds = ["p", "heading", "list", "codeBlock", "mathBlock", "diagram", "chart", "image", "component", "callout", "transformation", "glossary", "quiz", "codingProblem"] as const;
+
 export function initWorkspace(cwd: string, options: InitWorkspaceOptions = {}): WriteResult {
   const result: WriteResult = { created: [], skipped: [] };
   ensureDir(cwd);
@@ -76,12 +78,12 @@ export function addBlock(cwd: string, kind: string): WriteResult {
   const result: WriteResult = { created: [], skipped: [] };
   ensureDir(join(cwd, "tutor", "blocks"));
 
-  if (["p", "heading", "list", "codeBlock", "mathBlock", "diagram", "chart", "image", "callout", "transformation", "glossary", "quiz", "codingProblem", "core"].includes(kind)) {
+  if (kind === "core" || blockKinds.includes(kind as typeof blockKinds[number])) {
     writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);
     return result;
   }
 
-  throw new Error(`Unknown block "${kind}". Available blocks: p, heading, list, codeBlock, mathBlock, diagram, chart, image, callout, transformation, glossary, quiz, codingProblem.`);
+  throw new Error(`Unknown block "${kind}". Available blocks: ${blockKinds.join(", ")}.`);
 }
 
 export function addWidget(cwd: string, kind: string): WriteResult {

@@ -22,7 +22,10 @@ export function typecheckWorkspace(cwd, rootFiles) {
             messages: parsed.errors.map((diagnostic) => formatDiagnostic(diagnostic, cwd))
         };
     }
-    const program = ts.createProgram(rootFiles ?? parsed.fileNames, parsed.options);
+    const ambientFiles = rootFiles
+        ? parsed.fileNames.filter((file) => file.endsWith(".d.ts"))
+        : [];
+    const program = ts.createProgram(rootFiles ? [...new Set([...rootFiles, ...ambientFiles])] : parsed.fileNames, parsed.options);
     const diagnostics = ts.getPreEmitDiagnostics(program);
     return {
         ok: diagnostics.length === 0,

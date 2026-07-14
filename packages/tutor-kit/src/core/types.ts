@@ -7,6 +7,7 @@ export type BlockKind =
   | "diagram"
   | "chart"
   | "image"
+  | "component"
   | "callout"
   | "transformation"
   | "codingProblem"
@@ -38,6 +39,24 @@ export interface TutorConfig {
 export interface BaseBlock<K extends BlockKind = BlockKind, Props = unknown> {
   kind: K;
   id: string;
+  props: Props;
+}
+
+export type JsonData = string | number | boolean | null | JsonData[] | JsonValue;
+
+export interface JsonValue {
+  [key: string]: JsonData;
+}
+
+export interface ComponentModule<Props extends JsonValue = JsonValue> {
+  readonly kind: "component-module";
+  readonly sourcePath: string;
+  readonly __props?: Props;
+}
+
+export interface ComponentProps<Props extends JsonValue = JsonValue> {
+  title?: string;
+  module: ComponentModule<Props>;
   props: Props;
 }
 
@@ -247,6 +266,7 @@ export type MathBlock = BaseBlock<"mathBlock", MathBlockProps>;
 export type DiagramBlock = BaseBlock<"diagram", DiagramProps>;
 export type ChartBlock = BaseBlock<"chart", ChartProps>;
 export type ImageBlock = BaseBlock<"image", ImageProps>;
+export type ComponentBlock<Props extends JsonValue = JsonValue> = BaseBlock<"component", ComponentProps<Props>>;
 export type CalloutBlock = BaseBlock<"callout", CalloutProps>;
 export type TransformationBlock = BaseBlock<"transformation", TransformationProps>;
 export type CodingProblemBlock = BaseBlock<"codingProblem", CodingProblemProps>;
@@ -265,6 +285,7 @@ export type TutorBlock =
   | DiagramBlock
   | ChartBlock
   | ImageBlock
+  | ComponentBlock
   | CalloutBlock
   | TransformationBlock
   | CodingProblemBlock

@@ -12,6 +12,13 @@ import { loadGlossaryStudyState, saveGlossaryStudyState, submitGlossaryStudyRati
 import { deleteHighlight, loadHighlights, saveHighlight } from "./highlights.js";
 import { loadQuizState, saveQuizState, submitQuizAttempt } from "./quizzes.js";
 import { appendEvent } from "./shared.js";
+import {
+  collectComponentRecords,
+  ComponentRegistry,
+  createComponentViteServer,
+  serializeChapterComponents,
+  serializeTextbookComponents
+} from "../components/system.js";
 
 export interface DevServerOptions {
   cwd: string;
@@ -22,15 +29,18 @@ export async function startDevServer(options: DevServerOptions): Promise<{ url: 
   const workspace = await resolveWorkspace(options.cwd);
   mkdirSync(workspace.dataDir, { recursive: true });
   const watchers = watchWorkspace(workspace);
-
-  const server = createServer(async (request, response) => {
-    try {
-      await handleRequest(workspace.cwd, request, response);
-    } catch (error) {
-      response.statusCode = 500;
-      response.setHeader("content-type", "text/plain; charset=utf-8");
-      response.end(error instanceof Error ? error.stack : String(error));
-    }
+  const componentRegistry = new ComponentRegistry();
+  const server = createServer();
+  const vite = await createComponentViteServer(workspace.cwd, componentRegistry, server);
+  server.on("request", (request, response) => {
+    vite.middlewares(request, response, () => {
+      void handleRequest(workspace.cwd, componentRegistry, request, response).catch((error) => {
+        if (response.writableEnded) return;
+        response.statusCode = 500;
+        response.setHeader("content-type", "text/plain; charset=utf-8");
+        response.end(error instanceof Error ? error.stack : String(error));
+      });
+    });
   });
 
   await new Promise<void>((resolve) => server.listen(options.port, resolve));
@@ -39,16 +49,24 @@ export async function startDevServer(options: DevServerOptions): Promise<{ url: 
 
   return {
     url: `http://localhost:${port}`,
-    close: () => new Promise((resolve, reject) => {
+    close: async () => {
       closeWatchers(watchers);
-      server.close((error) => error ? reject(error) : resolve());
-      server.closeIdleConnections?.();
-      server.closeAllConnections?.();
-    })
+      await vite.close();
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => error ? reject(error) : resolve());
+        server.closeIdleConnections?.();
+        server.closeAllConnections?.();
+      });
+    }
   };
 }
 
-async function handleRequest(cwd: string, request: IncomingMessage, response: ServerResponse): Promise<void> {
+async function handleRequest(
+  cwd: string,
+  componentRegistry: ComponentRegistry,
+  request: IncomingMessage,
+  response: ServerResponse
+): Promise<void> {
   const url = new URL(request.url ?? "/", "http://localhost");
 
   const katexFontMatch = url.pathname.match(/^\/__tutor-assets\/katex\/fonts\/([^/]+)$/);
@@ -114,7 +132,7 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
   }
 
   if (request.method === "GET" && url.pathname === "/api/textbooks") {
-    const loaded = await loadTextbooks(cwd);
+    const loaded = await loadWithComponents(cwd, componentRegistry);
     if (loaded.issues.length > 0) {
       sendJson(response, 422, { issues: loaded.issues });
       return;
@@ -138,7 +156,7 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
   const textbookMatch = url.pathname.match(/^\/api\/textbooks\/([^/]+)$/);
   if (request.method === "GET" && textbookMatch) {
     const id = decodeURIComponent(textbookMatch[1] ?? "");
-    const loaded = await loadTextbooks(cwd);
+    const loaded = await loadWithComponents(cwd, componentRegistry);
     if (loaded.issues.length > 0) {
       sendJson(response, 422, { issues: loaded.issues });
       return;
@@ -148,7 +166,7 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
       sendJson(response, 404, { error: `Textbook not found: ${id}` });
       return;
     }
-    sendJson(response, 200, found.textbook);
+    sendJson(response, 200, serializeTextbookComponents(cwd, componentRegistry, found.textbook));
     return;
   }
 
@@ -156,7 +174,7 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
   if (request.method === "GET" && chapterMatch) {
     const textbookId = decodeURIComponent(chapterMatch[1] ?? "");
     const chapterId = decodeURIComponent(chapterMatch[2] ?? "");
-    const loaded = await loadTextbooks(cwd);
+    const loaded = await loadWithComponents(cwd, componentRegistry);
     if (loaded.issues.length > 0) {
       sendJson(response, 422, { issues: loaded.issues });
       return;
@@ -174,7 +192,7 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
     const nextChapter = textbook && chapterIndex >= 0 ? textbook.chapters[chapterIndex + 1] : undefined;
     const summary = summarizeChapter(found.chapter);
     sendJson(response, 200, {
-      ...found.chapter,
+      ...serializeChapterComponents(cwd, componentRegistry, found.chapter),
       textbookId: found.textbookId,
       textbookTitle: found.textbookTitle,
       previousChapter: previousChapter ? { id: previousChapter.id, title: previousChapter.title } : null,
@@ -267,6 +285,12 @@ async function handleRequest(cwd: string, request: IncomingMessage, response: Se
   }
 
   sendJson(response, 404, { error: "Not found" });
+}
+
+async function loadWithComponents(cwd: string, registry: ComponentRegistry) {
+  const loaded = await loadTextbooks(cwd);
+  if (loaded.issues.length === 0) registry.replace(collectComponentRecords(cwd, loaded.textbooks));
+  return loaded;
 }
 
 function isKnownAppPath(pathname: string): boolean {

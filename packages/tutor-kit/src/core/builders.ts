@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import type {
@@ -12,6 +12,8 @@ import type {
   CodingProblemBlock,
   CodingProblemFile,
   CodeBlock,
+  ComponentBlock,
+  ComponentModule,
   DiagramBlock,
   DiagramProps,
   GlossaryBlock,
@@ -19,6 +21,7 @@ import type {
   HeadingProps,
   ImageBlock,
   ImageProps,
+  JsonValue,
   ListBlock,
   ListProps,
   MathBlock,
@@ -41,6 +44,7 @@ import type {
   TransformationLayout,
   TutorBlock
 } from "./types.js";
+import { isJsonData } from "./validation.js";
 
 interface SubsectionInput {
   id: string;
@@ -118,6 +122,12 @@ interface ChartInput extends BlockInput {
 }
 
 interface ImageInput extends BlockInput, ImageProps {}
+
+interface ComponentInput<Props extends JsonValue> extends BlockInput {
+  title?: string;
+  module: ComponentModule<Props>;
+  props: Props;
+}
 
 interface CalloutInput extends BlockInput {
   tone?: CalloutProps["tone"];
@@ -378,6 +388,35 @@ export function image(input: ImageInput): ImageBlock {
       alt: requireText(input.alt, "image.alt"),
       caption: input.caption,
       credit: input.credit
+    }
+  };
+}
+
+export function componentModule<Props extends JsonValue = JsonValue>(baseUrl: string, path: string): ComponentModule<Props> {
+  let sourcePath: string;
+  try {
+    sourcePath = fileURLToPath(new URL(requireText(path, "componentModule.path"), baseUrl));
+  } catch {
+    throw new Error("componentModule requires a valid file base URL and relative path");
+  }
+  if (!existsSync(sourcePath)) {
+    throw new Error(`Component module does not exist: ${sourcePath}`);
+  }
+  return { kind: "component-module", sourcePath } as ComponentModule<Props>;
+}
+
+export function component<Props extends JsonValue = JsonValue>(input: ComponentInput<Props>): ComponentBlock<Props> {
+  if (!input.module || input.module.kind !== "component-module" || typeof input.module.sourcePath !== "string") {
+    throw new Error("component.module must come from componentModule()");
+  }
+  if (!isJsonData(input.props)) throw new Error("component.props must be JSON serializable");
+  return {
+    kind: "component",
+    id: requireText(input.id, "component.id"),
+    props: {
+      title: input.title,
+      module: input.module,
+      props: input.props
     }
   };
 }

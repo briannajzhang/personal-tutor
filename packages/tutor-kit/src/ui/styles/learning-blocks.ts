@@ -1,5 +1,35 @@
 export function learningBlocksCss(): string {
   return `
+.tutor-component {
+  --tutor-color-background: var(--paper);
+  --tutor-color-surface: var(--panel);
+  --tutor-color-text: var(--ink);
+  --tutor-color-text-muted: var(--muted);
+  --tutor-color-border: var(--line);
+  --tutor-color-accent: var(--accent);
+}
+.tutor-component-title {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.tutor-component-surface {
+  min-width: 0;
+}
+.tutor-component-root {
+  min-width: 0;
+}
+.tutor-component-status,
+.tutor-component-error {
+  padding: 18px;
+}
+.tutor-component-error {
+  border-left: 3px solid #a33b2f;
+}
+.tutor-component-error pre {
+  overflow: auto;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
 .transformation {
   margin: 10px 0 22px;
   border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);

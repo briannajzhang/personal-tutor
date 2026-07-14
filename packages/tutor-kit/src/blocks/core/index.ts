@@ -1,4 +1,4 @@
-import { callout, chart, codeBlock, codingProblem, diagram, glossary, heading, image, list, mathBlock, p, quiz, transformation } from "../../core/builders.js";
+import { callout, chart, codeBlock, codingProblem, component, diagram, glossary, heading, image, list, mathBlock, p, quiz, transformation } from "../../core/builders.js";
 
 export const coreBlockDefinitions = {
   p: {
@@ -40,6 +40,11 @@ export const coreBlockDefinitions = {
     kind: "image",
     title: "Image",
     create: image
+  },
+  component: {
+    kind: "component",
+    title: "Component",
+    create: component
   },
   callout: {
     kind: "callout",

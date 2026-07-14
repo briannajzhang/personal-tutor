@@ -38,7 +38,10 @@ export function typecheckWorkspace(cwd: string, rootFiles?: string[]): Typecheck
     };
   }
 
-  const program = ts.createProgram(rootFiles ?? parsed.fileNames, parsed.options);
+  const ambientFiles = rootFiles
+    ? parsed.fileNames.filter((file) => file.endsWith(".d.ts"))
+    : [];
+  const program = ts.createProgram(rootFiles ? [...new Set([...rootFiles, ...ambientFiles])] : parsed.fileNames, parsed.options);
   const diagnostics = ts.getPreEmitDiagnostics(program);
   return {
     ok: diagnostics.length === 0,

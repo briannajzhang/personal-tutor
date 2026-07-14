@@ -1,6 +1,9 @@
 export function packageJsonTemplate(packageSpec: string): string {
   return `${JSON.stringify({
     type: "module",
+    engines: {
+      node: ">=20.19"
+    },
     scripts: {
       compile: "tutor compile",
       dev: "tutor dev"
@@ -18,12 +21,13 @@ export function tsconfigTemplate(): string {
   return `${JSON.stringify({
     compilerOptions: {
       target: "ES2022",
-      module: "NodeNext",
-      moduleResolution: "NodeNext",
+      module: "ESNext",
+      moduleResolution: "Bundler",
       strict: true,
+      isolatedModules: true,
       esModuleInterop: true,
       skipLibCheck: true,
-      jsx: "react-jsx",
+      jsx: "preserve",
       noEmit: true
     },
     include: [

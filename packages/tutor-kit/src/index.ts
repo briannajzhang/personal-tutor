@@ -1,4 +1,4 @@
-export { balancedQuiz, blurb, callout, chapter, chart, codeBlock, codingProblem, diagram, explanation, glossary, heading, image, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation } from "./core/builders.js";
+export { balancedQuiz, blurb, callout, chapter, chart, codeBlock, codingProblem, component, componentModule, diagram, explanation, glossary, heading, image, list, mathBlock, p, projectFiles, quiz, section, subsection, textbook, transformation } from "./core/builders.js";
 export {
   validateChapter,
   validateSection,
@@ -10,6 +10,8 @@ export {
   summarizeTextbook
 } from "./core/validation.js";
 export { builtInBlockRegistry, builtInWidgetRegistry } from "./registry/index.js";
+export { defineFrontendConfig } from "./frontend-config.js";
+export type { TutorFrontendConfig } from "./frontend-config.js";
 export type {
   BaseBlock,
   BlockKind,
@@ -32,6 +34,9 @@ export type {
   CodeRuntimeConfig,
   CodeBlock,
   CodeBlockProps,
+  ComponentBlock,
+  ComponentModule,
+  ComponentProps,
   DiagramBlock,
   DiagramProps,
   ExplanationBlock,
@@ -42,6 +47,8 @@ export type {
   HeadingProps,
   ImageBlock,
   ImageProps,
+  JsonData,
+  JsonValue,
   ListBlock,
   ListProps,
   LoadedChapter,
