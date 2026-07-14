@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { configTemplate, packageJsonTemplate, registryTemplate, tsconfigTemplate, welcomeTextbookTemplate, welcomeChapterTemplate, welcomeProblemMainTemplate, welcomeProblemSolutionTemplate, welcomeProblemTestsTemplate } from "../templates/workspace.js";
-import { coreBlocksTemplate, chapterTemplate, textbookTemplate } from "../templates/blocks.js";
+import { coreBlocksTemplate, chapterTemplate, courseTemplate, textbookTemplate } from "../templates/blocks.js";
 export function initWorkspace(cwd, options = {}) {
     const result = { created: [], skipped: [] };
     ensureDir(cwd);
@@ -32,11 +32,7 @@ export function addTextbook(cwd, id, title) {
     const result = { created: [], skipped: [] };
     ensureDir(join(cwd, "textbooks", id, "chapters"));
     writeIfMissing(join(cwd, "textbooks", id, "textbook.ts"), textbookTemplate(id, title), result);
-    writeIfMissing(join(cwd, "textbooks", id, "prompt.md"), "# Prompt\n\n", result);
-    writeIfMissing(join(cwd, "textbooks", id, "curriculum-map.md"), `# Curriculum Map: ${title}\n\n`, result);
-    writeIfMissing(join(cwd, "textbooks", id, "chapter-specs.md"), "# Chapter Specs\n\n", result);
-    writeIfMissing(join(cwd, "textbooks", id, "review-notes.md"), "# Review Notes\n\n", result);
-    writeIfMissing(join(cwd, "textbooks", id, "compile-result.md"), "# Compile Result\n\n", result);
+    writeIfMissing(join(cwd, "textbooks", id, "course.md"), courseTemplate(title), result);
     return result;
 }
 export function addChapter(cwd, textbookId, id, title) {

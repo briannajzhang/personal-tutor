@@ -54,7 +54,9 @@ test("bundled Tutor Kit asset exposes the documented CLI surface", () => {
   assert.match(help, /add block <p\|heading\|list\|codeBlock\|mathBlock\|diagram\|chart\|image\|callout\|transformation\|glossary\|quiz\|codingProblem>/);
   assert.match(help, /init \[--starter\]/);
   assert.match(help, /compile \[--textbook textbook-id\]/);
-  assert.match(help, /doctor \[--textbook textbook-id\]/);
+  assert.match(help, /brief \[--textbook textbook-id\] \[--json\]/);
+  assert.match(help, /progress \[--textbook textbook-id\] \[--json\]/);
+  assert.match(help, /doctor \[--textbook textbook-id\] \[--record\]/);
   assert.match(help, /verify coding-problems \[--textbook textbook-id\]/);
 });
 

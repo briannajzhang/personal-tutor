@@ -109,4 +109,30 @@ export default textbook({
 });
 `;
 }
+export function courseTemplate(title) {
+    return `# Course: ${title}
+
+## Learner
+
+Goal:
+Background:
+Pace and practice:
+
+## Outcome
+
+After this course, the learner can:
+
+## Course map
+
+- [ ] Add the first planned chapter.
+
+## Active publication
+
+Outcome:
+Ideas worth developing:
+Possible worked examples:
+Likely learner difficulty:
+Practice and feedback opportunities:
+`;
+}
 //# sourceMappingURL=blocks.js.map
