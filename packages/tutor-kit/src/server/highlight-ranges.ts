@@ -103,7 +103,7 @@ export function splitHighlightRange(highlight: HighlightRange, removal: Pick<Hig
   return pieces;
 }
 
-function selectionFullyCovered(selection: Pick<HighlightRange, "startOffset" | "endOffset">, ranges: HighlightRange[]): boolean {
+export function selectionFullyCovered(selection: Pick<HighlightRange, "startOffset" | "endOffset">, ranges: HighlightRange[]): boolean {
   const sorted = ranges
     .filter((range) => rangesOverlap(selection, range))
     .map((range) => ({

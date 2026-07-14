@@ -6,6 +6,7 @@ import {
   normalizeHighlightRange,
   rangesOverlap,
   rangesTouchOrOverlap,
+  selectionFullyCovered,
   selectionContainsUnsupportedText,
   selectionHasUnsupportedText,
   splitHighlightRange,
@@ -26,6 +27,8 @@ test("highlight selection classification handles unhighlighted, full, and partia
   assert.equal(classifyHighlightSelection({ startOffset: 10, endOffset: 14 }, ranges), "unhighlighted");
   assert.equal(classifyHighlightSelection({ startOffset: 2, endOffset: 8 }, ranges), "fully-highlighted");
   assert.equal(classifyHighlightSelection({ startOffset: 2, endOffset: 12 }, ranges), "partial-overlap");
+  assert.equal(selectionFullyCovered({ startOffset: 2, endOffset: 8 }, ranges), true);
+  assert.equal(selectionFullyCovered({ startOffset: 2, endOffset: 12 }, ranges), false);
 });
 
 test("highlight range split supports left, right, middle, and exact removal", () => {

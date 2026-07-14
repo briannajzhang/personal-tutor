@@ -35,6 +35,20 @@ function tickLabels(svg: string): string[] {
   return [...svg.matchAll(/<text class="chart-value"[^>]*>([^<]+)<\/text>/g)].map((match) => match[1]);
 }
 
+test("client includes one copy of each shared highlight helper", () => {
+  const script = clientScriptWithoutLoad();
+  for (const name of [
+    "selectionHasUnsupportedText",
+    "selectionFullyCovered",
+    "splitHighlightRange",
+    "rangesOverlap",
+    "rangesTouchOrOverlap"
+  ]) {
+    assert.equal(script.match(new RegExp(`function ${name}\\b`, "g"))?.length, 1, name);
+  }
+  assert.doesNotMatch(script, /highlightAnchorForNode/);
+});
+
 test("flashcard body and star are separate native buttons", () => {
   const sandbox: {
     __emptyGlossaryStudyState?: (textbookId: string) => Record<string, unknown>;
