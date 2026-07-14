@@ -11,6 +11,12 @@ type RenderChartSvg = (props: {
   points: Array<{ label: string; value: number }>;
 }) => string;
 
+type RenderGlossaryStudySession = (
+  textbookId: string,
+  entries: Array<{ id: string; term: string; definition: string }>,
+  state: Record<string, unknown>
+) => string;
+
 function clientScriptWithoutLoad(): string {
   const scripts = [...html("Chart Test").matchAll(/<script(?: [^>]*)?>([\s\S]*?)<\/script>/g)];
   const clientScript = scripts.at(-1)?.[1];
@@ -28,6 +34,28 @@ function loadRenderChartSvg(): RenderChartSvg {
 function tickLabels(svg: string): string[] {
   return [...svg.matchAll(/<text class="chart-value"[^>]*>([^<]+)<\/text>/g)].map((match) => match[1]);
 }
+
+test("flashcard body and star are separate native buttons", () => {
+  const sandbox: {
+    __emptyGlossaryStudyState?: (textbookId: string) => Record<string, unknown>;
+    __renderGlossaryStudySession?: RenderGlossaryStudySession;
+  } = {};
+  runInNewContext(
+    `${clientScriptWithoutLoad()}\nglobalThis.__emptyGlossaryStudyState = emptyGlossaryStudyState;\nglobalThis.__renderGlossaryStudySession = renderGlossaryStudySession;`,
+    sandbox
+  );
+
+  const state = sandbox.__emptyGlossaryStudyState?.("course");
+  assert.ok(state);
+  const markup = sandbox.__renderGlossaryStudySession?.("course", [{
+    id: "term-1",
+    term: "Input",
+    definition: "A value given to a function."
+  }], state) ?? "";
+
+  assert.match(markup, /<div class="glossary-card[^>]*>[\s\S]*?<button class="glossary-star[^>]*>[\s\S]*?<\/button>[\s\S]*?<button class="glossary-card-body"/);
+  assert.doesNotMatch(markup, /data-glossary-card-toggle role="button"/);
+});
 
 test("textbook loads always fetch current source data", async () => {
   let requestCount = 0;

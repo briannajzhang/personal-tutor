@@ -1152,6 +1152,16 @@ h1 {
   display: grid;
   align-items: center;
   width: min(560px, 100%);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+.glossary-card-body:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-2) 36%, transparent);
+  outline-offset: 8px;
 }
 .glossary-card-content {
   display: grid;
@@ -2701,11 +2711,11 @@ function renderGlossaryStudySession(textbookId, entries, studyState) {
           <div class="glossary-study-progress-fill" style="--glossary-progress: \${progress}%"></div>
         </div>
       </div>
-      <div class="glossary-card \${session.showBoth ? "is-showing-both" : ""}" data-glossary-card="\${escapeAttr(entry.id)}" data-glossary-card-toggle role="button" tabindex="0" aria-label="\${session.showBoth ? "Showing term and definition" : session.revealed ? "Hide definition" : "Reveal definition"}">
+      <div class="glossary-card \${session.showBoth ? "is-showing-both" : ""}" data-glossary-card="\${escapeAttr(entry.id)}">
         \${renderGlossaryStarButton(entry, studyState)}
-        <div class="glossary-card-body">
+        <button class="glossary-card-body" type="button" data-glossary-card-toggle aria-label="\${session.showBoth ? "Showing term and definition" : session.revealed ? "Hide definition" : "Reveal definition"}">
           \${renderGlossaryCardContent(entry, session)}
-        </div>
+        </button>
       </div>
       <div class="glossary-card-controls">
         <div class="glossary-card-nav \${trackingEnabled ? "is-tracking" : "is-browsing"}" aria-label="\${trackingEnabled ? "Flashcard rating" : "Flashcard navigation"}">
@@ -2867,14 +2877,7 @@ function bindGlossaryStudyLauncher(textbookId) {
 function bindGlossaryStudyPageControls(textbookId, entries) {
   const card = document.querySelector("[data-glossary-card-toggle]");
   if (card) {
-    card.addEventListener("click", (event) => {
-      const target = event.target instanceof Element ? event.target : null;
-      if (target?.closest("[data-glossary-star]")) return;
-      toggleCurrentGlossaryCardReveal(textbookId, entries);
-    });
-    card.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
+    card.addEventListener("click", () => {
       toggleCurrentGlossaryCardReveal(textbookId, entries);
     });
   }
