@@ -10,6 +10,9 @@ interface GlossaryStudyStateRequest {
   starredTermIds?: unknown;
   lastStudySet?: unknown;
   currentCardIndex?: unknown;
+  cardOrder?: unknown;
+  currentTermId?: unknown;
+  sessionCompleted?: unknown;
 }
 
 interface GlossaryStudyRatingRequest {
@@ -31,6 +34,9 @@ interface GlossaryStudyState {
   ratings: Record<string, GlossaryTermRating>;
   lastStudySet: GlossaryStudySet;
   currentCardIndex: number;
+  cardOrder: string[];
+  currentTermId: string | null;
+  sessionCompleted: boolean;
   updatedAt: string | null;
 }
 
@@ -39,6 +45,9 @@ const emptyState = (): GlossaryStudyState => ({
   ratings: {},
   lastStudySet: "all",
   currentCardIndex: 0,
+  cardOrder: [],
+  currentTermId: null,
+  sessionCompleted: false,
   updatedAt: null
 });
 
@@ -61,6 +70,9 @@ export async function saveGlossaryStudyState(cwd: string, body: GlossaryStudySta
     starredTermIds,
     lastStudySet: glossaryStudySet(body.lastStudySet, previous.lastStudySet),
     currentCardIndex: nonNegativeInteger(body.currentCardIndex, previous.currentCardIndex),
+    cardOrder: body.cardOrder === undefined ? previous.cardOrder : stringList(body.cardOrder),
+    currentTermId: optionalString(body.currentTermId, previous.currentTermId),
+    sessionCompleted: typeof body.sessionCompleted === "boolean" ? body.sessionCompleted : previous.sessionCompleted,
     updatedAt: now
   };
   writeState(paths.absolutePath, next);
@@ -116,6 +128,9 @@ function readState(path: string): GlossaryStudyState {
     ratings: ratingRecord(parsed.ratings),
     lastStudySet: glossaryStudySet(parsed.lastStudySet, "all"),
     currentCardIndex: nonNegativeInteger(parsed.currentCardIndex, 0),
+    cardOrder: stringList(parsed.cardOrder),
+    currentTermId: optionalString(parsed.currentTermId, null),
+    sessionCompleted: parsed.sessionCompleted === true,
     updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null
   };
 }
@@ -182,6 +197,11 @@ function glossaryStudySet(value: unknown, fallback: GlossaryStudySet): GlossaryS
 function requireString(value: unknown, label: string): string {
   if (typeof value !== "string" || value.trim().length === 0) throw new Error(`${label} is required`);
   return value;
+}
+
+function optionalString(value: unknown, fallback: string | null): string | null {
+  if (value === null) return null;
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
 }
 
 function nonNegativeInteger(value: unknown, fallback: number): number {

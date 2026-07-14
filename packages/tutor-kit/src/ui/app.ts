@@ -2402,7 +2402,12 @@ async function renderTextbookGlossaryStudy(textbookId) {
   if (token !== routeToken) return;
   const requestedSet = new URLSearchParams(window.location.search).get("set") === "starred" ? "starred" : "all";
   const studySet = requestedSet === "starred" && studyState.starredTermIds.length === 0 ? "all" : requestedSet;
-  startGlossaryStudySession(textbook.id, entries, studySet, undefined, { preserveCurrentIndex: true, render: false });
+  if (!studyState.session || studyState.session.studySet !== studySet) {
+    startGlossaryStudySession(textbook.id, entries, studySet, undefined, {
+      resume: studyState.lastStudySet === studySet,
+      render: false
+    });
+  }
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -3034,6 +3039,9 @@ async function loadGlossaryStudyState(textbookId) {
     state.studySet = persisted.lastStudySet === "starred" ? "starred" : "all";
     state.lastStudySet = state.studySet;
     state.currentCardIndex = Number.isInteger(persisted.currentCardIndex) ? persisted.currentCardIndex : 0;
+    state.cardOrder = Array.isArray(persisted.cardOrder) ? persisted.cardOrder : [];
+    state.currentTermId = typeof persisted.currentTermId === "string" ? persisted.currentTermId : null;
+    state.sessionCompleted = persisted.sessionCompleted === true;
   } catch {
     // Study persistence is a convenience; the glossary remains usable without it.
   }
@@ -3055,6 +3063,9 @@ function emptyGlossaryStudyState(textbookId) {
     starredTermIds: [],
     ratings: {},
     currentCardIndex: 0,
+    cardOrder: [],
+    currentTermId: null,
+    sessionCompleted: false,
     session: null
   };
 }
@@ -3125,10 +3136,12 @@ function startGlossaryStudySession(textbookId, entries, studySet, forcedTermIds,
     ...currentOptions,
     ...options
   };
-  const initialIndex = options.preserveCurrentIndex === true ? state.currentCardIndex : 0;
-  state.studySet = studySet === "starred" ? "starred" : "all";
+  const nextStudySet = studySet === "starred" ? "starred" : "all";
+  const resume = options.resume === true && state.lastStudySet === nextStudySet;
+  const initialIndex = resume ? state.currentCardIndex : 0;
+  state.studySet = nextStudySet;
   state.lastStudySet = state.studySet;
-  state.session = newGlossaryStudySession(entries, state, state.studySet, forcedTermIds, { ...nextOptions, initialIndex });
+  state.session = newGlossaryStudySession(entries, state, state.studySet, forcedTermIds, { ...nextOptions, initialIndex, resume });
   state.currentCardIndex = state.session.index;
   void saveGlossaryStudyState(textbookId);
   if (options.render !== false) {
@@ -3142,14 +3155,29 @@ function newGlossaryStudySession(entries, state, studySet, forcedTermIds, option
   const cards = entries.filter((entry) => forced
     ? forced.has(entry.id)
     : studySet === "starred" ? starred.has(entry.id) : true);
+  const eligibleCardIds = cards.map((entry) => entry.id);
+  const eligibleCards = new Set(eligibleCardIds);
+  const savedOrder = options.resume === true
+    ? state.cardOrder.filter((termId) => eligibleCards.has(termId))
+    : [];
+  const savedCards = new Set(savedOrder);
+  const missingCardIds = eligibleCardIds.filter((termId) => !savedCards.has(termId));
+  const cardIds = savedOrder.length > 0
+    ? [...savedOrder, ...shuffleGlossaryCards(missingCardIds)]
+    : shuffleGlossaryCards(eligibleCardIds);
+  const savedTermIndex = options.resume === true && state.currentTermId
+    ? cardIds.indexOf(state.currentTermId)
+    : -1;
   const initialIndex = Number.isInteger(options.initialIndex) && options.initialIndex > 0 ? options.initialIndex : 0;
   return {
     studySet,
     label: forced ? "again terms" : studySet === "starred" ? "starred terms" : "all terms",
-    cardIds: shuffleGlossaryCards(cards.map((entry) => entry.id)),
-    index: Math.max(0, Math.min(initialIndex, Math.max(cards.length - 1, 0))),
+    cardIds,
+    index: savedTermIndex >= 0
+      ? savedTermIndex
+      : Math.max(0, Math.min(initialIndex, Math.max(cardIds.length - 1, 0))),
     revealed: false,
-    completed: false,
+    completed: options.resume === true && state.sessionCompleted === true && missingCardIds.length === 0,
     trackingEnabled: options.trackingEnabled === true,
     promptMode: options.promptMode === "definition-first" ? "definition-first" : "term-first",
     showBoth: options.showBoth === true,
@@ -3304,6 +3332,10 @@ function updateGlossaryStarButtons(textbookId) {
 
 async function saveGlossaryStudyState(textbookId) {
   const state = getGlossaryStudyState(textbookId);
+  const session = state.session;
+  const currentTermId = session && session.index < session.cardIds.length
+    ? session.cardIds[session.index]
+    : state.currentTermId;
   try {
     await fetchJson("/api/glossary-study/state", {
       method: "PUT",
@@ -3312,7 +3344,10 @@ async function saveGlossaryStudyState(textbookId) {
         textbookId,
         starredTermIds: state.starredTermIds,
         lastStudySet: state.studySet,
-        currentCardIndex: state.currentCardIndex
+        currentCardIndex: state.currentCardIndex,
+        cardOrder: session?.cardIds ?? state.cardOrder,
+        currentTermId,
+        sessionCompleted: session?.completed === true
       })
     });
   } catch {

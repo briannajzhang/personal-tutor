@@ -57,6 +57,40 @@ test("flashcard body and star are separate native buttons", () => {
   assert.doesNotMatch(markup, /data-glossary-card-toggle role="button"/);
 });
 
+test("flashcard resume preserves card order and current term", () => {
+  const sandbox: {
+    __newGlossaryStudySession?: (
+      entries: Array<{ id: string }>,
+      state: Record<string, unknown>,
+      studySet: "all" | "starred",
+      forcedTermIds: string[] | undefined,
+      options: Record<string, unknown>
+    ) => { cardIds: string[]; index: number; completed: boolean };
+  } = {};
+  runInNewContext(
+    `${clientScriptWithoutLoad()}\nglobalThis.__newGlossaryStudySession = newGlossaryStudySession;`,
+    sandbox
+  );
+
+  const session = sandbox.__newGlossaryStudySession?.(
+    [{ id: "a" }, { id: "b" }, { id: "c" }],
+    {
+      starredTermIds: [],
+      cardOrder: ["c", "a", "b"],
+      currentTermId: "b",
+      sessionCompleted: false
+    },
+    "all",
+    undefined,
+    { resume: true }
+  );
+
+  assert.ok(session);
+  assert.deepEqual(Array.from(session.cardIds), ["c", "a", "b"]);
+  assert.equal(session.index, 2);
+  assert.equal(session.completed, false);
+});
+
 test("textbook loads always fetch current source data", async () => {
   let requestCount = 0;
   const sandbox: {

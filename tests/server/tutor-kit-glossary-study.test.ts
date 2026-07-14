@@ -23,12 +23,18 @@ test("glossary study stars and ratings persist", async () => {
         textbookId: "getting-started",
         starredTermIds: ["welcome:intro:semantic-block", "welcome:intro:runtime-history"],
         lastStudySet: "starred",
-        currentCardIndex: 1
+        currentCardIndex: 1,
+        cardOrder: ["welcome:intro:runtime-history", "welcome:intro:semantic-block"],
+        currentTermId: "welcome:intro:semantic-block",
+        sessionCompleted: false
       })
     });
     assert.deepEqual(saved.starredTermIds, ["welcome:intro:semantic-block", "welcome:intro:runtime-history"]);
     assert.equal(saved.lastStudySet, "starred");
     assert.equal(saved.currentCardIndex, 1);
+    assert.deepEqual(saved.cardOrder, ["welcome:intro:runtime-history", "welcome:intro:semantic-block"]);
+    assert.equal(saved.currentTermId, "welcome:intro:semantic-block");
+    assert.equal(saved.sessionCompleted, false);
     assert.match(saved.statePath, /tutor-data\/glossary-study-state\/getting-started\.json/);
 
     const ratedAgain = await fetchJson(`${server.url}/api/glossary-study/rating`, {
@@ -62,6 +68,8 @@ test("glossary study stars and ratings persist", async () => {
     const loaded = await fetchJson(`${server.url}/api/glossary-study/state?textbookId=getting-started`);
     assert.deepEqual(loaded.starredTermIds, ["welcome:intro:semantic-block", "welcome:intro:runtime-history"]);
     assert.equal(loaded.ratings["welcome:intro:semantic-block"].reviewCount, 2);
+    assert.deepEqual(loaded.cardOrder, ["welcome:intro:runtime-history", "welcome:intro:semantic-block"]);
+    assert.equal(loaded.currentTermId, "welcome:intro:semantic-block");
 
     const events = readFileSync(join(dir, "tutor-data", "events.jsonl"), "utf8");
     assert.match(events, /glossary_stars_updated/);
