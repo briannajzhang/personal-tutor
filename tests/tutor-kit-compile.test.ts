@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -60,6 +60,34 @@ export default textbook({
   const result = await compileWorkspace(dir);
   assert.equal(result.ok, false);
   assert.match(result.output, /Duplicate block id: same/);
+});
+
+test("compile rejects missing textbook image assets", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
+  initWorkspace(dir, { starter: true });
+  linkTutorKit(dir);
+  const chapterPath = join(dir, "textbooks", "getting-started", "chapters", "welcome.chapter.ts");
+  const chapterSource = readFileSync(chapterPath, "utf8")
+    .replace("import { ", "import { image, ")
+    .replace("blocks: [", `blocks: [
+        image({
+          id: "missing-figure",
+          src: "assets/missing.png",
+          alt: "A missing test figure."
+        }),`);
+  writeFileSync(chapterPath, chapterSource);
+
+  const missing = await compileWorkspace(dir);
+  assert.equal(missing.ok, false, missing.output);
+  assert.match(missing.output, /Image asset does not exist inside the textbook directory: assets\/missing\.png/);
+
+  const assetsDir = join(dir, "textbooks", "getting-started", "assets");
+  mkdirSync(assetsDir, { recursive: true });
+  writeFileSync(join(assetsDir, "missing.png"), "test image");
+  clearWorkspaceCaches();
+
+  const present = await compileWorkspace(dir);
+  assert.equal(present.ok, true, present.output);
 });
 
 test("targeted compile ignores unrelated broken textbooks", async () => {

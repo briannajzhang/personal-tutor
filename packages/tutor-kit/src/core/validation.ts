@@ -1,3 +1,5 @@
+import { existsSync, realpathSync, statSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve } from "node:path";
 import type {
   Chapter,
   Section,
@@ -573,6 +575,12 @@ function validateImage(
       `${path}.src`,
       file
     ));
+  } else if (typeof props.src === "string" && file && !imageAssetExists(props.src, file)) {
+    issues.push(issue(
+      `Image asset does not exist inside the textbook directory: ${props.src}`,
+      `${path}.src`,
+      file
+    ));
   }
 }
 
@@ -580,6 +588,23 @@ function isSafeImageSrc(src: string): boolean {
   if (!src.startsWith("assets/")) return false;
   if (src.includes("\\") || src.includes("\0")) return false;
   return !src.split("/").some((part) => part === "" || part === "." || part === "..");
+}
+
+function imageAssetExists(src: string, textbookFile: string): boolean {
+  const textbookDir = dirname(textbookFile);
+  const target = resolve(textbookDir, src);
+  if (!existsSync(target)) return false;
+  try {
+    const realTextbookDir = realpathSync(textbookDir);
+    const realTarget = realpathSync(target);
+    const pathFromTextbook = relative(realTextbookDir, realTarget);
+    return statSync(realTarget).isFile()
+      && pathFromTextbook !== ""
+      && !pathFromTextbook.startsWith("..")
+      && !isAbsolute(pathFromTextbook);
+  } catch {
+    return false;
+  }
 }
 
 function validateGlossary(
