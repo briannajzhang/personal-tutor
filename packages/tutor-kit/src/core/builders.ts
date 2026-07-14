@@ -11,7 +11,6 @@ import type {
   CodingProblemAction,
   CodingProblemBlock,
   CodingProblemFile,
-  CodingProblemProps,
   CodeBlock,
   DiagramBlock,
   DiagramProps,
