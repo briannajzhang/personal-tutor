@@ -177,7 +177,7 @@ function renderInlineEmphasis(value) {
 }
 
 function renderMath(value, displayMode) {
-  const source = normalizeLatex(value);
+  const source = String(value ?? "");
   if (window.katex && typeof window.katex.renderToString === "function") {
     return window.katex.renderToString(source, {
       displayMode,
@@ -186,14 +186,6 @@ function renderMath(value, displayMode) {
     });
   }
   return escapeHtml(source);
-}
-
-function normalizeLatex(value) {
-  const slash = String.fromCharCode(92);
-  return String(value ?? "")
-    .replaceAll(slash + slash, slash)
-    .replaceAll(slash + "left", "")
-    .replaceAll(slash + "right", "");
 }
 
 function anchorId(value) {

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { runInNewContext } from "node:vm";
+import { renderToString } from "katex";
 import { html } from "../packages/tutor-kit/dist/ui/app.js";
 
 type RenderChartSvg = (props: {
@@ -47,6 +48,44 @@ test("client includes one copy of each shared highlight helper", () => {
     assert.equal(script.match(new RegExp(`function ${name}\\b`, "g"))?.length, 1, name);
   }
   assert.doesNotMatch(script, /highlightAnchorForNode/);
+});
+
+test("math rendering preserves valid LaTeX commands and matrix row separators", () => {
+  const calls: Array<{ source: string; options: { displayMode: boolean } }> = [];
+  const sandbox: {
+    __renderMath?: (value: string, displayMode: boolean) => string;
+    window: {
+      katex: {
+        renderToString: (source: string, options: { displayMode: boolean }) => string;
+      };
+    };
+  } = {
+    window: {
+      katex: {
+        renderToString(source, options) {
+          calls.push({ source, options });
+          return "<span>rendered</span>";
+        }
+      }
+    }
+  };
+
+  runInNewContext(
+    `${clientScriptWithoutLoad()}\nglobalThis.__renderMath = renderMath;`,
+    sandbox
+  );
+
+  const latex = String.raw`x = \left[\begin{matrix}2 \\ -1 \\ 3\end{matrix}\right] \in \mathbb{R}^3`;
+  const markup = sandbox.__renderMath?.(latex, true);
+
+  assert.equal(markup, "<span>rendered</span>");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0]?.source, latex);
+  assert.equal(calls[0]?.options.displayMode, true);
+  assert.doesNotThrow(() => renderToString(calls[0]?.source ?? "", {
+    displayMode: true,
+    throwOnError: true
+  }));
 });
 
 test("chapter tools collapse only when entering the mobile layout", () => {
