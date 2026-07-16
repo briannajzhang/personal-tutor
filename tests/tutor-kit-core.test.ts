@@ -1315,7 +1315,7 @@ test("balancedQuiz preserves semantic answer identity and stable output", () => 
       prompt: "Which choice names the mechanism?",
       choices: [
         { id: "a", body: "Correct mechanism" },
-        { id: "b", body: "Tempting misconception" },
+        { id: "b", body: "Tempting misconception", explanation: "This mistakes the visible symptom for the mechanism." },
         { id: "c", body: "Unrelated detail" },
         { id: "d", body: "Overbroad claim" }
       ],
@@ -1347,6 +1347,7 @@ test("balancedQuiz preserves semantic answer identity and stable output", () => 
   assert.deepEqual(first, second);
   assert.equal(firstQuestion.answer, "a");
   assert.equal(correctChoice?.body, "Correct mechanism");
+  assert.equal(firstQuestion.choices.find((choice) => choice.id === "b")?.explanation, "This mistakes the visible symptom for the mechanism.");
   assert.deepEqual(new Set(firstQuestion.choices.map((choice) => choice.id)), new Set(["a", "b", "c", "d"]));
   assert.deepEqual(first.props.questions[0].tags, ["identity"]);
   assert.equal(first.props.questions[0].difficulty, "medium");
@@ -1371,6 +1372,48 @@ test("quiz builder normalizes explicit multiple-choice and matching questions", 
   assert.equal(matchQuestion.leftLabel, "Prompt");
   assert.equal(matchQuestion.rightLabel, "Match");
   assert.equal(matchQuestion.pairs.length, 2);
+});
+
+test("validation rejects malformed optional quiz choice explanations", () => {
+  const built = {
+    id: "choice-explanation-validation",
+    title: "Choice Explanation Validation",
+    chapters: [{
+      id: "choice-explanation-validation",
+      title: "Choice Explanation Validation",
+      sections: [{
+        id: "check",
+        title: "Check",
+        subsections: [],
+        blocks: [{
+          kind: "quiz",
+          id: "choice-explanation-check",
+          props: {
+            title: "Choice Explanation Check",
+            mode: "check",
+            questions: [{
+              kind: "multiple-choice",
+              id: "q1",
+              prompt: "Which option follows the rule?",
+              choices: [
+                { id: "a", body: "The rule applies.", explanation: 42 },
+                { id: "b", body: "The rule does not apply." }
+              ],
+              answer: "a",
+              explanation: "The rule applies in this case.",
+              tags: ["validation"]
+            }]
+          }
+        }]
+      }]
+    }]
+  };
+
+  const issues = validateTextbook(built);
+  assert.ok(issues.some((issue) => (
+    issue.message === "Text is required." &&
+    issue.path.endsWith(".props.questions[0].choices[0].explanation")
+  )));
 });
 
 test("balancedQuiz leaves matching questions structurally intact", () => {

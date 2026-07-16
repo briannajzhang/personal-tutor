@@ -74,7 +74,7 @@ Before drafting a substantial lesson, read at least one sample that matches the 
 1. Treat the current directory as the learner workspace.
 2. Run `node <skill-dir>/scripts/tutor-kit.mjs brief`. This is the default inspection step. Read only the textbook, course state, chapter source, and source notes needed for the current publication.
 3. If Tutor Kit files are missing, run `node <skill-dir>/scripts/tutor-kit.mjs init` and add a textbook.
-4. Read `references/quality-core.md` and `references/authoring-quickstart.md` before authoring.
+4. Read `references/quality-core.md` and `references/authoring-quickstart.md` before authoring. Consult `references/practice-and-assessment.md` when authoring quizzes, review sets, practice, assessment, or coding problems.
 5. Ask at most one intake question, and only when its answer would materially change the course. Otherwise infer sensible defaults and record them briefly in `course.md`.
 6. Publish the smallest useful learner-ready unit. This is usually one chapter, a focused revision, or a practice set. Keep future work as short entries in `course.md`.
 7. Author native Tutor Kit TypeScript. Every built-in block and custom TypeScript remain available. Prefer built in blocks when they express the learner move clearly. Use a custom `component(...)` only when the lesson needs interaction, animation, or a frontend library that the built in blocks do not provide.

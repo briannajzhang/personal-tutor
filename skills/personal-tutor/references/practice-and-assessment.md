@@ -65,6 +65,8 @@ Examples by subject:
 
 Choose the question format by the learner move. Use multiple choice when one prompt asks for one decision, prediction, diagnosis, misconception check, or best answer. Use matching when the useful work is organizing a related set well enough to discriminate among its members: terms to meanings, representations to interpretations, tools to use cases, symptoms to causes, examples to categories, or steps to roles.
 
+Multiple choice works best when a question supports several plausible alternatives. When additional options would become topic-adjacent filler, prefer sharpening the prompt or using a format that better fits the learner move.
+
 Matching is most valuable when neighboring ideas are easy to confuse and later tasks depend on choosing among them. A compact table, ladder, glossary, taxonomy, label set, or comparison is a useful signal to consider matching, especially when several multiple-choice questions would otherwise check the same relationship one item at a time. In that case, one matching question can compress retrieval and discrimination before the quiz returns to scenario-based application.
 
 Do not add matching for variety alone. Use it when it improves the learner move: checking a map, separating similar-but-different ideas, or preparing for later decisions that depend on choosing among those ideas quickly.
@@ -103,6 +105,10 @@ Each question should include:
 - difficulty when useful: `easy`, `medium`, or `hard`
 
 Multiple-choice distractors should represent realistic learner mistakes. If no plausible learner reasoning leads to a choice, replace it.
+
+Good distractors often grow from coherent learner models, such as partial understanding, missed conditions, nearby confusions, or overextensions of a true idea. They stay close to the concept being tested, answer the same question, and leave one answer clearly best. Avoid choices that can be eliminated without understanding because they are unrelated, exaggerated, implausible, or answering a different question.
+
+Use choice-level `explanation` selectively to repair recognizable misconceptions; feedback does not make an implausible distractor useful. Keep the question-level `explanation` focused on why the correct answer works.
 
 For matching questions, keep both sides short and one-to-one. Use them after the lesson has taught or framed the items; do not make matching the first exposure to the concepts.
 

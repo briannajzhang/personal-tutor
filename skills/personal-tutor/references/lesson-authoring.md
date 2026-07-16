@@ -203,7 +203,7 @@ Use:
 
 Quiz explanations should teach the mechanism. Do not merely restate the answer.
 
-Choices should include plausible distractors based on realistic mistakes. Avoid joke answers, obviously impossible answers, and choices where more than one answer could reasonably be defended.
+Use plausible distractors that require understanding to reject and leave one answer clearly best; see `practice-and-assessment.md` for quiz design guidance.
 
 ## Titles And Descriptions
 

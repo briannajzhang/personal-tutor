@@ -201,6 +201,7 @@ interface CodingProblemInput extends BlockInput {
 interface QuizChoiceInput {
   id: string;
   body: string;
+  explanation?: string;
 }
 
 interface MultipleChoiceQuizQuestionInput extends BlockInput {
@@ -571,10 +572,14 @@ function normalizeMatchingPair(input: MatchingQuizPairInput, label: string): Mat
 }
 
 function normalizeQuizChoice(input: QuizChoiceInput): QuizChoice {
-  return {
+  const choice: QuizChoice = {
     id: requireText(input.id, "quiz.questions[].choices[].id"),
     body: requireText(input.body, "quiz.questions[].choices[].body")
   };
+  if (input.explanation !== undefined) {
+    choice.explanation = requireText(input.explanation, "quiz.questions[].choices[].explanation");
+  }
+  return choice;
 }
 
 function requireGlossaryEntries(value: GlossaryEntryInput[], label: string): GlossaryEntryInput[] {

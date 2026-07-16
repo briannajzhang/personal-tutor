@@ -183,7 +183,7 @@ Use blocks by teaching purpose:
 
 Prefer `balancedQuiz(...)` for generated 4-choice multiple-choice quizzes unless answer order is meaningful. Use `quiz(...)` for matching questions or preserved answer structure.
 
-Quiz questions should set `kind: "multiple-choice"` when they use `choices` and `answer`, or `kind: "matching"` when they use one-to-one `pairs`. Matching pairs contain `id`, `left`, `right`, and optional `explanation`; matching questions can set `leftLabel` and `rightLabel` when the defaults are too generic.
+Quiz questions should set `kind: "multiple-choice"` when they use `choices` and `answer`, or `kind: "matching"` when they use one-to-one `pairs`. Multiple-choice choices contain `id`, `body`, and an optional `explanation` that provides feedback when that choice is selected. Matching pairs contain `id`, `left`, `right`, and optional `explanation`; matching questions can set `leftLabel` and `rightLabel` when the defaults are too generic.
 
 `callout` tones are `note`, `caution`, and `key-idea`.
 
