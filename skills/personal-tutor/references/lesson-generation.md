@@ -54,6 +54,8 @@ Run `tutor brief` first. Ask at most one intake question, and only when its answ
 
 If sources are involved, inspect existing source artifacts before intake and ask only unresolved choices that affect generation.
 
+For a broad new technical course, ask one high-value bundled question only when missing information about the learner's goal, desired depth, or practice style would materially change the first chapter. Example: "Should this optimize for conceptual understanding, implementation and debugging, reading technical material, project-building, or something else?"
+
 When one question is needed for a new course, choose the highest value unresolved question from:
 
 - What should you be able to do with this subject?
@@ -77,7 +79,7 @@ For focused quizzes/practice, ask only what is missing:
 - number of questions/tasks
 - desired format and feedback style
 
-If the user asks the agent to choose, use the defaults below and record them in `course.md`.
+If the user provides enough context, asks the agent to choose, or explicitly says not to ask, infer the remaining defaults below and record them in `course.md`.
 
 ## Learner Defaults
 
@@ -127,7 +129,9 @@ For broad requests, either cover the expected beginner core scope in the plan or
 
 ## Chapter specs
 
-For an ordinary chapter, use the short active publication fields in `course.md`: outcome, ideas worth developing, possible worked examples, likely learner difficulty, and practice or feedback opportunities. Write a longer `chapter-specs.md` entry only when the chapter has unusual prerequisite, source, assessment, visual, or interaction risk.
+For an ordinary chapter, use the short active publication fields in `course.md`: outcome, ideas worth developing, possible worked examples, likely learner difficulty, and practice or feedback opportunities. When a broad or concept-dense chapter needs a teaching sketch, keep it informal and short: central mechanism, terms that need a clear introduction before repeated use, what can wait, and optionally one likely learner action.
+
+Write a longer `chapter-specs.md` entry only when the chapter has unusual prerequisite, source, assessment, visual, or interaction risk.
 
 When a longer spec is warranted, use this format for the risky parts rather than filling every field mechanically:
 

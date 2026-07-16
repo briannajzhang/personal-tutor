@@ -16,7 +16,7 @@ Choose content that serves that outcome. Remove background material that does no
 
 ## Teach the mechanism
 
-Define important terms before relying on them. Explain how the central idea works or why it is true. Do not replace the explanation with claims that the idea is useful or important.
+Define important terms on first serious use, before relying on them. Explain how the central idea works or why it is true. Do not substitute labels such as useful, important, powerful, or subtle for explanation. State what the idea changes, enables, prevents, or makes difficult.
 
 Consider a realistic wrong model, mistake, or boundary when it helps the learner distinguish correct use from a tempting error.
 
@@ -62,6 +62,7 @@ Before running `doctor`, ask:
 
 - Does the stated outcome match what the lesson actually develops?
 - Can the learner understand the central idea rather than only remember a summary?
+- Are important terms made usable before the lesson relies on them? When the lesson calls something important, powerful, or subtle, does it explain what makes it so?
 - Are the most useful examples accurate and inspectable?
 - Does the learner get worthwhile opportunities to think, act, and learn from feedback?
 - Would a visual, interaction, alternate explanation, or realistic application make the lesson meaningfully better?
