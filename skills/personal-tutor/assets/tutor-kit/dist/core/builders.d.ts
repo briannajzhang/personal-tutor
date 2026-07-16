@@ -134,6 +134,7 @@ interface CodingProblemInput extends BlockInput {
 interface QuizChoiceInput {
     id: string;
     body: string;
+    explanation?: string;
 }
 interface MultipleChoiceQuizQuestionInput extends BlockInput {
     kind: "multiple-choice";

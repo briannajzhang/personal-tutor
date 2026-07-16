@@ -154,6 +154,7 @@ export type SectionRole = "instruction" | "practice" | "review" | "assessment";
 export interface QuizChoice {
     id: string;
     body: string;
+    explanation?: string;
 }
 export interface MultipleChoiceQuizQuestion {
     kind: "multiple-choice";

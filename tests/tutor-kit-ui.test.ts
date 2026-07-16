@@ -50,6 +50,21 @@ test("client includes one copy of each shared highlight helper", () => {
   assert.doesNotMatch(script, /highlightAnchorForNode/);
 });
 
+test("client includes selected quiz choice feedback affordance", () => {
+  const page = html("Quiz Feedback Test");
+  const script = clientScriptWithoutLoad();
+
+  for (const pattern of [
+    /data-quiz-choice-feedback/,
+    /quiz-choice-feedback-label/,
+    /selectedChoice/,
+    /selectedFeedback/
+  ]) {
+    assert.match(script, pattern);
+  }
+  assert.match(page, /\.quiz-choice-feedback/);
+});
+
 test("math rendering preserves valid LaTeX commands and matrix row separators", () => {
   const calls: Array<{ source: string; options: { displayMode: boolean } }> = [];
   const sandbox: {

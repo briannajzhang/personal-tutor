@@ -302,10 +302,14 @@ function normalizeMatchingPair(input, label) {
     };
 }
 function normalizeQuizChoice(input) {
-    return {
+    const choice = {
         id: requireText(input.id, "quiz.questions[].choices[].id"),
         body: requireText(input.body, "quiz.questions[].choices[].body")
     };
+    if (input.explanation !== undefined) {
+        choice.explanation = requireText(input.explanation, "quiz.questions[].choices[].explanation");
+    }
+    return choice;
 }
 function requireGlossaryEntries(value, label) {
     if (!Array.isArray(value) || value.length === 0) {

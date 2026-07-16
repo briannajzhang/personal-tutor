@@ -325,6 +325,19 @@ export function learningBlocksCss() {
   font-size: inherit;
   line-height: inherit;
 }
+.quiz-choice-feedback {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-left: 3px solid color-mix(in srgb, #a33b2f 58%, var(--line));
+  background: color-mix(in srgb, #a33b2f 8%, var(--paper));
+  color: var(--ink-soft);
+}
+.quiz-choice-feedback-label {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 620;
+}
 .quiz-explanation {
   margin-top: 12px;
   padding: 12px 14px;

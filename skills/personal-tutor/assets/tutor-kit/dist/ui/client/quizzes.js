@@ -35,6 +35,7 @@ function renderQuizQuestion(block, question, index) {
           </label>
         \`).join("")}
       </div>
+      <div class="quiz-choice-feedback markdown" data-quiz-choice-feedback hidden></div>
       <div class="quiz-explanation markdown" data-quiz-explanation hidden>\${renderMarkdown(question.explanation)}</div>
     </fieldset>
   \`;
@@ -203,6 +204,18 @@ function applyChoiceFeedback(questionElement, question, selected) {
   questionElement.querySelectorAll("input").forEach((input) => {
     input.disabled = true;
   });
+  const choiceFeedback = questionElement.querySelector("[data-quiz-choice-feedback]");
+  const selectedChoice = question.choices.find((choice) => choice.id === selected);
+  const selectedFeedback = selected && selected !== question.answer ? selectedChoice?.explanation : undefined;
+  if (choiceFeedback) {
+    if (selectedFeedback) {
+      choiceFeedback.innerHTML = \`<div class="quiz-choice-feedback-label">Why that choice misses</div>\${renderMarkdown(selectedFeedback)}\`;
+      choiceFeedback.hidden = false;
+    } else {
+      choiceFeedback.innerHTML = "";
+      choiceFeedback.hidden = true;
+    }
+  }
   const explanation = questionElement.querySelector("[data-quiz-explanation]");
   if (explanation) explanation.hidden = false;
 }
@@ -332,6 +345,10 @@ function resetQuiz(state) {
   });
   element.querySelectorAll("[data-quiz-explanation]").forEach((explanation) => {
     explanation.hidden = true;
+  });
+  element.querySelectorAll("[data-quiz-choice-feedback]").forEach((feedback) => {
+    feedback.innerHTML = "";
+    feedback.hidden = true;
   });
   const score = element.querySelector("[data-quiz-score]");
   if (score) {

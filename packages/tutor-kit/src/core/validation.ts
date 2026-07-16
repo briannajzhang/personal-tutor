@@ -865,6 +865,7 @@ function validateQuiz(
         choiceIds.add(choice.id);
       }
       validateTextProp(choice.body, `${choicePath}.body`, file, issues);
+      if (choice.explanation !== undefined) validateTextProp(choice.explanation, `${choicePath}.explanation`, file, issues);
     });
 
     if (!hasText(question.answer)) {

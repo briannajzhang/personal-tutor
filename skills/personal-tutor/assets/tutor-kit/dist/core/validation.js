@@ -686,6 +686,8 @@ function validateQuiz(props, path, file, issues) {
                 choiceIds.add(choice.id);
             }
             validateTextProp(choice.body, `${choicePath}.body`, file, issues);
+            if (choice.explanation !== undefined)
+                validateTextProp(choice.explanation, `${choicePath}.explanation`, file, issues);
         });
         if (!hasText(question.answer)) {
             issues.push(issue("Quiz question answer is required.", `${questionPath}.answer`, file));
