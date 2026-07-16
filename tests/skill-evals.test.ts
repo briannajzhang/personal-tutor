@@ -94,11 +94,31 @@ const scenarios = [
       "Uses a transformation only for a representative status decision when the visible condition, server check, and response meaning are clearer together",
       "Keeps broader status coverage outside the transformation and connected to practice or retrieval"
     ]
+  },
+  {
+    id: "broad-llm-under-the-hood",
+    query: "Use $personal-tutor to teach me about how LLMs work under the hood. I am a SWE with minimal experience in LLMs aside from using them.",
+    expectedBehavior: [
+      "Asks at most one high-value bundled intake question if goal, depth, or practice style would materially change the first chapter, or records inferred defaults in course.md",
+      "Records a compact active-publication sketch with the central mechanism, terms that need clear introduction before repeated use, and what can wait",
+      "Defines recurring terms such as token, embedding, matrix, attention, context, or representation before relying on them",
+      "Separates the intuitive model from formulas or notation so the first chapter does not become a vocabulary dump"
+    ]
+  },
+  {
+    id: "scoped-llm-follow-up",
+    query: "Use $personal-tutor to add a follow-up chapter that explains tokens and embeddings more technically, with examples for a software engineer.",
+    expectedBehavior: [
+      "Continues the existing textbook rather than restarting the course",
+      "Deepens token and embedding concepts with concrete cases, notation only after plain-language meaning, and useful boundaries",
+      "Names what technical details can still wait instead of overloading the follow-up chapter",
+      "Adds learner action or practice that asks the learner to predict, distinguish, trace, or explain the terms"
+    ]
   }
 ];
 
 test("skill eval scenarios cover the refocused lesson-authoring workflows", () => {
-  assert.equal(scenarios.length, 8);
+  assert.equal(scenarios.length, 10);
   assert.deepEqual(scenarios.map((scenario) => scenario.id), [
     "seed-beginner-course",
     "continue-existing-textbook",
@@ -107,7 +127,9 @@ test("skill eval scenarios cover the refocused lesson-authoring workflows", () =
     "seed-course-from-sources",
     "visual-grounding-with-supportive-images",
     "transformation-widget-fit",
-    "http-status-block-choice"
+    "http-status-block-choice",
+    "broad-llm-under-the-hood",
+    "scoped-llm-follow-up"
   ]);
 
   for (const scenario of scenarios) {
@@ -121,12 +143,16 @@ test("default skill path stays compact while preserving the quality contract", (
   const skill = readFileSync(join(root, "SKILL.md"), "utf8");
   const quality = readFileSync(join(root, "references", "quality-core.md"), "utf8");
   const quickstart = readFileSync(join(root, "references", "authoring-quickstart.md"), "utf8");
+  const generation = readFileSync(join(root, "references", "lesson-generation.md"), "utf8");
   const defaultWords = `${skill}\n${quality}\n${quickstart}`.trim().split(/\s+/).length;
 
   assert.ok(defaultWords < 3500, `default instruction path should stay below 3500 words, found ${defaultWords}`);
   assert.match(skill, /normal path stops after the two required references/i);
   assert.match(skill, /Every built-in block and custom TypeScript remain available/i);
   assert.match(quality, /Teach the mechanism/i);
+  assert.match(quality, /Define important terms on first serious use/i);
+  assert.match(quality, /State what the idea changes, enables, prevents, or makes difficult/i);
+  assert.match(quality, /made usable before the lesson relies on them/i);
   assert.match(quality, /Make an example inspectable/i);
   assert.match(quality, /Invite learner action/i);
   assert.match(quality, /Give useful feedback/i);
@@ -136,4 +162,16 @@ test("default skill path stays compact while preserving the quality contract", (
   assert.match(quality, /Do not confuse richness with length or block count/i);
   assert.match(quickstart, /not a required chapter shape/i);
   assert.match(quickstart, /does not restrict the authoring API/i);
+  assert.match(generation, /Ask at most one intake question/i);
+  assert.match(generation, /broad new technical course/i);
+  assert.match(generation, /high-value bundled question/i);
+  assert.match(generation, /conceptual understanding, implementation and debugging, reading technical material, project-building/i);
+  assert.match(generation, /central mechanism, terms that need a clear introduction before repeated use, what can wait/i);
+  assert.match(generation, /keep it informal and short: central mechanism/i);
+  assert.match(generation, /Write a longer `chapter-specs\.md` entry only when/i);
+  assert.doesNotMatch(generation, /ask 3-5/i);
+  assert.doesNotMatch(generation, /required quizzes/i);
+  assert.doesNotMatch(generation, /required coding problems/i);
+  assert.doesNotMatch(generation, /required section counts/i);
+  assert.doesNotMatch(generation, /create `chapter-specs\.md` by default/i);
 });
