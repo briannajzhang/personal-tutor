@@ -93,10 +93,10 @@ export default chapter({
               id: "transfer",
               prompt: "Ask for a decision in a new case.",
               choices: [
-                { id: "a", body: "Plausible answer" },
-                { id: "b", body: "Plausible mistake" },
-                { id: "c", body: "Plausible mistake" },
-                { id: "d", body: "Plausible mistake" }
+                { id: "a", body: "Best answer for the stated conditions" },
+                { id: "b", body: "Plausible but incorrect answer" },
+                { id: "c", body: "Another plausible but incorrect answer" },
+                { id: "d", body: "Another plausible but incorrect answer" }
               ],
               answer: "a",
               explanation: "Explain the mechanism behind the answer.",

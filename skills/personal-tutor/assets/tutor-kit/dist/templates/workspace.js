@@ -161,9 +161,9 @@ export default chapter({
               prompt: "Which path pattern stores authored chapter source?",
               choices: [
                 { id: "a", body: "\`textbooks/<textbook>/chapters/*.chapter.ts\`" },
-                { id: "b", body: "\`tutor-data/events.jsonl\`" },
-                { id: "c", body: "\`node_modules/tutor-kit\`" },
-                { id: "d", body: "\`package-lock.json\`" }
+                { id: "b", body: "\`textbooks/<textbook>/textbook.ts\`", explanation: "The textbook file orders and describes chapters, but the chapter body lives in separate \`.chapter.ts\` files." },
+                { id: "c", body: "\`tutor-data/events.jsonl\`" },
+                { id: "d", body: "\`tutor.config.ts\`" }
               ],
               answer: "a",
               explanation: "Authored curriculum lives in chapter source files under \`textbooks/<textbook>/chapters/*.chapter.ts\`. Runtime history belongs in \`tutor-data/events.jsonl\`.",
@@ -175,10 +175,10 @@ export default chapter({
               id: "runtime-history-location",
               prompt: "What should \`tutor-data/events.jsonl\` represent?",
               choices: [
-                { id: "a", body: "The durable lesson source for a chapter" },
+                { id: "a", body: "The durable lesson source for a chapter", explanation: "Lesson source should stay in textbook and chapter TypeScript files so authors can review and compile it deliberately." },
                 { id: "b", body: "Runtime learner activity and event history" },
-                { id: "c", body: "The TypeScript compiler configuration" },
-                { id: "d", body: "The built Tutor Kit package files" }
+                { id: "c", body: "A summary file an author edits after each lesson" },
+                { id: "d", body: "A generated cache of the current chapter HTML" }
               ],
               answer: "b",
               explanation: "\`tutor-data/events.jsonl\` records runtime activity. Changing lesson content should happen in textbook and chapter source files instead.",
@@ -190,10 +190,10 @@ export default chapter({
               id: "compile-purpose",
               prompt: "Why should an author run \`tutor compile\` after editing lesson content?",
               choices: [
-                { id: "a", body: "To erase old learner event history" },
-                { id: "b", body: "To automatically write all chapter prose" },
+                { id: "a", body: "To refresh learner progress summaries before choosing the next chapter", explanation: "\`tutor progress\` summarizes learner activity. \`tutor compile\` checks whether the authored course structure is valid." },
+                { id: "b", body: "To verify that edited TypeScript source still imports and produces valid blocks" },
                 { id: "c", body: "To check imports, IDs, and block structure before the learner opens the UI" },
-                { id: "d", body: "To publish the textbook to a remote server" }
+                { id: "d", body: "To record the learner's latest quiz attempt" }
               ],
               answer: "c",
               explanation: "\`tutor compile\` catches structural and TypeScript problems early. It does not rewrite learner history or publish the course.",
@@ -206,9 +206,9 @@ export default chapter({
               prompt: "Why does Tutor Kit prefer semantic blocks like \`p\`, \`callout\`, \`quiz\`, and \`codingProblem\` instead of one giant Markdown string?",
               choices: [
                 { id: "a", body: "Semantic blocks make each teaching move explicit and easier to validate or render." },
-                { id: "b", body: "Markdown strings cannot contain code examples." },
-                { id: "c", body: "Semantic blocks prevent authors from writing prose." },
-                { id: "d", body: "The UI only supports one block per chapter." }
+                { id: "b", body: "Semantic blocks mainly make the source shorter for the author.", explanation: "Blocks can be concise, but their real value is preserving the role of each teaching move for rendering, validation, and review." },
+                { id: "c", body: "Semantic blocks are useful only for interactive or runnable material." },
+                { id: "d", body: "Semantic blocks let the UI infer the lesson plan without clear authoring choices." }
               ],
               answer: "a",
               explanation: "Semantic blocks preserve the teaching structure. The UI and validator can understand a paragraph, callout, quiz, or runnable coding task as different learning moves.",
