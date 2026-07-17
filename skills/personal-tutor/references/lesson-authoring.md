@@ -23,7 +23,7 @@ Aim to help the learner do something, not only read about something. Treat the f
 Depending on the subject and scope, consider:
 
 - a learner-facing goal or problem
-- plain definitions before important terms are used
+- clear term introductions when a term carries the explanation
 - explanation of the central mechanism
 - worked examples with inspectable input and result
 - local concept checks near major ideas, examples, traps, or boundary cases
@@ -62,16 +62,18 @@ Roles describe teaching purpose. They do not require every chapter to use the sa
 
 Teach the idea itself, not just its importance.
 
-For each substantial teaching unit, use these moves unless the topic calls for a different order:
+Apply the mechanism guidance from `quality-core.md`: make important terms usable before the lesson relies on them, and ground evaluative language in concrete reasons.
 
-1. Problem: what confusion, task, or failure motivates the idea?
-2. Definition: what does the key term mean in plain language?
-3. Mechanism: how does it work, or why is it true?
-4. Example: what concrete case makes the idea visible?
-5. Boundary: what mistake, misconception, or edge case should the learner watch for?
-6. Check: what should the learner now predict, explain, compare, debug, or apply?
+Useful teaching moves include:
 
-Do not lean on a technical term before defining it.
+- motivation: what confusion, task, or failure makes the idea worth learning
+- definition: what the key term means in plain language
+- mechanism: how the idea works, or why it is true
+- example: what concrete case makes the idea visible
+- boundary: what mistake, misconception, or edge case the learner should watch for
+- check: what the learner should now predict, explain, compare, debug, or apply
+
+Choose and order these moves based on what the topic and learner need. A short explanation may only need a definition and example; a difficult mechanism may need several cycles of example, boundary, and check.
 
 Weak:
 
@@ -85,7 +87,7 @@ Better:
 An index is a separate lookup structure. It can help a database find matching rows without scanning every row, but it adds maintenance work when data changes.
 ```
 
-Avoid sentences whose only job is to sound insightful. If a sentence says something is important, subtle, powerful, or confusing, revise it so it names the concrete reason.
+This pair is illustrative, not a required prose template. The better version works because it gives the learner the lookup benefit and the write-maintenance cost, not just an evaluative label.
 
 ## Worked Examples
 
