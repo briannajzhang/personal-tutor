@@ -50,22 +50,21 @@ If the user asks for a complete textbook or large batch, still publish increment
 
 ## Tailoring intake
 
-Run `tutor brief` first. Ask at most one intake question, and only when its answer will materially change lesson design, practice, difficulty, or sequencing. Infer the remaining profile from the request and record it briefly in `course.md`.
+Run `tutor brief` first. For a new course or first lesson, scope before drafting: a chapter tuned to the wrong background or goal wastes the learner's time no matter how well it is written. Ask a short bundled set of scoping questions — one message, never a one-at-a-time interview — covering whichever of these the request leaves unresolved:
+
+- What should you be able to do with this subject?
+- What background should the material assume — what do you already know or use?
+- Do you want practical fluency, conceptual depth, interview/exam prep, academic support, or project-building?
+- Which practice mix do you want: quizzes, written exercises, runnable/checkable tasks, projects, or a blend?
+- Should the pace feel gentle, normal, or intensive? Is there a time horizon to target?
+
+For a broad new technical course, goal and depth matter most. Example: "Should this optimize for conceptual understanding, implementation and debugging, reading technical material, project-building, or something else?"
+
+Skip intake only when the request already answers the questions, the user asks the agent to choose, or the user explicitly says not to ask. Never stall on unanswered questions: if no answer arrives or the session is non-interactive, record inferred defaults in `course.md` and proceed. Either way, record the resulting profile briefly in `course.md`.
 
 If sources are involved, inspect existing source artifacts before intake and ask only unresolved choices that affect generation.
 
-For a broad new technical course, ask one high-value bundled question only when missing information about the learner's goal, desired depth, or practice style would materially change the first chapter. Example: "Should this optimize for conceptual understanding, implementation and debugging, reading technical material, project-building, or something else?"
-
-When one question is needed for a new course, choose the highest value unresolved question from:
-
-- What should you be able to do with this subject?
-- What background should the material assume?
-- Do you want practical fluency, conceptual depth, interview/exam prep, academic support, or project-building?
-- Should the pace feel gentle, normal, or intensive?
-- Which practice mix do you want: quizzes, written exercises, runnable/checkable tasks, projects, or a blend?
-- Is there a time horizon or chapter size to target?
-
-For continuation, use `tutor progress --textbook <id>` first. Ask one question only when learner activity and existing course state do not resolve choices such as:
+For continuation, use `tutor progress --textbook <id>` first. Ask a question only when learner activity and existing course state do not resolve choices such as:
 
 - Should the next publication introduce new material, add practice, add review, or repair a weak chapter?
 - What felt too easy, too hard, or unclear in the existing material?
@@ -78,8 +77,6 @@ For focused quizzes/practice, ask only what is missing:
 - difficulty
 - number of questions/tasks
 - desired format and feedback style
-
-If the user provides enough context, asks the agent to choose, or explicitly says not to ask, infer the remaining defaults below and record them in `course.md`.
 
 ## Learner Defaults
 
