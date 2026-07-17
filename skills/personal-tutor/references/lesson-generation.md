@@ -17,6 +17,8 @@ Use this reference when creating a new Tutor Kit course/module, continuing an ex
 
 ## Default Output
 
+For new broad courses, resolve tailoring intake before applying the default output workflow below.
+
 The default deliverable is maintained Tutor Kit source, not a conversational explanation.
 
 For broad learning requests, publish a small verified slice now and leave the rest as a planned backlog:
@@ -50,11 +52,13 @@ If the user asks for a complete textbook or large batch, still publish increment
 
 ## Tailoring intake
 
-Run `tutor brief` first. Ask at most one intake question, and only when its answer will materially change lesson design, practice, difficulty, or sequencing. Infer the remaining profile from the request and record it briefly in `course.md`.
+Use `brief` when workspace state may clarify whether a request continues existing work, targets focused material, depends on existing sources, or already has a relevant course. For an unrelated new broad course, do not let `brief`, existing workspace state, or generic defaults silently determine the learner's intent.
 
-If sources are involved, inspect existing source artifacts before intake and ask only unresolved choices that affect generation.
+Ask at most one intake question, and only when its answer would materially change the course or initial publication. Infer the remaining profile from the request and record it briefly in `course.md`.
 
-For a broad new technical course, ask one high-value bundled question only when missing information about the learner's goal, desired depth, or practice style would materially change the first chapter. Example: "Should this optimize for conceptual understanding, implementation and debugging, reading technical material, project-building, or something else?"
+If sources are involved, inspect existing source artifacts before intake and ask only about unresolved choices that affect generation.
+
+When a broad new course names only a subject or leaves the learner's intended use unclear, treat learner intent as usually unresolved enough to ask one course-shaping question: a generic beginner path may be possible, but it can still produce the wrong first publication. Infer instead when the request already implies a useful direction, the learner asks the agent to choose, explicitly says not to ask, or the likely answer would not materially change the initial publication.
 
 When one question is needed for a new course, choose the highest value unresolved question from:
 
@@ -83,7 +87,7 @@ If the user provides enough context, asks the agent to choose, or explicitly say
 
 ## Learner Defaults
 
-After intake, infer any remaining profile fields instead of asking for every preference.
+After any needed intake, infer any remaining profile fields instead of asking for every preference.
 
 Minimum profile fields:
 
@@ -93,7 +97,7 @@ Minimum profile fields:
 - `pace`: gentle, normal, or intensive
 - `practiceIntensity`: light, medium, or heavy
 
-For broad prompts such as "Teach me SQL" or "I want to learn statistics", default to:
+After deciding inference is appropriate for a broad prompt such as "Teach me SQL" or "I want to learn statistics", default to:
 
 - beginner-friendly scaffolding
 - practical fluency

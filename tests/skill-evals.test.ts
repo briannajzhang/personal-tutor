@@ -99,7 +99,7 @@ const scenarios = [
     id: "broad-llm-under-the-hood",
     query: "Use $personal-tutor to teach me about how LLMs work under the hood. I am a SWE with minimal experience in LLMs aside from using them.",
     expectedBehavior: [
-      "Asks at most one high-value bundled intake question if goal, depth, or practice style would materially change the first chapter, or records inferred defaults in course.md",
+      "Asks at most one high-value bundled intake question if goal, depth, or practice style would materially change the initial publication or course direction, or records inferred defaults in course.md",
       "Records a compact active-publication sketch with the central mechanism, terms that need clear introduction before repeated use, and what can wait",
       "Defines recurring terms such as token, embedding, matrix, attention, context, or representation before relying on them",
       "Separates the intuitive model from formulas or notation so the first chapter does not become a vocabulary dump"
@@ -147,7 +147,21 @@ test("default skill path stays compact while preserving the quality contract", (
   const defaultWords = `${skill}\n${quality}\n${quickstart}`.trim().split(/\s+/).length;
 
   assert.ok(defaultWords < 3500, `default instruction path should stay below 3500 words, found ${defaultWords}`);
-  assert.match(skill, /normal path stops after the two required references/i);
+  assert.match(skill, /Create durable Tutor Kit material that helps a learner understand and use a subject/i);
+  assert.match(skill, /## Preflight/i);
+  assert.match(skill, /## Authoring workflow/i);
+  assert.match(skill, /normal authoring path stops after the references required for the current mode/i);
+  assert.match(skill, /For a clearly new broad course, read `references\/lesson-generation\.md` before running `brief`, reading teaching samples, planning, or authoring/i);
+  assert.match(skill, /ask one course-shaping question unless the learner asks the agent to choose or explicitly says not to ask/i);
+  assert.match(skill, /Do not treat unrelated workspace state or generic learner defaults as resolving that uncertainty/i);
+  assert.match(skill, /Begin this workflow after preflight and any needed intake or intentional inference/i);
+  assert.match(skill, /After any needed intake or intentional inference, do not respond to a broad learning request with only a roadmap/i);
+  assert.ok(skill.indexOf("## Preflight") < skill.indexOf("## Teaching voice: required"), "preflight should appear before teaching voice");
+  assert.ok(skill.indexOf("## Preflight") < skill.indexOf("### Required sample reading"), "preflight should appear before sample reading");
+  assert.match(skill, /Before drafting a substantial lesson, read at least one sample/i);
+  assert.doesNotMatch(skill, /Before tool use or authoring, decide whether/i);
+  assert.doesNotMatch(skill, /missing direction as usually material/i);
+  assert.doesNotMatch(skill, /usually ask one course-shaping question before authoring/i);
   assert.match(skill, /Every built-in block and custom TypeScript remain available/i);
   assert.match(quality, /Teach the mechanism/i);
   assert.match(quality, /Define important terms on first serious use/i);
@@ -162,13 +176,23 @@ test("default skill path stays compact while preserving the quality contract", (
   assert.match(quality, /Do not confuse richness with length or block count/i);
   assert.match(quickstart, /not a required chapter shape/i);
   assert.match(quickstart, /does not restrict the authoring API/i);
+  assert.match(generation, /Use `brief` when workspace state may clarify whether a request continues existing work/i);
+  assert.match(generation, /do not let `brief`, existing workspace state, or generic defaults silently determine the learner's intent/i);
+  assert.match(generation, /resolve tailoring intake before applying the default output workflow below/i);
   assert.match(generation, /Ask at most one intake question/i);
-  assert.match(generation, /broad new technical course/i);
-  assert.match(generation, /high-value bundled question/i);
-  assert.match(generation, /conceptual understanding, implementation and debugging, reading technical material, project-building/i);
+  assert.match(generation, /broad new course/i);
+  assert.match(generation, /course or initial publication/i);
+  assert.match(generation, /names only a subject or leaves the learner's intended use unclear/i);
+  assert.match(generation, /learner intent as usually unresolved enough to ask one course-shaping question/i);
+  assert.doesNotMatch(generation, /no stated goal, use case, relevant background, or desired emphasis/i);
+  assert.match(generation, /generic beginner path may be possible, but it can still produce the wrong first publication/i);
+  assert.match(generation, /After deciding inference is appropriate/i);
+  assert.match(generation, /When one question is needed for a new course, choose the highest value unresolved question/i);
+  assert.doesNotMatch(generation, /For example:/i);
   assert.match(generation, /central mechanism, terms that need a clear introduction before repeated use, what can wait/i);
   assert.match(generation, /keep it informal and short: central mechanism/i);
   assert.match(generation, /Write a longer `chapter-specs\.md` entry only when/i);
+  assert.doesNotMatch(generation, /Run `tutor brief` first/i);
   assert.doesNotMatch(generation, /ask 3-5/i);
   assert.doesNotMatch(generation, /required quizzes/i);
   assert.doesNotMatch(generation, /required coding problems/i);

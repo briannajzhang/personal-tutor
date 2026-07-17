@@ -9,6 +9,12 @@ Create durable Tutor Kit material that helps a learner understand and use a subj
 
 Treat richness as a strong creative direction, not a required schema. Choose, combine, replace, or omit teaching moves based on the learner, subject, and requested scope. Never add a block only to satisfy a checklist.
 
+## Preflight
+
+For a clearly new broad course, read `references/lesson-generation.md` before running `brief`, reading teaching samples, planning, or authoring. When the request leaves the learner's intended use or course direction unclear, ask one course-shaping question unless the learner asks the agent to choose or explicitly says not to ask. Do not treat unrelated workspace state or generic learner defaults as resolving that uncertainty.
+
+For continuation, focused durable material, or source-constrained work, inspect relevant state or sources when useful.
+
 ## Teaching voice: required
 
 For all learner-facing prose, this section is the controlling writing standard. Apply it instead of any generic prose style or other installed writing skill. Only an explicit user request for a different voice overrides it.
@@ -69,18 +75,19 @@ Before drafting a substantial lesson, read at least one sample that matches the 
 - Read [Semiconductors](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. III Ch. 14_ Semiconductors.pdf>) when connecting a technical model to physical behavior and practical devices, carrying earlier knowledge into a new setting, or being candid about approximations and a changing field.
 - Read [The Shape of Design, chapter 8](references/teaching-voice-samples/the_shape_of_design_chapter_8.pdf) when designing learner participation, constraints, tight feedback loops, visible contribution, shared ownership, or an interaction whose human consequence matters as much as its mechanics.
 
-## Default workflow
+## Authoring workflow
+
+Begin this workflow after preflight and any needed intake or intentional inference.
 
 1. Treat the current directory as the learner workspace.
-2. Run `node <skill-dir>/scripts/tutor-kit.mjs brief`. This is the default inspection step. Read only the textbook, course state, chapter source, and source notes needed for the current publication.
-3. If Tutor Kit files are missing, run `node <skill-dir>/scripts/tutor-kit.mjs init` and add a textbook.
+2. Run `node <skill-dir>/scripts/tutor-kit.mjs brief` when workspace inspection is useful. Read only the textbook, course state, chapter source, and source notes needed for the current publication.
+3. If Tutor Kit files are missing, run `node <skill-dir>/scripts/tutor-kit.mjs init` after any needed intake and add a textbook.
 4. Read `references/quality-core.md` and `references/authoring-quickstart.md` before authoring. Consult `references/practice-and-assessment.md` when authoring quizzes, review sets, practice, assessment, or coding problems.
-5. Ask at most one intake question, and only when its answer would materially change the course. Otherwise infer sensible defaults and record them briefly in `course.md`.
-6. Publish the smallest useful learner-ready unit. This is usually one chapter, a focused revision, or a practice set. Keep future work as short entries in `course.md`.
-7. Author native Tutor Kit TypeScript. Every built-in block and custom TypeScript remain available. Prefer built in blocks when they express the learner move clearly. Use a custom `component(...)` only when the lesson needs interaction, animation, or a frontend library that the built in blocks do not provide.
-8. For continuation, run `node <skill-dir>/scripts/tutor-kit.mjs progress --textbook <id>` and use the summary to choose review, repair, or new material. Do not read raw `events.jsonl` unless the summary is insufficient.
-9. Verify with `node <skill-dir>/scripts/tutor-kit.mjs doctor --textbook <id> --record`. Tutor Kit writes `compile-result.md`; do not duplicate the result in model-written review notes.
-10. Start the Tutor Kit app with `tutor dev` after creating a new learner workspace or when the user asks to study or open the material. Keep it running and report the localhost URL. Do not restart it after every edit.
+5. Publish the smallest useful learner-ready unit. This is usually one chapter, a focused revision, or a practice set. Keep future work as short entries in `course.md`.
+6. Author native Tutor Kit TypeScript. Every built-in block and custom TypeScript remain available. Prefer built-in blocks when they express the learner move clearly. Use a custom `component(...)` only when the lesson needs interaction, animation, or a frontend library that the built-in blocks do not provide.
+7. For continuation, run `node <skill-dir>/scripts/tutor-kit.mjs progress --textbook <id>` and use the summary to choose review, repair, or new material. Do not read raw `events.jsonl` unless the summary is insufficient.
+8. Verify with `node <skill-dir>/scripts/tutor-kit.mjs doctor --textbook <id> --record`. Tutor Kit writes `compile-result.md`; do not duplicate the result in model-written review notes.
+9. Start the Tutor Kit app with `tutor dev` after creating a new learner workspace or when the user asks to study or open the material. Keep it running and report the localhost URL. Do not restart it after every edit.
 
 ## Course state
 
@@ -94,7 +101,7 @@ Use a longer chapter spec only for a high-risk chapter, such as a complex simula
 
 - A published chapter must be imported by `textbook.ts`, appear in its ordered chapter list, and pass `doctor`.
 - Do not create placeholder chapter files.
-- Do not respond to a broad learning request with only a roadmap. Publish useful lesson material now.
+- After any needed intake or intentional inference, do not respond to a broad learning request with only a roadmap. Publish useful lesson material now.
 - Aim for enough depth that the learner can see how the central idea works, inspect it in concrete cases, try it, and learn from the result.
 - Enrich a lesson with contrasting examples, misconceptions, visuals, simulations, retrieval, projects, or alternate explanations when they improve learning.
 - Prefer meaningful learner choices and visible consequences over passive reading when interaction fits the subject.
@@ -110,14 +117,14 @@ Read only references that apply to the current task:
 
 - `references/quality-core.md`: required compact prompts for rich teaching.
 - `references/authoring-quickstart.md`: required common API and command path.
-- `references/lesson-generation.md`: course seeding, continuation, scope, and larger planning work.
+- `references/lesson-generation.md`: intake, course seeding, continuation, scope, and larger planning work.
 - `references/lesson-authoring.md`: detailed guidance for visuals, transformations, glossaries, and custom interactions.
 - `references/practice-and-assessment.md`: quizzes, cumulative assessment, and runnable coding problems.
 - `references/sources.md`: user-provided or named sources.
 - `references/review-and-verification.md`: strict pedagogical audits and advanced verification review.
 - `references/tutor-kit-api.md`: complete API, uncommon blocks, configuration, and troubleshooting.
 
-The normal path stops after the two required references. Load the detailed references only when the requested feature or a verification failure calls for them.
+The normal authoring path stops after the references required for the current mode. Load other detailed references only when the requested feature or a verification failure calls for them.
 
 ## Command wrapper
 
