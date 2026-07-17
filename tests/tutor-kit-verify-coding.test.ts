@@ -20,36 +20,35 @@ test("coding problem verification requires starter failure and reference success
   assert.match(result.output, /starter failed as expected; reference solution passed/);
 });
 
-test("coding problem verification rejects an unexpectedly passing starter", async () => {
-  const dir = verifiedWorkspace({ starter: "def add_one(x):\n    return x + 1\n" });
-  const result = await verifyCodingProblems(dir);
+test("coding problem verification reports meaningful failure modes", async () => {
+  const cases = [
+    {
+      name: "passing starter",
+      options: { starter: "def add_one(x):\n    return x + 1\n" },
+      expected: /starter unexpectedly passed/
+    },
+    {
+      name: "failing reference",
+      options: { solution: "def add_one(x):\n    return x\n" },
+      expected: /reference solution failed/
+    },
+    {
+      name: "setup failure",
+      options: { setup: "$PYTHON -c \"raise SystemExit('missing dependency')\"" },
+      expected: /starter setup\/runtime failed/
+    },
+    {
+      name: "missing metadata",
+      options: { includeVerification: false },
+      expected: /should define verification metadata/
+    }
+  ];
 
-  assert.equal(result.ok, false);
-  assert.match(result.output, /starter unexpectedly passed/);
-});
-
-test("coding problem verification rejects a failing reference solution", async () => {
-  const dir = verifiedWorkspace({ solution: "def add_one(x):\n    return x\n" });
-  const result = await verifyCodingProblems(dir);
-
-  assert.equal(result.ok, false);
-  assert.match(result.output, /reference solution failed/);
-});
-
-test("coding problem verification distinguishes setup failures", async () => {
-  const dir = verifiedWorkspace({ setup: "$PYTHON -c \"raise SystemExit('missing dependency')\"" });
-  const result = await verifyCodingProblems(dir);
-
-  assert.equal(result.ok, false);
-  assert.match(result.output, /starter setup\/runtime failed/);
-});
-
-test("coding problem verification fails when metadata is missing", async () => {
-  const dir = verifiedWorkspace({ includeVerification: false });
-  const result = await verifyCodingProblems(dir);
-
-  assert.equal(result.ok, false);
-  assert.match(result.output, /should define verification metadata/);
+  for (const entry of cases) {
+    const result = await verifyCodingProblems(verifiedWorkspace(entry.options));
+    assert.equal(result.ok, false, entry.name);
+    assert.match(result.output, entry.expected, entry.name);
+  }
 });
 
 test("CLI verifies full workspaces and supports targeted textbooks", () => {

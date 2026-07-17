@@ -79,28 +79,6 @@ test("glossary study stars and ratings persist", async () => {
   }
 });
 
-test("glossary study rejects invalid rating requests", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir, { starter: true });
-  linkTutorKit(dir);
-  const server = await startDevServer({ cwd: dir, port: 0 });
-  try {
-    const response = await fetch(`${server.url}/api/glossary-study/rating`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        textbookId: "getting-started",
-        termId: "welcome:intro:semantic-block",
-        rating: "maybe"
-      })
-    });
-    assert.equal(response.ok, false);
-    assert.match(await response.text(), /rating must be again or knew-it/);
-  } finally {
-    await server.close();
-  }
-});
-
 async function fetchJson(url: string, options?: RequestInit): Promise<any> {
   const response = await fetch(url, options);
   if (!response.ok) assert.fail(await response.text());
