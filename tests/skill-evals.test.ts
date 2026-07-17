@@ -9,9 +9,12 @@ const scenarios = [
     query: "Use $personal-tutor to teach me SQL from scratch.",
     expectedBehavior: [
       "Uses tutor brief to inspect or initializes a Tutor Kit workspace",
+      "Asks bundled scoping questions about goal, background, and preferences before publishing, without stalling if no answer arrives",
       "Creates one SQL textbook if none fits",
       "Keeps learner context, course map, and active publication state in one compact course file",
       "Publishes 1-2 rich learner-ready chapters using examples, practice, feedback, visuals, or interaction when they improve learning",
+      "Reads Atoms in Motion before drafting the first chapter",
+      "Opens with plain-language orientation and a generative example, not a glossary, notation dump, or assessment",
       "Leaves future chapters as planned backlog rather than placeholder chapter files",
       "Lets doctor --record write verification evidence"
     ]
@@ -99,10 +102,12 @@ const scenarios = [
     id: "broad-llm-under-the-hood",
     query: "Use $personal-tutor to teach me about how LLMs work under the hood. I am a SWE with minimal experience in LLMs aside from using them.",
     expectedBehavior: [
-      "Asks at most one high-value bundled intake question if goal, depth, or practice style would materially change the first chapter, or records inferred defaults in course.md",
+      "Asks one bundled set of scoping questions covering goal, background, and practice style before drafting, or records inferred defaults in course.md when the request already answers them",
       "Records a compact active-publication sketch with the central mechanism, terms that need clear introduction before repeated use, and what can wait",
       "Defines recurring terms such as token, embedding, matrix, attention, context, or representation before relying on them",
-      "Separates the intuitive model from formulas or notation so the first chapter does not become a vocabulary dump"
+      "Separates the intuitive model from formulas or notation so the first chapter does not become a vocabulary dump",
+      "Asks the learner for at least one prediction before revealing a consequence",
+      "First chapter's shape fits the subject rather than a generic survey template"
     ]
   },
   {
@@ -145,10 +150,30 @@ test("default skill path stays compact while preserving the quality contract", (
   const quickstart = readFileSync(join(root, "references", "authoring-quickstart.md"), "utf8");
   const generation = readFileSync(join(root, "references", "lesson-generation.md"), "utf8");
   const defaultWords = `${skill}\n${quality}\n${quickstart}`.trim().split(/\s+/).length;
+  const skillWords = skill.trim().split(/\s+/).length;
 
-  assert.ok(defaultWords < 3500, `default instruction path should stay below 3500 words, found ${defaultWords}`);
+  assert.ok(defaultWords < 2800, `default instruction path should stay below 2800 words, found ${defaultWords}`);
+  assert.ok(skillWords < 1100, `SKILL.md should stay below 1100 words so additions land in references, found ${skillWords}`);
   assert.match(skill, /normal path stops after the two required references/i);
   assert.match(skill, /Every built-in block and custom TypeScript remain available/i);
+  assert.match(skill, /information dump/i);
+  assert.match(skill, /generic statement/i);
+  assert.match(skill, /Introduce every term in plain language before the lesson leans on it/i);
+  assert.match(skill, /Scope before drafting/i);
+  assert.match(skill, /goals to reason from, not a checklist/i);
+  assert.match(skill, /Let the subject choose the shape/i);
+  assert.match(quality, /The difference in practice/i);
+  assert.match(quality, /Do not open a course with a glossary/i);
+  assert.equal(
+    (`${skill}\n${quality}`.match(/mandatory/gi) ?? []).length,
+    1,
+    "the Atoms in Motion reading mandate should have exactly one home"
+  );
+  assert.doesNotMatch(
+    skill,
+    /reduced-motion|reset path/i,
+    "interaction mechanics belong only in quality-core.md"
+  );
   assert.match(quality, /Teach the mechanism/i);
   assert.match(quality, /Define important terms on first serious use/i);
   assert.match(quality, /State what the idea changes, enables, prevents, or makes difficult/i);
@@ -162,9 +187,10 @@ test("default skill path stays compact while preserving the quality contract", (
   assert.match(quality, /Do not confuse richness with length or block count/i);
   assert.match(quickstart, /not a required chapter shape/i);
   assert.match(quickstart, /does not restrict the authoring API/i);
-  assert.match(generation, /Ask at most one intake question/i);
+  assert.match(generation, /bundled set of scoping questions/i);
+  assert.match(generation, /one message, never a one-at-a-time interview/i);
+  assert.match(generation, /Never stall on unanswered questions/i);
   assert.match(generation, /broad new technical course/i);
-  assert.match(generation, /high-value bundled question/i);
   assert.match(generation, /conceptual understanding, implementation and debugging, reading technical material, project-building/i);
   assert.match(generation, /central mechanism, terms that need a clear introduction before repeated use, what can wait/i);
   assert.match(generation, /keep it informal and short: central mechanism/i);
