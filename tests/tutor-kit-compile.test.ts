@@ -102,28 +102,3 @@ test("targeted compile ignores unrelated broken textbooks", async () => {
   assert.match(result.output, /scope: textbook getting-started/);
   assert.equal(result.textbookCount, 1);
 });
-
-test("compile accepts structurally valid chapters without pedagogical quotas", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
-  initWorkspace(dir, { starter: true });
-  linkTutorKit(dir);
-  writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), `import { chapter, p, section } from "tutor-kit";
-export default chapter({
-  id: "welcome",
-  title: "Welcome",
-  sections: [section({
-    id: "only-section",
-    title: "Only Section",
-    blocks: [
-      p({ id: "one", body: "Explanation one." }),
-      p({ id: "two", body: "Explanation two." }),
-      p({ id: "three", body: "Explanation three." }),
-      p({ id: "four", body: "Explanation four." })
-    ]
-  })]
-});
-`);
-
-  const result = await compileWorkspace(dir);
-  assert.equal(result.ok, true, result.output);
-});

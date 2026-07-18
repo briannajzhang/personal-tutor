@@ -83,8 +83,6 @@ For focused quizzes/practice, ask only what is missing:
 - number of questions/tasks
 - desired format and feedback style
 
-If the user provides enough context, asks the agent to choose, or explicitly says not to ask, infer the remaining defaults below and record them in `course.md`.
-
 ## Learner Defaults
 
 After any needed intake, infer any remaining profile fields instead of asking for every preference.
