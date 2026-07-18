@@ -17,6 +17,8 @@ Use this reference when creating a new Tutor Kit course/module, continuing an ex
 
 ## Default Output
 
+For new broad courses, resolve tailoring intake before applying the default output workflow below.
+
 The default deliverable is maintained Tutor Kit source, not a conversational explanation.
 
 For broad learning requests, publish a small verified slice now and leave the rest as a planned backlog:
@@ -50,21 +52,24 @@ If the user asks for a complete textbook or large batch, still publish increment
 
 ## Tailoring intake
 
-Run `tutor brief` first. For a new course or first lesson, scope before drafting: a chapter tuned to the wrong background or goal wastes the learner's time no matter how well it is written. Ask a short bundled set of scoping questions — one message, never a one-at-a-time interview — covering whichever of these the request leaves unresolved:
+Use `brief` when workspace state may clarify whether a request continues existing work, targets focused material, depends on existing sources, or already has a relevant course. For an unrelated new broad course, do not let `brief`, existing workspace state, or generic defaults silently determine the learner's intent.
+
+Ask at most one intake question, and only when its answer would materially change the course or initial publication. Infer the remaining profile from the request and record it briefly in `course.md`.
+
+If sources are involved, inspect existing source artifacts before intake and ask only about unresolved choices that affect generation.
+
+When a broad new course names only a subject or leaves the learner's intended use unclear, treat learner intent as usually unresolved enough to ask one course-shaping question: a generic beginner path may be possible, but it can still produce the wrong first publication. Infer instead when the request already implies a useful direction, the learner asks the agent to choose, explicitly says not to ask, or the likely answer would not materially change the initial publication.
+
+When one question is needed for a new course, choose the highest value unresolved question from:
 
 - What should you be able to do with this subject?
-- What background should the material assume — what do you already know or use?
+- What background should the material assume?
 - Do you want practical fluency, conceptual depth, interview/exam prep, academic support, or project-building?
+- Should the pace feel gentle, normal, or intensive?
 - Which practice mix do you want: quizzes, written exercises, runnable/checkable tasks, projects, or a blend?
-- Should the pace feel gentle, normal, or intensive? Is there a time horizon to target?
+- Is there a time horizon or chapter size to target?
 
-For a broad new technical course, goal and depth matter most. Example: "Should this optimize for conceptual understanding, implementation and debugging, reading technical material, project-building, or something else?"
-
-Skip intake only when the request already answers the questions, the user asks the agent to choose, or the user explicitly says not to ask. Never stall on unanswered questions: if no answer arrives or the session is non-interactive, record inferred defaults in `course.md` and proceed. Either way, record the resulting profile briefly in `course.md`.
-
-If sources are involved, inspect existing source artifacts before intake and ask only unresolved choices that affect generation.
-
-For continuation, use `tutor progress --textbook <id>` first. Ask a question only when learner activity and existing course state do not resolve choices such as:
+For continuation, use `tutor progress --textbook <id>` first. Ask one question only when learner activity and existing course state do not resolve choices such as:
 
 - Should the next publication introduce new material, add practice, add review, or repair a weak chapter?
 - What felt too easy, too hard, or unclear in the existing material?
@@ -80,7 +85,7 @@ For focused quizzes/practice, ask only what is missing:
 
 ## Learner Defaults
 
-After intake, infer any remaining profile fields instead of asking for every preference.
+After any needed intake, infer any remaining profile fields instead of asking for every preference.
 
 Minimum profile fields:
 
@@ -90,7 +95,7 @@ Minimum profile fields:
 - `pace`: gentle, normal, or intensive
 - `practiceIntensity`: light, medium, or heavy
 
-For broad prompts such as "Teach me SQL" or "I want to learn statistics", default to:
+After deciding inference is appropriate for a broad prompt such as "Teach me SQL" or "I want to learn statistics", default to:
 
 - beginner-friendly scaffolding
 - practical fluency
