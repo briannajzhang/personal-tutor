@@ -54,17 +54,21 @@ export function learningBlocksCss() {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .transformation.layout-flow .transformation-stages,
-.transformation.layout-auto.auto-flow .transformation-stages {
+.transformation.layout-auto.auto-flow .transformation-stages,
+.transformation.layout-compare.auto-flow .transformation-stages {
   grid-template-columns: 1fr;
 }
-.transformation.layout-auto.auto-hybrid .transformation-stages {
+.transformation.layout-auto.auto-hybrid .transformation-stages,
+.transformation.layout-compare.auto-hybrid .transformation-stages {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.transformation.layout-auto.auto-hybrid .transformation-stage-operation {
+.transformation.layout-auto.auto-hybrid .transformation-stage-operation,
+.transformation.layout-compare.auto-hybrid .transformation-stage-operation {
   grid-column: 1 / -1;
   grid-row: 2;
 }
-.transformation.layout-auto.auto-hybrid .transformation-stage-output {
+.transformation.layout-auto.auto-hybrid .transformation-stage-output,
+.transformation.layout-compare.auto-hybrid .transformation-stage-output {
   grid-column: 2;
   grid-row: 1;
 }
@@ -77,20 +81,26 @@ export function learningBlocksCss() {
   border-right: 0;
 }
 .transformation.layout-flow .transformation-stage,
-.transformation.layout-auto.auto-flow .transformation-stage {
+.transformation.layout-auto.auto-flow .transformation-stage,
+.transformation.layout-compare.auto-flow .transformation-stage {
   border-right: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
 }
 .transformation.layout-flow .transformation-stage:last-child,
-.transformation.layout-auto.auto-flow .transformation-stage:last-child {
+.transformation.layout-auto.auto-flow .transformation-stage:last-child,
+.transformation.layout-compare.auto-flow .transformation-stage:last-child {
   border-bottom: 0;
 }
 .transformation.layout-auto.auto-hybrid .transformation-stage-input,
-.transformation.layout-auto.auto-hybrid .transformation-stage-output {
+.transformation.layout-auto.auto-hybrid .transformation-stage-output,
+.transformation.layout-compare.auto-hybrid .transformation-stage-input,
+.transformation.layout-compare.auto-hybrid .transformation-stage-output {
   border-bottom: 1px solid color-mix(in srgb, var(--line) 42%, transparent);
 }
 .transformation.layout-auto.auto-hybrid .transformation-stage-output,
-.transformation.layout-auto.auto-hybrid .transformation-stage-operation {
+.transformation.layout-auto.auto-hybrid .transformation-stage-operation,
+.transformation.layout-compare.auto-hybrid .transformation-stage-output,
+.transformation.layout-compare.auto-hybrid .transformation-stage-operation {
   border-right: 0;
 }
 .transformation-stage-label,
@@ -137,6 +147,13 @@ export function learningBlocksCss() {
   padding: 8px 10px;
   border: 1px solid color-mix(in srgb, var(--line) 58%, transparent);
   text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: normal;
+}
+.measuring-transformation-layout .transformation-table th,
+.measuring-transformation-layout .transformation-table td {
+  overflow-wrap: normal;
   white-space: nowrap;
 }
 .transformation-table th {

@@ -58,17 +58,32 @@ function scheduleTransformationLayouts() {
 }
 
 function updateTransformationLayouts() {
-  document.querySelectorAll('[data-transformation-layout="auto"]').forEach((element) => {
-    element.classList.remove("auto-flow", "auto-hybrid");
-    const inputOverflow = transformationStageOverflows(element, "input");
-    const operationOverflow = transformationStageOverflows(element, "operation");
-    const outputOverflow = transformationStageOverflows(element, "output");
-    if (inputOverflow || outputOverflow) {
-      element.classList.add("auto-flow");
-    } else if (operationOverflow) {
-      element.classList.add("auto-hybrid");
-    }
-  });
+  const transformations = document.querySelectorAll('[data-transformation-layout="auto"], [data-transformation-layout="compare"]');
+  document.documentElement.classList.add("measuring-transformation-layout");
+  try {
+    transformations.forEach((element) => {
+      element.classList.remove("auto-flow", "auto-hybrid");
+      element.removeAttribute("data-transformation-measured");
+      element.removeAttribute("data-transformation-resolved-layout");
+    });
+    transformations.forEach((element) => {
+      const inputOverflow = transformationStageOverflows(element, "input");
+      const operationOverflow = transformationStageOverflows(element, "operation");
+      const outputOverflow = transformationStageOverflows(element, "output");
+      let resolvedLayout = "columns";
+      if (inputOverflow || outputOverflow) {
+        element.classList.add("auto-flow");
+        resolvedLayout = "flow";
+      } else if (operationOverflow) {
+        element.classList.add("auto-hybrid");
+        resolvedLayout = "hybrid";
+      }
+      element.dataset.transformationMeasured = "true";
+      element.dataset.transformationResolvedLayout = resolvedLayout;
+    });
+  } finally {
+    document.documentElement.classList.remove("measuring-transformation-layout");
+  }
 }
 
 function transformationStageOverflows(element, stage) {
