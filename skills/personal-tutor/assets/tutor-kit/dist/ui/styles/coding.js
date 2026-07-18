@@ -448,11 +448,14 @@ body.route-loading {
     text-align: left;
   }
   .transformation-stages,
-  .transformation.layout-auto.auto-hybrid .transformation-stages {
+  .transformation.layout-auto.auto-hybrid .transformation-stages,
+  .transformation.layout-compare.auto-hybrid .transformation-stages {
     grid-template-columns: 1fr;
   }
   .transformation.layout-auto.auto-hybrid .transformation-stage-operation,
-  .transformation.layout-auto.auto-hybrid .transformation-stage-output {
+  .transformation.layout-auto.auto-hybrid .transformation-stage-output,
+  .transformation.layout-compare.auto-hybrid .transformation-stage-operation,
+  .transformation.layout-compare.auto-hybrid .transformation-stage-output {
     grid-column: auto;
     grid-row: auto;
   }
