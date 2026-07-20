@@ -12,7 +12,7 @@ async function renderChapter(textbookId, chapterId) {
   activeChapterHighlights = highlightState.highlights;
   const renderContext = { textbookId, chapter, glossaryStudyState };
   document.querySelector("#main").innerHTML = \`
-    <section>
+    <section class="chapter-layout">
       \${renderCrumbs([
         { label: document.title, action: "home" },
         { label: chapter.textbookTitle, action: "textbook", textbookId },
@@ -22,31 +22,29 @@ async function renderChapter(textbookId, chapterId) {
         <h1>\${escapeHtml(chapter.title)}</h1>
         <div class="meta">\${chapter.sectionCount} sections / \${chapter.subsectionCount} subsections</div>
       </div>
-      <div class="chapter-layout">
-        <aside class="chapter-index" aria-label="Chapter sections">
-          <details data-chapter-tools open>
-            <summary class="chapter-tools-summary">
-              <span>Chapter tools</span>
-              <span class="chapter-tools-summary-meta">Contents and highlights</span>
-            </summary>
-            <div class="chapter-tools-body">
-              <div class="index-label">Contents</div>
-              <div class="index-list">
-                \${chapter.sections.map((section) => \`
-                  <a class="index-link" href="#\${escapeAttr(anchorId(section.id))}">\${escapeHtml(section.title)}</a>
-                  \${section.subsections.map((subsection) => \`
-                    <a class="index-link subsection" href="#\${escapeAttr(anchorId(subsection.id))}">\${escapeHtml(subsection.title)}</a>
-                  \`).join("")}
-              \`).join("")}
-              </div>
-              <div class="chapter-highlights" data-highlight-list hidden></div>
+      <aside class="chapter-index" aria-label="Chapter sections">
+        <details data-chapter-tools open>
+          <summary class="chapter-tools-summary">
+            <span>Chapter tools</span>
+            <span class="chapter-tools-summary-meta">Contents and highlights</span>
+          </summary>
+          <div class="chapter-tools-body">
+            <div class="index-label">Contents</div>
+            <div class="index-list">
+              \${chapter.sections.map((section) => \`
+                <a class="index-link" href="#\${escapeAttr(anchorId(section.id))}">\${escapeHtml(section.title)}</a>
+                \${section.subsections.map((subsection) => \`
+                  <a class="index-link subsection" href="#\${escapeAttr(anchorId(subsection.id))}">\${escapeHtml(subsection.title)}</a>
+                \`).join("")}
+            \`).join("")}
             </div>
-          </details>
-        </aside>
-        <div class="chapter-content">
-          \${chapter.sections.map((section) => renderSection(section, renderContext)).join("")}
-          \${renderChapterNavigation(chapter)}
-        </div>
+            <div class="chapter-highlights" data-highlight-list hidden></div>
+          </div>
+        </details>
+      </aside>
+      <div class="chapter-content">
+        \${chapter.sections.map((section) => renderSection(section, renderContext)).join("")}
+        \${renderChapterNavigation(chapter)}
       </div>
     </section>
   \`;

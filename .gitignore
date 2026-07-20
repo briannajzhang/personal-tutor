@@ -5,3 +5,4 @@ packages/*/dist/
 .idea/
 test-results/
 playwright-report/
+Claude.md

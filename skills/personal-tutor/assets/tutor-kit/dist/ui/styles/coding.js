@@ -393,10 +393,15 @@ body.route-loading {
   }
   .chapter-layout {
     grid-template-columns: 1fr;
-    gap: 36px;
+    grid-template-areas:
+      "crumbs"
+      "head"
+      "sidebar"
+      "content";
   }
   .chapter-index {
     position: static;
+    margin-bottom: 36px;
     border-bottom: 1px solid var(--line);
     padding-top: 0;
   }

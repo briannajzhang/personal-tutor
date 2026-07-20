@@ -202,16 +202,31 @@ h1 {
 .chapter-layout {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);
-  gap: 82px;
+  grid-template-areas:
+    "sidebar crumbs"
+    "sidebar head"
+    "sidebar content";
+  column-gap: 82px;
   align-items: start;
 }
+.chapter-layout > .crumbs {
+  grid-area: crumbs;
+}
+.chapter-layout > .page-head {
+  grid-area: head;
+}
 .chapter-index {
+  grid-area: sidebar;
   position: sticky;
   top: 48px;
-  max-height: calc(100vh - 96px);
-  overflow-y: auto;
   border-top: 1px solid var(--line);
   padding-top: 18px;
+}
+@media (min-width: 861px) {
+  .chapter-index {
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
 }
 .chapter-tools-summary {
   display: none;
@@ -357,6 +372,7 @@ h1 {
   color: var(--muted-2);
 }
 .chapter-content {
+  grid-area: content;
   min-width: 0;
 }
 .chapter-navigation {
