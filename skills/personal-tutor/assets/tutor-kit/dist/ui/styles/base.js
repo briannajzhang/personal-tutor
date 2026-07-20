@@ -67,7 +67,7 @@ main {
 h1 {
   margin: 0;
   color: var(--ink);
-  font-size: 30px;
+  font-size: 35px;
   font-weight: 560;
   letter-spacing: 0;
   line-height: 1.16;
@@ -214,6 +214,11 @@ h1 {
 }
 .chapter-layout > .page-head {
   grid-area: head;
+}
+@media (min-width: 861px) {
+  .chapter-layout > .crumbs {
+    margin-bottom: 21px;
+  }
 }
 .chapter-index {
   grid-area: sidebar;
