@@ -107,7 +107,7 @@ async function findCodingProblem(cwd, body) {
     const textbookId = requireString(body.textbookId, "textbookId");
     const chapterId = requireString(body.chapterId, "chapterId");
     const blockId = requireString(body.blockId, "blockId");
-    const loaded = await loadTextbooks(cwd);
+    const loaded = await loadTextbooks(cwd, { textbookId });
     if (loaded.issues.length > 0) {
         throw new Error(`Cannot load textbooks: ${JSON.stringify(loaded.issues)}`);
     }

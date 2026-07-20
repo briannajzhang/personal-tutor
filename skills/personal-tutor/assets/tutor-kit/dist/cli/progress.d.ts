@@ -1,3 +1,4 @@
+import { type ReadingProgressSummary } from "../server/reading-progress.js";
 interface ProgressOptions {
     textbookId?: string;
 }
@@ -34,6 +35,9 @@ export interface ProgressSummary {
         count: number;
     }>;
     openHighlights: number;
+    reading: Array<ReadingProgressSummary & {
+        textbookId: string;
+    }>;
     nextMove: string;
 }
 export declare function summarizeProgress(cwd: string, options?: ProgressOptions): Promise<ProgressSummary>;

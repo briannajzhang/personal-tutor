@@ -8,6 +8,7 @@ import { addBlock, addChapter, addTextbook, blockKinds, initWorkspace, printWrit
 import { createWorkspaceBrief, formatWorkspaceBrief } from "./brief.js";
 import { formatProgress, summarizeProgress } from "./progress.js";
 import { recordDoctorEvidence } from "./evidence.js";
+import { beginTextbook, publishTextbook } from "./publication.js";
 async function main() {
     const args = parseArgs(process.argv.slice(2));
     const [command, subcommand, ...rest] = args.command;
@@ -28,6 +29,31 @@ async function main() {
             throw new Error("Usage: tutor add textbook <id> [title]");
         const title = rest.slice(1).join(" ") || titleFromId(id);
         console.log(printWriteResult(`Added textbook ${id}`, addTextbook(args.cwd, id, title)));
+        return;
+    }
+    if (command === "begin") {
+        const id = subcommand;
+        if (!id)
+            throw new Error("Usage: tutor begin <textbook-id> [title]");
+        const title = rest.join(" ") || titleFromId(id);
+        const result = await beginTextbook(args.cwd, id, title);
+        console.log(result.resumed ? `Resuming textbook ${id}` : `Started textbook ${id}`);
+        console.log(`Work area: ${result.workDir}`);
+        return;
+    }
+    if (command === "publish") {
+        const id = subcommand;
+        if (!id)
+            throw new Error("Usage: tutor publish <textbook-id>");
+        const result = await publishTextbook(args.cwd, id);
+        console.log(result.compileOutput);
+        console.log("");
+        console.log(result.verificationOutput);
+        console.log("");
+        console.log(`Published textbook ${id}`);
+        console.log(`Published source: ${result.publishedDir}`);
+        if (result.archivedDir)
+            console.log(`Archived previous source: ${result.archivedDir}`);
         return;
     }
     if (command === "add" && subcommand === "chapter") {
@@ -65,7 +91,9 @@ async function main() {
         const id = rest[0];
         if (!id)
             throw new Error("Usage: tutor inspect textbook <id>");
-        const loaded = await loadTextbooks(args.cwd);
+        const loaded = await loadTextbooks(args.cwd, { textbookId: id });
+        if (loaded.issues.length > 0)
+            throw new Error(loaded.issues.map((issue) => issue.message).join("\n"));
         const found = loaded.textbooks.find(({ textbook }) => textbook.id === id);
         if (!found)
             throw new Error(`Textbook not found: ${id}`);
@@ -194,6 +222,8 @@ function help() {
 
 Usage:
   tutor [--cwd path] init [--starter]
+  tutor [--cwd path] begin <textbook-id> [title]
+  tutor [--cwd path] publish <textbook-id>
   tutor [--cwd path] --package-spec file:/path/to/tutor-kit init [--starter]
   tutor [--cwd path] add textbook <id> [title]
   tutor [--cwd path] add chapter <textbook-id> <id> [title]

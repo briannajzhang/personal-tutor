@@ -251,6 +251,7 @@ export interface TextbookModule {
     default?: Textbook;
 }
 export interface ValidationIssue {
+    textbookId?: string;
     file?: string;
     path?: string;
     message: string;

@@ -1,5 +1,5 @@
 import { existsSync, lstatSync, readdirSync, realpathSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { register } from "tsx/esm/api";
 import { validateTextbook } from "../core/validation.js";
@@ -134,15 +134,25 @@ async function loadTextbooksUncached(cwd, textbookId) {
         const issues = [];
         const files = discoverTextbookFiles(workspace.textbooksDir).filter((file) => (!textbookId || file === join(workspace.textbooksDir, textbookId, "textbook.ts") || file === join(workspace.textbooksDir, textbookId, "textbook.tsx")));
         if (textbookId && files.length === 0) {
-            issues.push({ message: `Textbook not found: ${textbookId}` });
+            issues.push({ textbookId, message: `Textbook not found: ${textbookId}` });
         }
         for (const file of files) {
+            const directoryId = textbookDirectoryId(workspace.textbooksDir, file);
             try {
                 const mod = await importTsModule(importer, pathToFileURL(file).href, import.meta.url);
                 const textbook = mod.default;
                 const textbookIssues = validateTextbook(textbook, file);
                 if (textbookIssues.length > 0) {
-                    issues.push(...textbookIssues);
+                    issues.push(...textbookIssues.map((issue) => ({ ...issue, textbookId: directoryId })));
+                    continue;
+                }
+                if (textbook.id !== directoryId) {
+                    issues.push({
+                        textbookId: directoryId,
+                        file,
+                        path: "id",
+                        message: `Textbook id must match its directory: expected ${directoryId}`
+                    });
                     continue;
                 }
                 const loadedTextbook = { file, textbook: textbook };
@@ -158,6 +168,7 @@ async function loadTextbooksUncached(cwd, textbookId) {
             }
             catch (error) {
                 issues.push({
+                    textbookId: directoryId,
                     file,
                     message: formatLoadError(error)
                 });
@@ -168,6 +179,7 @@ async function loadTextbooksUncached(cwd, textbookId) {
             const previous = textbookIds.get(loaded.textbook.id);
             if (previous) {
                 issues.push({
+                    textbookId: loaded.textbook.id,
                     file: loaded.file,
                     path: "id",
                     message: `Duplicate textbook id: ${loaded.textbook.id} also used by ${previous}`
@@ -181,6 +193,7 @@ async function loadTextbooksUncached(cwd, textbookId) {
             const previous = chapterIds.get(key);
             if (previous) {
                 issues.push({
+                    textbookId: loaded.textbookId,
                     file: loaded.file,
                     path: "chapters",
                     message: `Duplicate chapter id in textbook ${loaded.textbookId}: ${loaded.chapter.id} also used by ${previous}`
@@ -193,6 +206,10 @@ async function loadTextbooksUncached(cwd, textbookId) {
     finally {
         await importer.unregister();
     }
+}
+function textbookDirectoryId(textbooksDir, file) {
+    const path = relative(textbooksDir, file);
+    return path.split(sep)[0] ?? "unknown";
 }
 function formatLoadError(error) {
     if (error instanceof Error) {
