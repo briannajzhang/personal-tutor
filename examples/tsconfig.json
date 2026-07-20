@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "jsx": "preserve",
+    "noEmit": true
+  },
+  "include": [
+    "tutor.config.ts",
+    "textbooks/**/*.ts",
+    "textbooks/**/*.tsx",
+    "tutor/**/*.ts",
+    "tutor/**/*.tsx"
+  ],
+  "exclude": [
+    "textbooks/**/chapters/problems/**",
+    "textbooks/**/problems/**"
+  ]
+}

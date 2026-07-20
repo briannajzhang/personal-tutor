@@ -33,7 +33,9 @@
     "prepack": "npm run build:skill",
     "test": "npm run build && node --import tsx --test tests/*.test.ts tests/server/*.test.ts",
     "test:browser": "npm run build && playwright test",
-    "tutor": "tsx packages/tutor-kit/src/cli/index.ts"
+    "tutor": "tsx packages/tutor-kit/src/cli/index.ts",
+    "examples:check": "npm run build && node packages/tutor-kit/dist/cli/index.js --cwd examples doctor",
+    "examples:dev": "npm run build && node packages/tutor-kit/dist/cli/index.js --cwd examples dev"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
