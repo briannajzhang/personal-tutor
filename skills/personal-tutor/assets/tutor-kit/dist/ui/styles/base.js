@@ -221,6 +221,19 @@ h1 {
   top: 48px;
   border-top: 1px solid var(--line);
   padding-top: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--line) 20%, transparent) transparent;
+}
+.chapter-index::-webkit-scrollbar {
+  width: 3px;
+}
+.chapter-index::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+.chapter-index::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--line) 20%, transparent);
+  border-radius: 3px;
 }
 @media (min-width: 861px) {
   .chapter-index {
