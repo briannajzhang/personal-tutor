@@ -63,6 +63,42 @@ test("personal tutor routes visual grounding before authoring", () => {
   assert.doesNotMatch(`${skill}\n${quality}\n${lessonAuthoring}`, /at least (one|1)[^.\n]*(image|visual)/i);
 });
 
+test("personal tutor frames custom blocks by representation fit", () => {
+  const skill = readFileSync(join(skillDir, "SKILL.md"), "utf8");
+  const quality = readFileSync(join(skillDir, "references", "quality-core.md"), "utf8");
+  const lessonAuthoring = readFileSync(join(skillDir, "references", "lesson-authoring.md"), "utf8");
+  const quickstart = readFileSync(join(skillDir, "references", "authoring-quickstart.md"), "utf8");
+  const customGuidance = [skill, quality, lessonAuthoring, quickstart].join("\n");
+
+  assert.match(skill, /## Representation fit/);
+  assert.match(skill, /Choose the teaching medium based on the move the learner needs to understand/);
+  assert.match(
+    skill,
+    /When changing a variable, stepping through a process, manipulating state, revealing a consequence, or comparing live cases is central to understanding the lesson, read `references\/lesson-authoring\.md` before settling on a representation, even if the user did not request an interactive component/
+  );
+  assert.match(skill, /when purpose-built interaction, animation, simulation, or learner-controlled state would teach it materially better/);
+  assert.match(skill, /even if the user did not request an interactive component/);
+
+  assert.match(quality, /a component lets learners vary, step through, manipulate, simulate, or compare live state/);
+  assert.match(quality, /makes an important relationship more inspectable/);
+
+  assert.match(lessonAuthoring, /## Custom Interactions/);
+  assert.match(lessonAuthoring, /A component earns its place when learner action changes visible state/);
+  assert.match(lessonAuthoring, /narrow it to the smallest faithful interaction/);
+  assert.match(lessonAuthoring, /rather than automatically replacing it with prose or a static diagram/);
+  assert.match(
+    lessonAuthoring,
+    /When a physical or practical lesson asks learners to connect visible outcomes to controllable variables, images may ground recognition while a component can make the cause-and-effect relationship inspectable/
+  );
+
+  assert.match(quickstart, /Custom blocks are authored as `component\(\.\.\.\)`/);
+  assert.match(quickstart, /materially improves the teaching move/);
+
+  assert.doesNotMatch(customGuidance, /unusual interaction/);
+  assert.doesNotMatch(customGuidance, /cannot be expressed clearly with built[- ]in blocks/);
+  assert.doesNotMatch(customGuidance, /Prefer built[- ]in blocks before creating a component/);
+});
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

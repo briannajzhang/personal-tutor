@@ -66,9 +66,7 @@ When the answer is yes, build a tight loop: predict, make one meaningful change,
 
 ## Choose blocks by learner need
 
-Use any mix of blocks that serves the teaching move: ordinary prose, lists, code, math, and quizzes cover many lessons; a diagram reveals structure or flow; a chart supports a defined numeric comparison; an image grounds visual appearance or evidence; a transformation keeps an input, operation, and output visible together; a coding problem provides direct execution feedback.
-
-Use `component(...)` only when manipulation, simulation, animation, reveal, or another interaction cannot be expressed clearly with built in blocks.
+Use any mix of blocks that serves the teaching move: ordinary prose, lists, code, math, and quizzes cover many lessons; a diagram reveals structure or flow; a chart supports a defined numeric comparison; an image grounds visual appearance or evidence; a transformation keeps an input, operation, and output visible together; a component lets learners vary, step through, manipulate, simulate, or compare live state when doing so makes an important relationship more inspectable; a coding problem provides direct execution feedback.
 
 ## Adapt from evidence
 
