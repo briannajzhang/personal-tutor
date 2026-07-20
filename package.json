@@ -5,11 +5,11 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mattzh72/personal-tutor.git"
+    "url": "git+https://github.com/briannajzhang/personal-tutor.git"
   },
-  "homepage": "https://github.com/mattzh72/personal-tutor#readme",
+  "homepage": "https://github.com/briannajzhang/personal-tutor#readme",
   "bugs": {
-    "url": "https://github.com/mattzh72/personal-tutor/issues"
+    "url": "https://github.com/briannajzhang/personal-tutor/issues"
   },
   "type": "module",
   "bin": {
