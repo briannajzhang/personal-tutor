@@ -34,7 +34,8 @@ function main(rawArgs) {
 
 function parseInstallArgs(args) {
   const options = {
-    skillsDir: defaultSkillsDir(),
+    agent: "codex",
+    skillsDir: undefined,
     skillDir: undefined,
     force: false,
     dryRun: false,
@@ -64,6 +65,16 @@ function parseInstallArgs(args) {
       continue;
     }
 
+    if (arg === "--agent") {
+      const value = args[++index];
+      if (!value) fail("--agent requires codex, claude-code, or all");
+      if (!["codex", "claude-code", "all"].includes(value)) {
+        fail("--agent must be codex, claude-code, or all");
+      }
+      options.agent = value;
+      continue;
+    }
+
     if (arg === "--skills-dir") {
       const value = args[++index];
       if (!value) fail("--skills-dir requires a path");
@@ -89,48 +100,66 @@ function installSkill(options) {
     fail(`Packaged skill source not found: ${sourceSkillDir}`);
   }
 
-  const destination = options.skillDir ?? join(options.skillsDir, skillName);
+  if (options.agent === "all" && (options.skillsDir || options.skillDir)) {
+    fail("--skills-dir and --skill-dir cannot be used with --agent all");
+  }
+  const agents = options.agent === "all" ? ["codex", "claude-code"] : [options.agent];
+  const targets = agents.map((agent) => ({
+    agent,
+    destination: options.skillDir ?? join(options.skillsDir ?? defaultSkillsDir(agent), skillName)
+  }));
 
   if (options.dryRun) {
     console.log(`Would install ${skillName} skill`);
     console.log(`- source: ${sourceSkillDir}`);
-    console.log(`- destination: ${destination}`);
+    for (const target of targets) {
+      console.log(`- ${agentLabel(target.agent)} destination: ${target.destination}`);
+    }
     console.log(`- overwrite: ${options.force ? "yes" : "no"}`);
     console.log(`- install Tutor Kit dependencies: ${options.installDeps ? "yes" : "no"}`);
     return;
   }
 
-  if (existsSync(destination)) {
-    if (!options.force) {
-      fail([
-        `${skillName} already exists at ${destination}`,
-        "Use --force to replace it, or --skill-dir to choose another destination."
-      ].join("\n"));
+  const existing = targets.filter(({ destination }) => existsSync(destination));
+  if (existing.length > 0 && !options.force) {
+    fail([
+      ...existing.map(({ agent, destination }) => `${skillName} already exists for ${agentLabel(agent)} at ${destination}`),
+      "Use --force to replace it, or choose another destination."
+    ].join("\n"));
+  }
+
+  for (const { agent, destination } of targets) {
+    if (existsSync(destination)) {
+      rmSync(destination, { recursive: true, force: true });
     }
-    rmSync(destination, { recursive: true, force: true });
+
+    mkdirSync(dirname(destination), { recursive: true });
+    cpSync(sourceSkillDir, destination, {
+      recursive: true,
+      filter: (source) => basename(source) !== ".DS_Store"
+    });
+
+    if (options.installDeps) {
+      installTutorKitDependencies(destination);
+      verifyTutorKitCli(destination);
+    } else {
+      console.log(`Skipped Tutor Kit dependency installation for ${agentLabel(agent)}.`);
+      console.log("Run this later if the bundled tutor command reports missing packages:");
+      console.log(tutorKitInstallCommand(destination));
+    }
+
+    console.log(`Installed ${skillName} skill for ${agentLabel(agent)}`);
+    console.log(`- destination: ${destination}`);
+    if (options.installDeps) console.log("- bundled Tutor Kit CLI: verified");
   }
 
-  mkdirSync(dirname(destination), { recursive: true });
-  cpSync(sourceSkillDir, destination, {
-    recursive: true,
-    filter: (source) => basename(source) !== ".DS_Store"
-  });
-
-  if (options.installDeps) {
-    installTutorKitDependencies(destination);
-    verifyTutorKitCli(destination);
-  } else {
-    console.log("Skipped Tutor Kit dependency installation.");
-    console.log(`Run this later if the bundled tutor command reports missing packages:`);
-    console.log(tutorKitInstallCommand(destination));
-  }
-
-  console.log(`Installed ${skillName} skill`);
-  console.log(`- destination: ${destination}`);
-  if (options.installDeps) console.log("- bundled Tutor Kit CLI: verified");
   console.log("");
-  console.log("Try it in Codex with:");
-  console.log("Use $personal-tutor to create a rich, flexible Tutor Kit lesson with deep explanation, concrete examples, meaningful practice, and helpful interaction.");
+  if (agents.includes("codex")) {
+    console.log("In Codex, use $personal-tutor to start a lesson.");
+  }
+  if (agents.includes("claude-code")) {
+    console.log("In Claude Code, run /personal-tutor to start a lesson.");
+  }
 }
 
 function installTutorKitDependencies(skillDir) {
@@ -216,11 +245,19 @@ function formatCommandFailure(command, args, result) {
   return lines.join("\n");
 }
 
-function defaultSkillsDir() {
-  const codexHome = process.env.CODEX_HOME
-    ? resolveUserPath(process.env.CODEX_HOME)
-    : join(homedir(), ".codex");
+function defaultSkillsDir(agent) {
+  if (agent === "claude-code") {
+    const claudeHome = process.env.CLAUDE_CONFIG_DIR
+      ? resolveUserPath(process.env.CLAUDE_CONFIG_DIR)
+      : join(homedir(), ".claude");
+    return join(claudeHome, "skills");
+  }
+  const codexHome = process.env.CODEX_HOME ? resolveUserPath(process.env.CODEX_HOME) : join(homedir(), ".codex");
   return join(codexHome, "skills");
+}
+
+function agentLabel(agent) {
+  return agent === "claude-code" ? "Claude Code" : "Codex";
 }
 
 function resolveUserPath(path) {
@@ -251,7 +288,8 @@ Usage:
   personal-tutor [install] [options]
 
 Options:
-  --skills-dir <path>  Parent skills directory. Default: \${CODEX_HOME:-~/.codex}/skills
+  --agent <name>       Install for codex, claude-code, or all. Default: codex
+  --skills-dir <path>  Parent skills directory for one agent
   --skill-dir <path>   Exact destination directory for the personal-tutor skill
   --force              Replace an existing personal-tutor skill
   --skip-deps          Copy the skill without installing bundled Tutor Kit dependencies
@@ -263,6 +301,8 @@ Examples:
   npx personal-tutor@latest
   npx personal-tutor@latest --force
   npx personal-tutor@latest --skip-deps
+  npx personal-tutor@latest --agent claude-code
+  npx personal-tutor@latest --agent all
   npx personal-tutor@latest --skills-dir ~/.codex/skills
 `);
 }

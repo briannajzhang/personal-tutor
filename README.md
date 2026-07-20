@@ -23,6 +23,16 @@ By default this copies the skill to:
 ${CODEX_HOME:-~/.codex}/skills/personal-tutor
 ```
 
+Install it for Claude Code, or for both supported agents, with:
+
+```bash
+npx personal-tutor@latest --agent claude-code
+npx personal-tutor@latest --agent all
+```
+
+Claude Code uses `${CLAUDE_CONFIG_DIR:-~/.claude}/skills/personal-tutor`.
+Run `/personal-tutor` in Claude Code to invoke it.
+
 Useful options:
 
 ```bash
@@ -69,11 +79,14 @@ Tutor Kit keeps the model-facing workflow compact:
 ```bash
 tutor brief
 tutor progress --textbook <id>
-tutor doctor --textbook <id> --record
+tutor begin <id> [title]
+tutor publish <id>
 ```
 
-`brief` summarizes the workspace, `progress` compacts learner activity, and the
-recorded doctor command writes verification evidence. New textbooks keep the
+`brief` summarizes the workspace, and `progress` compacts reading position,
+chapter completion, and practice activity. `begin` creates an isolated work
+area. `publish` verifies that work, archives the prior source, and replaces the
+published textbook without touching learner data. New textbooks keep the
 learner profile, course map, and active publication contract in one `course.md`
 file. The full TypeScript block API remains available for advanced lessons.
 Trusted workspaces can also mount custom frontend modules directly in the lesson
