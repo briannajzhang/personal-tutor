@@ -43,8 +43,12 @@ async function renderHome() {
   const token = beginRouteLoad("Loading textbooks...");
   textbooks = await fetchJson("/api/textbooks");
   if (token !== routeToken) return;
-  const totalChapters = textbooks.reduce((sum, textbook) => sum + textbook.chapterCount, 0);
-  const meta = textbooks.length === 0 ? "No textbooks yet" : \`\${textbooks.length} textbooks / \${totalChapters} chapters\`;
+  const readyTextbooks = textbooks.filter((textbook) => textbook.status !== "error");
+  const totalChapters = readyTextbooks.reduce((sum, textbook) => sum + textbook.chapterCount, 0);
+  const repairCount = textbooks.length - readyTextbooks.length;
+  const meta = textbooks.length === 0
+    ? "No textbooks yet"
+    : \`\${readyTextbooks.length} ready / \${totalChapters} chapters\${repairCount ? \` / \${repairCount} needs repair\` : ""}\`;
   document.querySelector("#main").innerHTML = \`
     <section>
       <div class="page-head">
@@ -57,22 +61,60 @@ async function renderHome() {
   document.querySelectorAll("[data-textbook]").forEach((button) => {
     button.addEventListener("click", () => navigateTextbook(button.dataset.textbook));
   });
+  document.querySelectorAll("[data-continue-textbook]").forEach((button) => {
+    button.addEventListener("click", () => navigateChapter(
+      button.dataset.continueTextbook,
+      button.dataset.continueChapter,
+      true,
+      button.dataset.continueHeading
+    ));
+  });
   finishRouteLoad(token);
 }
 
 function renderTextbookRows() {
   return \`
       <div class="rows">
-        \${textbooks.map((textbook) => \`
-          <button class="row" data-textbook="\${escapeAttr(textbook.id)}">
-            <span>
-              <span class="row-title">\${escapeHtml(textbook.title)}</span>
-              \${textbook.description ? \`<span class="row-description">\${escapeHtml(textbook.description)}</span>\` : ""}
-            </span>
-            <span class="row-count">\${textbook.chapterCount} chapters</span>
-          </button>
-        \`).join("")}
+        \${textbooks.map((textbook) => textbook.status === "error"
+          ? renderBrokenTextbookRow(textbook)
+          : renderReadyTextbookRow(textbook)).join("")}
       </div>
+  \`;
+}
+
+function renderReadyTextbookRow(textbook) {
+  const progress = textbook.progress;
+  const complete = progress.totalChapters > 0 && progress.completedChapters === progress.totalChapters;
+  const progressLabel = complete ? "Complete" : \`\${progress.completedChapters} of \${progress.totalChapters} chapters complete\`;
+  const continueChapter = progress.continueChapter;
+  return \`
+    <article class="library-row">
+      <button class="library-row-main" type="button" data-textbook="\${escapeAttr(textbook.id)}">
+        <span class="row-title">\${escapeHtml(textbook.title)}</span>
+        \${textbook.description ? \`<span class="row-description">\${escapeHtml(textbook.description)}</span>\` : ""}
+      </button>
+      <div class="library-row-side">
+        <span class="row-count">\${textbook.chapterCount} chapters</span>
+        <div class="course-progress" aria-label="\${escapeAttr(progressLabel)}">
+          <span class="course-progress-rail"><span style="width: \${progress.percent}%"></span></span>
+          <span class="course-progress-label">\${escapeHtml(progressLabel)}</span>
+        </div>
+        \${continueChapter ? \`<button class="course-continue" type="button" data-continue-textbook="\${escapeAttr(textbook.id)}" data-continue-chapter="\${escapeAttr(continueChapter.id)}" data-continue-heading="\${escapeAttr(continueChapter.headingId ?? "")}">\${progress.visitedChapters ? "Continue" : "Start"}</button>\` : ""}
+      </div>
+    </article>
+  \`;
+}
+
+function renderBrokenTextbookRow(textbook) {
+  return \`
+    <article class="library-row library-row-error">
+      <div>
+        <span class="repair-label">Needs repair</span>
+        <span class="row-title">\${escapeHtml(textbook.title)}</span>
+        <span class="row-description">\${escapeHtml(textbook.description)}</span>
+        \${textbook.file ? \`<code class="repair-path">\${escapeHtml(textbook.file)}</code>\` : ""}
+      </div>
+    </article>
   \`;
 }
 
@@ -106,18 +148,20 @@ async function renderTextbook(textbookId) {
       <div class="page-head">
         <h1>\${escapeHtml(textbook.title)}</h1>
       </div>
+      \${renderCourseProgressPanel(textbook)}
       \${renderTextbookTabs("chapters", textbook.chapters.length, glossaryEntries.length)}
       <div class="rows textbook-chapter-rows">
         \${textbook.chapters.map((chapter) => {
           const sectionCount = chapter.sections.length;
           const subsectionCount = chapter.sections.reduce((sum, section) => sum + section.subsections.length, 0);
+          const completed = textbook.readingProgress.completedChapterIds.includes(chapter.id);
           return \`
             <button class="row" data-chapter="\${escapeAttr(chapter.id)}">
               <span>
                 <span class="row-title">\${escapeHtml(chapter.title)}</span>
                 \${chapter.description ? \`<span class="row-description">\${escapeHtml(chapter.description)}</span>\` : ""}
               </span>
-              <span class="row-count">\${sectionCount} sections / \${subsectionCount} subsections</span>
+              <span class="row-count">\${completed ? "Complete / " : ""}\${sectionCount} sections / \${subsectionCount} subsections</span>
             </button>
           \`;
         }).join("")}
@@ -128,8 +172,29 @@ async function renderTextbook(textbookId) {
     button.addEventListener("click", () => navigateChapter(textbook.id, button.dataset.chapter));
   });
   bindTextbookTabs(textbook.id);
+  document.querySelector("[data-course-continue]")?.addEventListener("click", (event) => {
+    const button = event.currentTarget;
+    navigateChapter(textbook.id, button.dataset.chapter, true, button.dataset.heading);
+  });
   bindCrumbs();
   finishRouteLoad(token);
+}
+
+function renderCourseProgressPanel(textbook) {
+  const progress = textbook.readingProgress;
+  if (!progress || progress.totalChapters === 0) return "";
+  const complete = progress.completedChapters === progress.totalChapters;
+  const next = progress.continueChapter;
+  return \`
+    <aside class="course-progress-panel" aria-label="Course progress">
+      <div>
+        <span class="course-progress-kicker">Course progress</span>
+        <strong>\${complete ? "All chapters complete" : \`\${progress.completedChapters} of \${progress.totalChapters} chapters complete\`}</strong>
+        <span class="course-progress-rail"><span style="width: \${progress.percent}%"></span></span>
+      </div>
+      \${next ? \`<button class="course-continue" type="button" data-course-continue data-chapter="\${escapeAttr(next.id)}" data-heading="\${escapeAttr(next.headingId ?? "")}">\${progress.visitedChapters ? "Continue" : "Start"} <span>\${escapeHtml(next.title)}</span></button>\` : ""}
+    </aside>
+  \`;
 }
 `;
 }

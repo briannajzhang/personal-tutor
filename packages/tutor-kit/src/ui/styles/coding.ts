@@ -376,6 +376,25 @@ body.route-loading {
   .row-title {
     font-size: 21px;
   }
+  .library-row,
+  .course-progress-panel,
+  .chapter-completion {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .library-row-side {
+    justify-items: start;
+  }
+  .library-row-side .course-progress {
+    width: min(100%, 340px);
+  }
+  .course-progress-label {
+    text-align: left;
+  }
+  .course-progress-panel .course-continue,
+  .chapter-completion-button {
+    width: 100%;
+  }
   .empty-state,
   .not-found-panel {
     grid-template-columns: 1fr;

@@ -33,9 +33,9 @@ async function renderChapter(textbookId, chapterId) {
               <div class="index-label">Contents</div>
               <div class="index-list">
                 \${chapter.sections.map((section) => \`
-                  <a class="index-link" href="#\${escapeAttr(anchorId(section.id))}">\${escapeHtml(section.title)}</a>
+                  <a class="index-link" href="#\${escapeAttr(anchorId(section.id))}" data-heading-id="\${escapeAttr(section.id)}">\${escapeHtml(section.title)}</a>
                   \${section.subsections.map((subsection) => \`
-                    <a class="index-link subsection" href="#\${escapeAttr(anchorId(subsection.id))}">\${escapeHtml(subsection.title)}</a>
+                    <a class="index-link subsection" href="#\${escapeAttr(anchorId(subsection.id))}" data-heading-id="\${escapeAttr(subsection.id)}">\${escapeHtml(subsection.title)}</a>
                   \`).join("")}
               \`).join("")}
               </div>
@@ -45,7 +45,7 @@ async function renderChapter(textbookId, chapterId) {
         </aside>
         <div class="chapter-content">
           \${chapter.sections.map((section) => renderSection(section, renderContext)).join("")}
-          \${renderChapterNavigation(chapter)}
+          \${renderChapterFooter(chapter)}
         </div>
       </div>
     </section>
@@ -53,6 +53,7 @@ async function renderChapter(textbookId, chapterId) {
   syncChapterToolsDisclosure();
   bindCrumbs();
   bindChapterIndex();
+  bindChapterCompletion(textbookId, chapterId, chapter.chapterCompleted);
   bindChapterNavigation(textbookId);
   bindGlossaryOverviewLinks();
   bindGlossaryStarControls(textbookId);
@@ -67,6 +68,7 @@ async function renderChapter(textbookId, chapterId) {
   if (document.fonts?.ready) void document.fonts.ready.then(scheduleTransformationLayouts);
   finishRouteLoad(token);
   scrollToHashTarget(window.location.hash, "auto");
+  void saveReadingProgress(textbookId, chapterId, "visit", headingIdForHash(chapter));
 }
 
 function syncChapterToolsDisclosure() {
@@ -78,24 +80,79 @@ function syncChapterToolsDisclosure() {
   disclosure.open = !compact;
 }
 
-function renderChapterNavigation(chapter) {
-  if (!chapter.previousChapter && !chapter.nextChapter) return "";
+function renderChapterFooter(chapter) {
   return \`
-    <nav class="chapter-navigation" aria-label="Chapter navigation">
-      \${chapter.previousChapter ? \`
-        <button class="chapter-navigation-button previous" data-chapter-navigation="\${escapeAttr(chapter.previousChapter.id)}">
-          <span class="chapter-navigation-label">Previous chapter</span>
-          <span class="chapter-navigation-title">\${escapeHtml(chapter.previousChapter.title)}</span>
+    <footer class="chapter-footer">
+      <div class="chapter-completion">
+        <div>
+          <span class="chapter-navigation-label">Reading progress</span>
+          <strong data-completion-label>\${chapter.chapterCompleted ? "Chapter complete" : "Finished this chapter?"}</strong>
+        </div>
+        <button class="chapter-completion-button \${chapter.chapterCompleted ? "is-complete" : ""}" type="button" aria-pressed="\${chapter.chapterCompleted}" data-chapter-completion>
+          \${chapter.chapterCompleted ? "Mark as not complete" : "Mark chapter complete"}
         </button>
+        <span class="sr-only" aria-live="polite" data-completion-status></span>
+      </div>
+      \${chapter.previousChapter || chapter.nextChapter ? \`
+        <nav class="chapter-navigation" aria-label="Chapter navigation">
+          \${chapter.previousChapter ? \`
+            <button class="chapter-navigation-button previous" data-chapter-navigation="\${escapeAttr(chapter.previousChapter.id)}">
+              <span class="chapter-navigation-label">Previous chapter</span>
+              <span class="chapter-navigation-title">\${escapeHtml(chapter.previousChapter.title)}</span>
+            </button>
+          \` : ""}
+          \${chapter.nextChapter ? \`
+            <button class="chapter-navigation-button next" data-chapter-navigation="\${escapeAttr(chapter.nextChapter.id)}">
+              <span class="chapter-navigation-label">Next chapter</span>
+              <span class="chapter-navigation-title">\${escapeHtml(chapter.nextChapter.title)}</span>
+            </button>
+          \` : ""}
+        </nav>
       \` : ""}
-      \${chapter.nextChapter ? \`
-        <button class="chapter-navigation-button next" data-chapter-navigation="\${escapeAttr(chapter.nextChapter.id)}">
-          <span class="chapter-navigation-label">Next chapter</span>
-          <span class="chapter-navigation-title">\${escapeHtml(chapter.nextChapter.title)}</span>
-        </button>
-      \` : ""}
-    </nav>
+    </footer>
   \`;
+}
+
+function bindChapterCompletion(textbookId, chapterId, completed) {
+  const button = document.querySelector("[data-chapter-completion]");
+  if (!button) return;
+  let isComplete = completed;
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    try {
+      const result = await saveReadingProgress(textbookId, chapterId, isComplete ? "reopen" : "complete");
+      isComplete = result.summary.completedChapterIds.includes(chapterId);
+      button.classList.toggle("is-complete", isComplete);
+      button.setAttribute("aria-pressed", String(isComplete));
+      button.textContent = isComplete ? "Mark as not complete" : "Mark chapter complete";
+      document.querySelector("[data-completion-label]").textContent = isComplete ? "Chapter complete" : "Finished this chapter?";
+      document.querySelector("[data-completion-status]").textContent = isComplete ? "Chapter marked complete." : "Chapter marked not complete.";
+    } catch (error) {
+      document.querySelector("[data-completion-status]").textContent = error?.message ?? "Could not update progress.";
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
+function saveReadingProgress(textbookId, chapterId, action, headingId = "") {
+  return fetchJson("/api/reading-progress", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ textbookId, chapterId, action, headingId: headingId || undefined })
+  });
+}
+
+function headingIdForHash(chapter) {
+  const hashId = parseHashId(window.location.hash);
+  if (!hashId || !chapter) return "";
+  for (const section of chapter.sections ?? []) {
+    if (anchorId(section.id) === hashId) return section.id;
+    for (const subsection of section.subsections ?? []) {
+      if (anchorId(subsection.id) === hashId) return subsection.id;
+    }
+  }
+  return "";
 }
 
 function bindChapterNavigation(textbookId) {
@@ -122,6 +179,7 @@ function bindChapterIndex() {
         history.pushState({}, "", nextUrl);
       }
       scrollToHashTarget(hash, "smooth");
+      if (activeChapter) void saveReadingProgress(activeChapter.textbookId, activeChapter.id, "visit", link.dataset.headingId);
     });
   });
 }
@@ -260,8 +318,9 @@ function bindGlossaryOverviewLinks() {
   });
 }
 
-function navigateChapter(textbookId, chapterId, scrollToTop = false) {
-  history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
+function navigateChapter(textbookId, chapterId, scrollToTop = false, headingId = "") {
+  const hash = headingId ? \`#\${encodeURIComponent(anchorId(headingId))}\` : "";
+  history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\${hash}\`);
   if (scrollToTop) window.scrollTo({ top: 0, behavior: "auto" });
   void renderRoute();
 }

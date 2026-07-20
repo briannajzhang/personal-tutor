@@ -14,6 +14,14 @@ export function baseCss(): string {
   --accent-2: #654533;
 }
 * { box-sizing: border-box; }
+.sr-only {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
@@ -199,6 +207,121 @@ h1 {
   font-size: 13px;
   white-space: nowrap;
 }
+.library-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 260px);
+  gap: 44px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 24px 0;
+}
+.library-row-main {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+.library-row-main:hover .row-title,
+.library-row-main:focus-visible .row-title {
+  color: var(--accent-2);
+}
+.library-row-main:focus-visible,
+.course-continue:focus-visible,
+.chapter-completion-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 4px;
+}
+.library-row-side {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+.course-progress {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+}
+.course-progress-rail {
+  display: block;
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--line) 56%, transparent);
+}
+.course-progress-rail > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.course-progress-label {
+  color: var(--muted-2);
+  font-size: 11px;
+  text-align: right;
+}
+.course-continue,
+.chapter-completion-button {
+  min-height: 44px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 10px 16px;
+}
+.course-continue:hover,
+.chapter-completion-button:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+.repair-label,
+.course-progress-kicker {
+  display: block;
+  color: var(--accent-2);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.library-row-error {
+  grid-template-columns: 1fr;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--panel) 54%, transparent);
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.repair-path {
+  display: block;
+  color: var(--muted-2);
+  font-size: 11px;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.course-progress-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 42px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin: -10px 0 34px;
+  padding: 20px 0;
+}
+.course-progress-panel > div {
+  display: grid;
+  gap: 10px;
+}
+.course-progress-panel .course-progress-kicker {
+  margin: 0;
+}
+.course-progress-panel .course-progress-rail {
+  max-width: 520px;
+}
 .chapter-layout {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);
@@ -357,13 +480,36 @@ h1 {
 .chapter-content {
   min-width: 0;
 }
+.chapter-footer {
+  border-top: 1px solid var(--line);
+  margin-top: 50px;
+  padding-top: 24px;
+}
+.chapter-completion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  background: var(--panel);
+  padding: 20px 22px;
+}
+.chapter-completion > div {
+  display: grid;
+  gap: 6px;
+}
+.chapter-completion-button.is-complete {
+  background: transparent;
+  color: var(--ink);
+}
+.chapter-completion-button:disabled {
+  cursor: progress;
+  opacity: .6;
+}
 .chapter-navigation {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 24px;
-  border-top: 1px solid var(--line);
-  margin-top: 50px;
-  padding-top: 24px;
+  margin-top: 28px;
 }
 .chapter-navigation-button {
   display: grid;
