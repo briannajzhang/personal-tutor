@@ -32,7 +32,7 @@ Teach why and how together: surface assumptions, approximations, and limits, and
 
 Prefer concrete cases that expose how the idea works: the starting state, the reasoning or operation, the visible result, and why it follows.
 
-Tell the learner what to inspect before a code sample, equation, table, diagram, image, or interactive block. Give a short readout afterward. Use the actual artifact when the subject involves code, data, math, evidence, or visual recognition.
+Tell the learner what to inspect before a code sample, equation, table, diagram, image, or interactive block. Give a short readout afterward. Use the actual artifact when the learner must reason from it. A lesson that claims to teach recognition or diagnosis from appearance is incomplete unless learners inspect representative visual evidence and are guided to notice, compare, or interpret the relevant cues.
 
 ## Invite learner action
 

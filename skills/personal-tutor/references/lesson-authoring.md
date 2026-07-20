@@ -135,6 +135,12 @@ Before a `codeBlock`, `mathBlock`, table, diagram, image, formal notation, or ex
 
 Use visual blocks when seeing something helps the learner build or check the mental model, not because a chapter needs decoration.
 
+An image block is not automatically visual grounding. When the learner must recognize a real-world appearance, use observational images that preserve the relevant perceptual cues. A schematic drawing saved as PNG or SVG is still a diagram and usually does not satisfy this need.
+
+Use diagrams and transformations alongside appearance evidence to explain causes, processes, or reasoning, not as substitutes for the appearance the learner must inspect.
+
+When no suitable source or user image is available and image-generation tools are available, use them to create photo-like teaching exemplars rather than schematic stand-ins when realism affects the teaching claim. Generated examples should be labeled as generated. In medical, safety-critical, scientific-evidence, or authenticity-sensitive contexts, prefer authoritative real examples; generated images should not be presented as diagnostic ground truth.
+
 Use `image(...)` for durable raster artifacts that ground the learner in visual appearance, context, evidence, examples, source figures, screenshots, generated illustrations, or concrete real-world referents. An image can be supportive context; it does not need to carry the whole teaching move, but it should be tied to nearby explanation, alt text, and a useful caption or readout.
 
 When the teaching move depends on the learner noticing particular regions, parts, states, differences, symptoms, or cues inside an image, add the lightest inspection scaffold that makes the image readable. Good scaffolds include a focused caption/readout, numbered inspection prompts, a companion `diagram(...)`, a cue-to-meaning table, or a `transformation(...)`. Use images for recognition and grounding; use transformations only when the learner should inspect how visible cues lead to reasoning or outcomes. Do not force a whole cue catalog into one transformation. Do not assume the image is self-explanatory, and do not label every image by default.
