@@ -208,6 +208,8 @@ h1 {
 .chapter-index {
   position: sticky;
   top: 48px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
   border-top: 1px solid var(--line);
   padding-top: 18px;
 }
