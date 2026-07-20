@@ -44,6 +44,8 @@ The separately installed `tutor` command still uses the shell cwd unless you pas
 ```bash
 tutor init
 tutor init --starter
+tutor begin <textbook-id> [title]
+tutor publish <textbook-id>
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
 tutor add block <p|heading|list|codeBlock|mathBlock|diagram|chart|image|callout|transformation|glossary|quiz|codingProblem>
@@ -83,13 +85,18 @@ tutor/
   blocks/
 tutor-data/
   events.jsonl
+  reading-progress/
   drafts/
   feedback/
+tutor-work/
+  <textbook-id>/
+tutor-archive/
+  <textbook-id>/<timestamp>/
 ```
 
-Authored curriculum lives in `textbooks/<textbook-id>/textbook.ts` and chapter modules. `course.md` keeps the learner profile, course map, and current publication contract in one short file. Optional source artifacts such as `materials-index.md` and `source-notes.md` preserve source context for future generation. Runtime learner activity lives under `tutor-data/`.
+Published curriculum lives in `textbooks/<textbook-id>/textbook.ts` and chapter modules. Start or continue work with `tutor begin <id>`, then edit the copy under `tutor-work/<id>`. Run `tutor publish <id>` from the main workspace when it is ready. Publish verifies the staged source before replacing the published copy. The prior source moves to `tutor-archive/`. Runtime learner activity stays under `tutor-data/`.
 
-`tutor brief` gives the agent a compact workspace view. `tutor progress` reduces raw learner events into quiz results, weak tags, coding status, glossary review, and a suggested next move. `tutor doctor --textbook <id> --record` writes `compile-result.md` automatically.
+`tutor brief` gives the agent a compact workspace view. `tutor progress` reduces raw learner events into reading position, chapter completion, quiz results, weak tags, coding status, glossary review, and a suggested next move. Publish runs the same checks as doctor and writes `compile-result.md` automatically.
 
 ## Textbook And Chapter Modules
 

@@ -15,14 +15,14 @@ The skill wrapper uses one central learner library at `~/.personal-tutor`. If `P
 
 ```bash
 node <skill-dir>/scripts/tutor-kit.mjs brief
-node <skill-dir>/scripts/tutor-kit.mjs add textbook <id> <title>
-node <skill-dir>/scripts/tutor-kit.mjs add chapter <textbook-id> <id> <title>
 node <skill-dir>/scripts/tutor-kit.mjs progress --textbook <id>
-node <skill-dir>/scripts/tutor-kit.mjs doctor --textbook <id> --record
+node <skill-dir>/scripts/tutor-kit.mjs begin <id> <title>
+node <skill-dir>/scripts/tutor-kit.mjs --cwd ~/.personal-tutor/tutor-work/<id> add chapter <id> <chapter-id> <title>
+node <skill-dir>/scripts/tutor-kit.mjs publish <id>
 node <skill-dir>/scripts/tutor-kit.mjs dev
 ```
 
-`brief` reports textbooks, chapters, useful authoring files, and a small learner activity summary. Read raw files only when their contents affect the current publication.
+`brief` reports textbooks, chapters, useful authoring files, and a small learner activity summary. `begin` creates or resumes an isolated work area. Edit only that work area. `publish` verifies it, archives any prior source, and replaces the published textbook. A failed publish leaves the published textbook unchanged and keeps the work area for repair.
 
 ## Source layout
 
@@ -35,10 +35,14 @@ node <skill-dir>/scripts/tutor-kit.mjs dev
     chapters/<chapter-id>.chapter.ts
     chapters/problems/<problem-id>/
     assets/
+  tutor-work/<textbook-id>/
+    textbooks/<textbook-id>/
+  tutor-archive/<textbook-id>/<timestamp>/
   tutor-data/
+    reading-progress/<textbook-id>.json
 ```
 
-Tutor Kit writes `compile-result.md` when `doctor --record` runs. Runtime learner data belongs under `tutor-data/`.
+Tutor Kit writes `compile-result.md` during publish. Runtime learner data belongs under `tutor-data/` and is not replaced or archived with textbook source.
 
 ## Textbook and chapter
 
