@@ -2,6 +2,8 @@
   "name": "tutor-kit",
   "version": "0.1.0",
   "description": "TypeScript SDK, CLI, and local UI server for Tutor Kit textbooks.",
+  "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -32,7 +32,7 @@ export async function startDevServer(options) {
             });
         });
     });
-    await new Promise((resolve) => server.listen(options.port, resolve));
+    await new Promise((resolve) => server.listen(options.port, "127.0.0.1", resolve));
     const address = server.address();
     const port = typeof address === "object" && address ? address.port : options.port;
     return {

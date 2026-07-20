@@ -2,7 +2,7 @@
 
 ## Learner
 
-Goal: understand how `Desktop/node-express-realworld-example-app` handles publishing a new article.
+Goal: understand how the [RealWorld Express API](https://github.com/gothinkster/node-express-realworld-example-app) handles publishing a new article.
 Background: comfortable with TypeScript; new to Express and Prisma.
 Pace and practice: focused source walkthrough with small prediction checks and review questions.
 
