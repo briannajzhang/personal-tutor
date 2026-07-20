@@ -11,6 +11,8 @@ Use this reference for the common Tutor Kit authoring path. Read the complete AP
 
 ## Commands
 
+The skill wrapper uses one central learner library at `~/.personal-tutor`. If `PERSONAL_TUTOR_HOME` is set, it uses that location. Every textbook created through the wrapper appears in the same list and study app. Pass `--cwd <path>` only for a separate workspace.
+
 ```bash
 node <skill-dir>/scripts/tutor-kit.mjs brief
 node <skill-dir>/scripts/tutor-kit.mjs add textbook <id> <title>
@@ -25,14 +27,15 @@ node <skill-dir>/scripts/tutor-kit.mjs dev
 ## Source layout
 
 ```txt
-textbooks/<textbook-id>/
-  textbook.ts
-  course.md
-  compile-result.md
-  chapters/<chapter-id>.chapter.ts
-  chapters/problems/<problem-id>/
-  assets/
-tutor-data/
+~/.personal-tutor/
+  textbooks/<textbook-id>/
+    textbook.ts
+    course.md
+    compile-result.md
+    chapters/<chapter-id>.chapter.ts
+    chapters/problems/<problem-id>/
+    assets/
+  tutor-data/
 ```
 
 Tutor Kit writes `compile-result.md` when `doctor --record` runs. Runtime learner data belongs under `tutor-data/`.

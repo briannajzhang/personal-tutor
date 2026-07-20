@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -22,6 +23,52 @@ test("skill package has a valid entry point and runnable bundled CLI", () => {
   assert.match(help, /Tutor Kit/);
   assert.match(help, /compile/);
   assert.match(help, /verify coding-problems/);
+});
+
+test("skill wrapper uses one central learner library by default", () => {
+  const homeDir = mkdtempSync(join(tmpdir(), "personal-tutor-home-"));
+  const wrapper = join(skillDir, "scripts", "tutor-kit.mjs");
+  const env = { ...process.env, HOME: homeDir };
+  delete env.PERSONAL_TUTOR_HOME;
+  const output = execFileSync(process.execPath, [wrapper, "brief", "--json"], {
+    encoding: "utf8",
+    env
+  });
+
+  assert.equal(JSON.parse(output).workspace, join(homeDir, ".personal-tutor"));
+});
+
+test("skill wrapper stores textbooks in a configured central learner library", () => {
+  const libraryDir = mkdtempSync(join(tmpdir(), "personal-tutor-library-"));
+  const workingDir = mkdtempSync(join(tmpdir(), "personal-tutor-project-"));
+  const wrapper = join(skillDir, "scripts", "tutor-kit.mjs");
+  const env = { ...process.env, PERSONAL_TUTOR_HOME: libraryDir };
+
+  execFileSync(process.execPath, [wrapper, "init"], {
+    encoding: "utf8",
+    cwd: workingDir,
+    env
+  });
+  execFileSync(process.execPath, [wrapper, "add", "textbook", "sql", "SQL Foundations"], {
+    encoding: "utf8",
+    cwd: workingDir,
+    env
+  });
+
+  assert.equal(existsSync(join(libraryDir, "textbooks", "sql", "textbook.ts")), true);
+  assert.equal(existsSync(join(workingDir, "textbooks")), false);
+});
+
+test("explicit cwd overrides the central learner library", () => {
+  const libraryDir = mkdtempSync(join(tmpdir(), "personal-tutor-library-"));
+  const separateDir = mkdtempSync(join(tmpdir(), "personal-tutor-workspace-"));
+  const wrapper = join(skillDir, "scripts", "tutor-kit.mjs");
+  const output = execFileSync(process.execPath, [wrapper, "--cwd", separateDir, "brief", "--json"], {
+    encoding: "utf8",
+    env: { ...process.env, PERSONAL_TUTOR_HOME: libraryDir }
+  });
+
+  assert.equal(JSON.parse(output).workspace, separateDir);
 });
 
 test("bundled Tutor Kit matches the package build", () => {

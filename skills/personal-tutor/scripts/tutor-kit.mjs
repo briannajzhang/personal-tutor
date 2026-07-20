@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { homedir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
@@ -14,7 +15,9 @@ if (!existsSync(cliPath)) {
   process.exit(1);
 }
 
-const result = spawnSync(process.execPath, [cliPath, ...process.argv.slice(2)], {
+const args = process.argv.slice(2);
+const cliArgs = hasCwdOption(args) ? args : ["--cwd", defaultLibraryDir(), ...args];
+const result = spawnSync(process.execPath, [cliPath, ...cliArgs], {
   stdio: "inherit"
 });
 
@@ -30,4 +33,15 @@ if (typeof result.status === "number") {
 if (result.signal) {
   console.error(`Tutor Kit CLI terminated by signal ${result.signal}`);
   process.exit(1);
+}
+
+function hasCwdOption(args) {
+  return args.includes("--cwd");
+}
+
+function defaultLibraryDir() {
+  const configured = process.env.PERSONAL_TUTOR_HOME?.trim();
+  if (!configured || configured === "~") return configured ? homedir() : join(homedir(), ".personal-tutor");
+  if (configured.startsWith("~/")) return join(homedir(), configured.slice(2));
+  return resolve(configured);
 }

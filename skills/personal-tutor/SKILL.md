@@ -55,15 +55,15 @@ Before drafting the first chapter of any course -- or any lesson that introduces
 
 Begin this workflow after preflight and any needed intake or intentional inference.
 
-1. Treat the current directory as the learner workspace.
-2. Run `node <skill-dir>/scripts/tutor-kit.mjs brief` when workspace inspection is useful. Read only the textbook, course state, chapter source, and source notes the current publication needs.
+1. Use the central learner library at `~/.personal-tutor`. The wrapper selects it automatically. If `PERSONAL_TUTOR_HOME` is set, use that location instead. Use `--cwd <path>` only when the user asks for a separate workspace or wants to continue an existing local Tutor Kit workspace.
+2. Run `node <skill-dir>/scripts/tutor-kit.mjs brief` when workspace inspection is useful. Its `workspace` line gives the exact library path. Read only the textbook, course state, chapter source, and source notes the current publication needs.
 3. If Tutor Kit files are missing, run `init` via the wrapper after any needed intake and add a textbook.
 4. Read `references/quality-core.md` and `references/authoring-quickstart.md`. Do not draft learner-facing prose before this step. Add `references/practice-and-assessment.md` when authoring quizzes, practice, assessment, or coding problems.
 5. Publish the smallest useful learner-ready unit -- usually one chapter, a focused revision, or a practice set. Keep future work as short entries in `course.md`.
 6. Author native Tutor Kit TypeScript. Every built-in block and custom TypeScript remain available. Prefer built-in blocks when they teach the intended move clearly. Use `component(...)` when purpose-built interaction, animation, simulation, or learner-controlled state would make an important relationship materially clearer or more inspectable.
 7. For continuation, run `progress --textbook <id>` and use the summary to choose review, repair, or new material. Do not read raw `events.jsonl` unless the summary is insufficient.
 8. Verify with `doctor --textbook <id> --record`. Tutor Kit writes `compile-result.md`; do not duplicate its result in your notes.
-9. Start the Tutor Kit app with `tutor dev` after creating a new learner workspace or when the user asks to study the material. Keep it running and report the localhost URL; do not restart after every edit.
+9. Start the Tutor Kit app with the wrapper's `dev` command after creating the central learner library or when the user asks to study the material. Keep it running and report the localhost URL; do not restart after every edit.
 
 ## Course state
 
@@ -100,5 +100,7 @@ Use the bundled wrapper so the authoring API, compiler, and UI stay on the same 
 ```bash
 node <skill-dir>/scripts/tutor-kit.mjs <command>
 ```
+
+The wrapper stores every textbook in the central learner library by default. Pass `--cwd <path>` for a separate workspace.
 
 Use a separately installed `tutor` command only on explicit user request.

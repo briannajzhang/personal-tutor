@@ -23,6 +23,8 @@ node <skill-dir>/scripts/tutor-kit.mjs <command>
 
 The wrapper delegates to the bundled Tutor Kit CLI at `assets/tutor-kit/dist/cli/index.js`, which keeps the SDK, CLI, and UI aligned with the installed skill.
 
+The wrapper uses `~/.personal-tutor` as the central learner library. Set `PERSONAL_TUTOR_HOME` to choose another default location. Pass `--cwd <path>` when the user wants a separate workspace.
+
 Use a workspace command only when the user explicitly wants a separately installed Tutor Kit CLI:
 
 ```bash
@@ -35,7 +37,7 @@ During local Tutor Kit development in this source repo, this is also valid:
 npm run tutor -- <command>
 ```
 
-Use `--cwd <path>` when the learner workspace is not the shell cwd.
+The separately installed `tutor` command still uses the shell cwd unless you pass `--cwd <path>`.
 
 ## Core Commands
 

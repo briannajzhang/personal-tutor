@@ -58,8 +58,11 @@ packages/tutor-kit/         TypeScript SDK, CLI, compile checks, dev server
 tests/                      scaffold and validation tests
 ```
 
-Learner memory is not stored in this repo by default. The skill treats the
-user's current folder as the learner workspace and creates visible files there.
+The skill stores textbooks and learner memory in one central library at
+`~/.personal-tutor`. Set `PERSONAL_TUTOR_HOME` to choose another location. Pass
+`--cwd <path>` to the bundled wrapper when you want a separate Tutor Kit
+workspace. The standalone Tutor Kit package still uses the current folder by
+default.
 
 Tutor Kit keeps the model-facing workflow compact:
 
