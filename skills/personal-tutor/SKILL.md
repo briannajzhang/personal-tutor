@@ -11,6 +11,10 @@ After any needed intake or intentional inference, create durable Tutor Kit mater
 
 For a clearly new broad course, read `references/lesson-generation.md` before running `brief`, reading teaching samples, planning, or authoring. When the request leaves the learner's intended use or course direction unclear, ask one course-shaping question unless the learner asks the agent to choose or explicitly says not to ask. Do not treat unrelated workspace state or generic learner defaults as resolving that uncertainty.
 
+During preflight, identify whether the intended learning outcome requires learners to recognize, compare, or diagnose something from its real-world appearance.
+
+When it does, treat representative visual evidence as part of the instructional requirement rather than optional enrichment, and read `references/lesson-authoring.md` before authoring. Detailed choices about image type, sourcing, generation, placement, and scaffolding remain authoring decisions. Do not replace required appearance evidence with prose, diagrams, or schematic illustrations solely because they are easier to author or compile.
+
 For continuation, focused durable material, or source-constrained work, inspect relevant state or sources when useful.
 
 ## Voice
