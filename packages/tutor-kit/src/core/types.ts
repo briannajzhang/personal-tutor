@@ -335,6 +335,7 @@ export interface TextbookModule {
 }
 
 export interface ValidationIssue {
+  textbookId?: string;
   file?: string;
   path?: string;
   message: string;

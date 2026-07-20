@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadTextbooks, resolveWorkspace } from "../compile/discover.js";
-import type { QuizBlock, TutorBlock } from "../core/types.js";
+import type { LoadedChapter, QuizBlock, TutorBlock } from "../core/types.js";
+import { loadReadingProgress, summarizeReadingProgress, type ReadingProgressSummary } from "../server/reading-progress.js";
 
 interface ProgressOptions {
   textbookId?: string;
@@ -36,6 +37,7 @@ export interface ProgressSummary {
   coding: CodingProgress[];
   glossaryAgain: Array<{ termId: string; count: number }>;
   openHighlights: number;
+  reading: Array<ReadingProgressSummary & { textbookId: string }>;
   nextMove: string;
 }
 
@@ -50,12 +52,17 @@ export async function summarizeProgress(cwd: string, options: ProgressOptions = 
   const workspace = await resolveWorkspace(cwd);
   const { events, invalidCount } = readEvents(join(workspace.dataDir, "events.jsonl"));
   const filtered = events.filter((event) => !options.textbookId || event.textbookId === options.textbookId);
-  const questionTags = await loadQuestionTags(cwd, options);
+  const loaded = await loadTextbooks(cwd, options);
+  const questionTags = loadQuestionTags(loaded.chapters);
   const quizzes = summarizeQuizzes(filtered);
   const weakTags = summarizeWeakTags(filtered, questionTags);
   const coding = summarizeCoding(filtered);
   const glossaryAgain = summarizeGlossary(filtered);
   const openHighlights = countOpenHighlights(filtered);
+  const reading = loaded.textbooks.map(({ textbook }) => ({
+    textbookId: textbook.id,
+    ...summarizeReadingProgress(loadReadingProgress(workspace.dataDir, textbook.id), textbook)
+  }));
 
   return {
     textbookId: options.textbookId,
@@ -67,6 +74,7 @@ export async function summarizeProgress(cwd: string, options: ProgressOptions = 
     coding,
     glossaryAgain,
     openHighlights,
+    reading,
     nextMove: chooseNextMove(filtered.length, weakTags, coding, glossaryAgain)
   };
 }
@@ -84,6 +92,10 @@ export function formatProgress(summary: ProgressSummary): string {
     for (const quiz of summary.quizzes) {
       lines.push(`  ${quiz.textbookId}/${quiz.chapterId}/${quiz.quizId}: latest ${quiz.latestScore}/${quiz.total}, best ${quiz.bestScore}/${quiz.total}, ${quiz.attempts} attempts`);
     }
+  }
+  for (const reading of summary.reading) {
+    const continueLabel = reading.continueChapter ? `, continue: ${reading.continueChapter.title}` : "";
+    lines.push(`reading ${reading.textbookId}: ${reading.completedChapters}/${reading.totalChapters} chapters complete (${reading.percent}%)${continueLabel}`);
   }
   if (summary.weakTags.length > 0) {
     lines.push(`weak tags: ${summary.weakTags.map(({ tag, misses }) => `${tag} (${misses})`).join(", ")}`);
@@ -118,10 +130,9 @@ function readEvents(path: string): { events: EventRecord[]; invalidCount: number
   return { events, invalidCount };
 }
 
-async function loadQuestionTags(cwd: string, options: ProgressOptions): Promise<Map<string, string[]>> {
+function loadQuestionTags(chapters: LoadedChapter[]): Map<string, string[]> {
   const tags = new Map<string, string[]>();
-  const loaded = await loadTextbooks(cwd, options);
-  for (const candidate of loaded.chapters) {
+  for (const candidate of chapters) {
     for (const block of collectBlocks(candidate.chapter.sections)) {
       if (!isQuizBlock(block)) continue;
       for (const question of block.props.questions) {
