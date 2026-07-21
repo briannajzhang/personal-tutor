@@ -202,22 +202,45 @@ h1 {
   line-height: 1.55;
   margin-top: 8px;
 }
+.chapter-row-status {
+  display: block;
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  margin-top: 6px;
+  opacity: .72;
+  text-align: right;
+}
 .row-count {
   color: var(--muted-2);
   font-size: 13px;
   white-space: nowrap;
 }
+.row-meta-stack {
+  display: grid;
+  justify-items: end;
+}
 .library-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, 260px);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 44px;
   align-items: center;
   border-bottom: 1px solid var(--line);
   padding: 24px 0;
 }
+.library-row-count {
+  text-align: right;
+}
+.library-row-title-line {
+  display: block;
+}
 .library-row-main {
   display: block;
   width: 100%;
+}
+.library-row-title-button {
+  min-width: 0;
   border: 0;
   background: transparent;
   color: var(--ink);
@@ -225,58 +248,94 @@ h1 {
   padding: 0;
   text-align: left;
 }
-.library-row-main:hover .row-title,
-.library-row-main:focus-visible .row-title {
+.library-row-title-button:hover .row-title,
+.library-row-title-button:focus-visible .row-title {
   color: var(--accent-2);
 }
-.library-row-main:focus-visible,
-.course-continue:focus-visible,
+.library-row-title-button:focus-visible,
+.textbook-row-action:focus-visible,
 .chapter-completion-button:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  outline-offset: 4px;
-}
-.library-row-side {
-  display: grid;
-  justify-items: end;
-  gap: 10px;
+  outline-offset: 3px;
 }
 .course-progress {
-  width: 100%;
+  width: min(100%, 520px);
   display: grid;
   gap: 6px;
 }
 .course-progress-rail {
   display: block;
   width: 100%;
-  height: 3px;
+  height: 4px;
+  border: 0;
   overflow: hidden;
-  background: color-mix(in srgb, var(--line) 56%, transparent);
+  background: color-mix(in srgb, var(--line) 34%, transparent);
 }
 .course-progress-rail > span {
   display: block;
   height: 100%;
-  background: var(--accent);
+  background: var(--accent-2);
 }
 .course-progress-label {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px;
   color: var(--muted-2);
-  font-size: 11px;
-  text-align: right;
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 10px;
 }
-.course-continue,
+.course-progress-separator {
+  color: var(--muted-2);
+}
+.course-progress-list {
+  margin-top: 8px;
+  max-width: 520px;
+}
+.textbook-row-action,
 .chapter-completion-button {
   min-height: 44px;
-  border: 1px solid var(--ink);
-  background: var(--ink);
-  color: var(--paper);
+  border: 0;
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 560;
+  padding: 8px 0;
 }
-.course-continue:hover,
-.chapter-completion-button:hover {
-  background: var(--accent-2);
-  border-color: var(--accent-2);
+.textbook-row-action {
+  margin: -4px 0;
+  white-space: nowrap;
+}
+.course-progress-label .textbook-row-action {
+  min-height: auto;
+  color: inherit;
+  font-weight: inherit;
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+.chapter-completion-button {
+  padding-left: 10px;
+}
+.textbook-row-action:hover {
+  background: transparent;
+  color: var(--accent-2);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.progress-check {
+  color: var(--accent);
+}
+.next-up-label {
+  color: var(--accent-2);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .08em;
+  opacity: 1;
 }
 .repair-label,
 .course-progress-kicker {
@@ -302,25 +361,20 @@ h1 {
   margin-top: 10px;
   overflow-wrap: anywhere;
 }
-.course-progress-panel {
+.chapter-progress-block {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 42px;
-  align-items: center;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  margin: -10px 0 34px;
-  padding: 20px 0;
+  gap: 8px;
+  justify-items: start;
+  margin: 20px 0 -9px;
 }
-.course-progress-panel > div {
-  display: grid;
-  gap: 10px;
+.chapter-progress-count {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.45;
 }
-.course-progress-panel .course-progress-kicker {
-  margin: 0;
-}
-.course-progress-panel .course-progress-rail {
-  max-width: 520px;
+.chapter-progress-separator {
+  color: var(--muted-2);
 }
 .chapter-layout {
   display: grid;
@@ -481,25 +535,35 @@ h1 {
   min-width: 0;
 }
 .chapter-footer {
-  border-top: 1px solid var(--line);
-  margin-top: 50px;
-  padding-top: 24px;
+  margin-top: 26px;
 }
 .chapter-completion {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  justify-content: space-between;
   gap: 24px;
   align-items: center;
-  background: var(--panel);
-  padding: 20px 22px;
+  padding: 0;
 }
-.chapter-completion > div {
-  display: grid;
-  gap: 6px;
+.chapter-completion-state {
+  color: var(--ink-soft);
+  font-size: 16px;
+  font-weight: 560;
+  line-height: 1.45;
 }
-.chapter-completion-button.is-complete {
-  background: transparent;
+.chapter-completion-state.is-complete {
   color: var(--ink);
+}
+.chapter-completion-button {
+  min-height: auto;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 7px 11px;
+}
+.chapter-completion-button:hover {
+  border-color: var(--accent-2);
+  background: var(--accent-2);
+  color: var(--paper);
 }
 .chapter-completion-button:disabled {
   cursor: progress;
@@ -509,7 +573,9 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 24px;
-  margin-top: 28px;
+  border-top: 1px solid var(--line);
+  margin-top: 26px;
+  padding-top: 28px;
 }
 .chapter-navigation-button {
   display: grid;

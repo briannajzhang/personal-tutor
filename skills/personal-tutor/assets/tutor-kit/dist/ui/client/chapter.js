@@ -84,12 +84,9 @@ function renderChapterFooter(chapter) {
   return \`
     <footer class="chapter-footer">
       <div class="chapter-completion">
-        <div>
-          <span class="chapter-navigation-label">Reading progress</span>
-          <strong data-completion-label>\${chapter.chapterCompleted ? "Chapter complete" : "Finished this chapter?"}</strong>
-        </div>
-        <button class="chapter-completion-button \${chapter.chapterCompleted ? "is-complete" : ""}" type="button" aria-pressed="\${chapter.chapterCompleted}" data-chapter-completion>
-          \${chapter.chapterCompleted ? "Mark as not complete" : "Mark chapter complete"}
+        <strong class="chapter-completion-state \${chapter.chapterCompleted ? "is-complete" : ""}" data-completion-label>\${chapter.chapterCompleted ? "Chapter complete" : "Finished this chapter?"}</strong>
+        <button class="chapter-completion-button \${chapter.chapterCompleted ? "is-complete" : ""}" type="button" aria-pressed="\${chapter.chapterCompleted}" aria-label="\${chapter.chapterCompleted ? "Mark chapter incomplete" : "Mark chapter complete"}" data-chapter-completion>
+          \${chapter.chapterCompleted ? "Mark incomplete" : "Mark chapter complete"}
         </button>
         <span class="sr-only" aria-live="polite" data-completion-status></span>
       </div>
@@ -124,8 +121,11 @@ function bindChapterCompletion(textbookId, chapterId, completed) {
       isComplete = result.summary.completedChapterIds.includes(chapterId);
       button.classList.toggle("is-complete", isComplete);
       button.setAttribute("aria-pressed", String(isComplete));
-      button.textContent = isComplete ? "Mark as not complete" : "Mark chapter complete";
-      document.querySelector("[data-completion-label]").textContent = isComplete ? "Chapter complete" : "Finished this chapter?";
+      button.setAttribute("aria-label", isComplete ? "Mark chapter incomplete" : "Mark chapter complete");
+      button.textContent = isComplete ? "Mark incomplete" : "Mark chapter complete";
+      const label = document.querySelector("[data-completion-label]");
+      label.classList.toggle("is-complete", isComplete);
+      label.textContent = isComplete ? "Chapter complete" : "Finished this chapter?";
       document.querySelector("[data-completion-status]").textContent = isComplete ? "Chapter marked complete." : "Chapter marked not complete.";
     } catch (error) {
       document.querySelector("[data-completion-status]").textContent = error?.message ?? "Could not update progress.";
