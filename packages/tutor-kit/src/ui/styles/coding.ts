@@ -373,27 +373,33 @@ body.route-loading {
     gap: 10px;
     padding: 20px 0;
   }
+  .row-meta-stack {
+    justify-items: start;
+  }
+  .chapter-row-status {
+    text-align: left;
+  }
   .row-title {
     font-size: 21px;
   }
-  .library-row,
-  .course-progress-panel,
   .chapter-completion {
-    grid-template-columns: 1fr;
     gap: 18px;
   }
-  .library-row-side {
-    justify-items: start;
+  .library-row {
+    align-items: start;
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
-  .library-row-side .course-progress {
-    width: min(100%, 340px);
-  }
-  .course-progress-label {
+  .library-row-count {
+    padding-top: 0;
     text-align: left;
   }
-  .course-progress-panel .course-continue,
-  .chapter-completion-button {
-    width: 100%;
+  .textbook-row-action {
+    margin: 0;
+  }
+  .chapter-completion {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .empty-state,
   .not-found-panel {
