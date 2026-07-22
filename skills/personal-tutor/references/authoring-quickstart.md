@@ -22,7 +22,7 @@ node <skill-dir>/scripts/tutor-kit.mjs publish <id>
 node <skill-dir>/scripts/tutor-kit.mjs dev
 ```
 
-`brief` reports textbooks, chapters, useful authoring files, and a small learner activity summary. `begin` creates or resumes an isolated work area. Edit only that work area. `publish` verifies it, archives any prior source, and replaces the published textbook. A failed publish leaves the published textbook unchanged and keeps the work area for repair.
+`brief` reports textbooks, chapters, useful authoring files, and a small learner activity summary. `begin` initializes a missing central library and creates or resumes an isolated work area. Edit only that work area. `publish` verifies the work, installs it, and loads it from the published location before reporting success. A failed publish restores the previous textbook and keeps the work area for repair. `dev` reports textbook load issues before it starts. It stops when no textbook can load and allows a mixed library to start with warnings.
 
 ## Source layout
 

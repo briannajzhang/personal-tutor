@@ -9,6 +9,7 @@ import { createWorkspaceBrief, formatWorkspaceBrief } from "./brief.js";
 import { formatProgress, summarizeProgress } from "./progress.js";
 import { recordDoctorEvidence } from "./evidence.js";
 import { beginTextbook, publishTextbook } from "./publication.js";
+import { reportDevTextbookIssues } from "./dev.js";
 async function main() {
     const args = parseArgs(process.argv.slice(2));
     const [command, subcommand, ...rest] = args.command;
@@ -146,6 +147,7 @@ async function main() {
         return;
     }
     if (command === "dev") {
+        await reportDevTextbookIssues(args.cwd);
         const server = await startDevServer({ cwd: args.cwd, port: args.port });
         console.log(`Tutor UI running at ${server.url}`);
         console.log("Press Ctrl+C to stop.");

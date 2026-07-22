@@ -1,12 +1,14 @@
 import { cpSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { compileWorkspace } from "../compile/compile.js";
-import { invalidateWorkspaceCaches, resolveWorkspace } from "../compile/discover.js";
+import { invalidateWorkspaceCaches, loadTextbooks, resolveWorkspace } from "../compile/discover.js";
 import { verifyCodingProblems } from "../compile/verify-coding.js";
 import { recordDoctorEvidence } from "./evidence.js";
 import { addTextbook, initWorkspace } from "./workspace.js";
 export async function beginTextbook(cwd, textbookId, title) {
     validateTextbookId(textbookId);
+    initWorkspace(cwd);
+    invalidateWorkspaceCaches(cwd);
     const workspace = await resolveWorkspace(cwd);
     const workDir = join(workspace.cwd, "tutor-work", textbookId);
     if (existsSync(workDir))
@@ -49,6 +51,7 @@ export async function publishTextbook(cwd, textbookId) {
     const preparedDir = join(temporaryRoot, textbookId);
     const publishedDir = join(workspace.textbooksDir, textbookId);
     let archivedDir = null;
+    let installedPublishedSource = false;
     try {
         cpSync(sourceDir, preparedDir, { recursive: true });
         if (existsSync(publishedDir)) {
@@ -56,16 +59,27 @@ export async function publishTextbook(cwd, textbookId) {
             mkdirSync(dirname(archivedDir), { recursive: true });
             renameSync(publishedDir, archivedDir);
         }
-        try {
-            renameSync(preparedDir, publishedDir);
+        renameSync(preparedDir, publishedDir);
+        installedPublishedSource = true;
+        invalidateWorkspaceCaches(workspace.cwd);
+        const loaded = await loadTextbooks(workspace.cwd, { textbookId });
+        const found = loaded.textbooks.some(({ textbook }) => textbook.id === textbookId);
+        if (loaded.issues.length > 0 || !found) {
+            const details = loaded.issues.length > 0
+                ? loaded.issues.map((issue) => issue.message).join("\n")
+                : `Textbook not found: ${textbookId}`;
+            throw new Error(`Published textbook ${textbookId} could not be loaded from ${publishedDir}:\n${details}`);
         }
-        catch (error) {
-            if (archivedDir && !existsSync(publishedDir)) {
-                renameSync(archivedDir, publishedDir);
-                archivedDir = null;
-            }
-            throw error;
+    }
+    catch (error) {
+        if (installedPublishedSource) {
+            rmSync(publishedDir, { recursive: true, force: true });
         }
+        if (archivedDir && !existsSync(publishedDir)) {
+            renameSync(archivedDir, publishedDir);
+        }
+        invalidateWorkspaceCaches(workspace.cwd);
+        throw error;
     }
     finally {
         rmSync(temporaryRoot, { recursive: true, force: true });
