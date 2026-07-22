@@ -31,6 +31,13 @@ test("custom component mounts in the lesson DOM and cleans up", async ({ page })
     "data-asset-url",
     "/__tutor-assets/textbooks/getting-started/assets/example.txt"
   );
+  const paletteChip = host.locator(".palette-chip");
+  await expect(paletteChip).toHaveCSS("color", "rgb(63, 111, 143)");
+  await expect(paletteChip).toHaveCSS("background-color", "rgb(226, 234, 224)");
+  await expect(paletteChip).toHaveCSS("border-left-color", "rgb(98, 65, 114)");
+  await expect(paletteChip).toHaveAttribute("data-green-token", "#2f7d46");
+  await expect(paletteChip).toHaveAttribute("data-green-soft-token", "#e2eae0");
+  await expect(paletteChip).toHaveAttribute("data-category3-strong-token", "#624172");
 
   const slider = host.getByRole("slider");
   await slider.fill("10");

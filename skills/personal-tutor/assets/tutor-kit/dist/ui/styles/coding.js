@@ -211,7 +211,7 @@ export function codingCss() {
   font-style: italic;
 }
 .text-highlight {
-  background: color-mix(in srgb, #f4d35e 62%, transparent);
+  background: color-mix(in srgb, var(--tutor-color-warning-soft) 62%, transparent);
   border-radius: 3px;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
@@ -219,8 +219,8 @@ export function codingCss() {
   transition: background-color 160ms ease, box-shadow 160ms ease;
 }
 .text-highlight.focused {
-  background: color-mix(in srgb, #f4d35e 88%, transparent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, #d6a932 56%, transparent);
+  background: color-mix(in srgb, var(--tutor-color-warning-soft) 88%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tutor-color-warning-border) 56%, transparent);
 }
 .math {
   color: var(--accent-2);
