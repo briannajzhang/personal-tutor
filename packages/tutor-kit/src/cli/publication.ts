@@ -28,6 +28,8 @@ export interface PublishTextbookResult {
 
 export async function beginTextbook(cwd: string, textbookId: string, title: string): Promise<BeginTextbookResult> {
   validateTextbookId(textbookId);
+  initWorkspace(cwd);
+  invalidateWorkspaceCaches(cwd);
   const workspace = await resolveWorkspace(cwd);
   const workDir = join(workspace.cwd, "tutor-work", textbookId);
   if (existsSync(workDir)) return { workDir, resumed: true };

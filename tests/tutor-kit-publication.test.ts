@@ -10,6 +10,18 @@ import { linkTutorKit } from "./helpers/tutor-kit.ts";
 
 test.afterEach(() => clearWorkspaceCaches());
 
+test("begin initializes a new central library before creating its work area", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-publication-"));
+
+  const begun = await beginTextbook(dir, "data-modeling", "Data Modeling");
+
+  assert.equal(existsSync(join(dir, "package.json")), true);
+  assert.equal(existsSync(join(dir, "tutor.config.ts")), true);
+  assert.equal(existsSync(join(dir, "node_modules", "tutor-kit")), true);
+  assert.equal(existsSync(join(dir, "tutor-data", "events.jsonl")), true);
+  assert.equal(existsSync(join(begun.workDir, "textbooks", "data-modeling", "textbook.ts")), true);
+});
+
 test("begin creates an isolated work area and publish moves verified source into the library", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-publication-"));
   initWorkspace(dir);
