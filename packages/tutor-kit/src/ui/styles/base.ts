@@ -523,8 +523,8 @@ h1 {
   gap: 8px;
   align-items: start;
   border: 0;
-  border-left: 3px solid color-mix(in srgb, var(--tutor-color-warning) 86%, var(--line));
-  background: var(--tutor-color-warning-soft);
+  border-left: 3px solid color-mix(in srgb, #c99a2e 86%, var(--line));
+  background: color-mix(in srgb, #f4d35e 26%, var(--paper));
   color: var(--ink-soft);
   cursor: pointer;
   font: inherit;
