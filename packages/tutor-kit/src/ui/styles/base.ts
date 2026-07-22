@@ -661,6 +661,7 @@ h1 {
   padding-left: 22px;
 }
 .code-block {
+  position: relative;
   overflow: auto;
   margin: 0 0 12px;
   padding: 14px 16px;
@@ -670,6 +671,28 @@ h1 {
   color: var(--ink-soft);
   font-size: 13px;
   line-height: 1.55;
+}
+.code-block.syntax-highlighted {
+  color: var(--ink-soft);
+}
+.code-block.syntax-highlighted code {
+  display: block;
+  min-width: max-content;
+}
+.code-block.syntax-highlighted::before {
+  content: attr(data-syntax-language);
+  position: sticky;
+  left: 100%;
+  float: right;
+  margin: -1px 0 4px 12px;
+  padding: 0;
+  color: var(--muted-2);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.3;
+  text-transform: uppercase;
 }
 .math-block {
   max-width: 100%;
@@ -705,6 +728,15 @@ h1 {
   font-weight: 560;
   letter-spacing: 0;
 }
+.diagram-frame {
+  position: relative;
+}
+.diagram-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
 .diagram-body,
 .chart-body {
   overflow: auto;
@@ -713,10 +745,103 @@ h1 {
   border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
   border-radius: 6px;
 }
+.diagram-body {
+  display: grid;
+  justify-items: center;
+}
 .diagram-body svg,
 .chart-svg {
   display: block;
   max-width: 100%;
+}
+.diagram-body svg {
+  height: auto;
+}
+.diagram-icon-button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.diagram-icon-button:hover,
+.diagram-icon-button:focus-visible {
+  color: var(--accent-2);
+}
+.diagram-icon-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 48%, transparent);
+  outline-offset: 2px;
+}
+.diagram-icon-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.has-diagram-overlay {
+  overflow: hidden;
+}
+.diagram-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  padding: 28px;
+  background: rgba(2, 2, 2, .62);
+}
+.diagram-overlay-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .28);
+}
+.diagram-overlay-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+.diagram-overlay-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diagram-overlay-close {
+  flex: 0 0 auto;
+}
+.diagram-overlay-body {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.diagram-overlay-body svg {
+  display: block;
+  width: auto;
+  max-width: none;
+  height: auto;
+  max-height: none;
 }
 .diagram-source,
 .diagram-error {

@@ -56,6 +56,7 @@ async function renderChapter(textbookId, chapterId) {
   bindChapterCompletion(textbookId, chapterId, chapter.chapterCompleted);
   bindChapterNavigation(textbookId);
   bindGlossaryOverviewLinks();
+  void highlightCodeBlocks();
   bindGlossaryStarControls(textbookId);
   bindHighlighter(chapter);
   applyChapterHighlights(chapter);
@@ -64,6 +65,7 @@ async function renderChapter(textbookId, chapterId) {
   bindCodingProblems(chapter);
   scheduleTransformationLayouts();
   void renderDiagrams();
+  bindDiagramExpanders();
   mountRenderedComponents();
   if (document.fonts?.ready) void document.fonts.ready.then(scheduleTransformationLayouts);
   finishRouteLoad(token);
@@ -397,11 +399,80 @@ function renderDiagram(block) {
   return \`
     <article class="block diagram" data-diagram="\${escapeAttr(block.id)}"\${highlightUnsupportedAttrs()}>
       \${title}
-      <div class="diagram-body" data-diagram-body>
-        <pre class="diagram-source code-block" data-diagram-source>\${escapeHtml(block.props.body)}</pre>
+      <div class="diagram-frame">
+        <div class="diagram-actions">
+          <button class="diagram-icon-button diagram-expand-button" type="button" data-diagram-expand aria-label="Expand diagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M8 3H3v5"></path>
+              <path d="M3 3l7 7"></path>
+              <path d="M16 21h5v-5"></path>
+              <path d="M21 21l-7-7"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="diagram-body" data-diagram-body>
+          <pre class="diagram-source code-block" data-diagram-source>\${escapeHtml(block.props.body)}</pre>
+        </div>
       </div>
     </article>
   \`;
+}
+
+function bindDiagramExpanders() {
+  document.querySelectorAll("[data-diagram-expand]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const diagram = button.closest("[data-diagram]");
+      if (!diagram) return;
+      openDiagramOverlay(diagram);
+    });
+  });
+}
+
+function openDiagramOverlay(diagram) {
+  const svg = diagram.querySelector("[data-diagram-body] svg");
+  if (!svg) return;
+  closeDiagramOverlay();
+  const title = diagram.querySelector(".diagram-title")?.textContent?.trim() || "Diagram";
+  const overlay = document.createElement("div");
+  overlay.className = "diagram-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", title);
+  overlay.dataset.diagramOverlay = "true";
+  overlay.innerHTML = \`
+    <div class="diagram-overlay-panel">
+      <div class="diagram-overlay-toolbar">
+        <div class="diagram-overlay-title">\${escapeHtml(title)}</div>
+        <button class="diagram-icon-button diagram-overlay-close" type="button" data-diagram-overlay-close aria-label="Close expanded diagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18 6L6 18"></path>
+            <path d="M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="diagram-overlay-body">\${svg.outerHTML}</div>
+    </div>
+  \`;
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeDiagramOverlay();
+  });
+  overlay.querySelector("[data-diagram-overlay-close]")?.addEventListener("click", closeDiagramOverlay);
+  document.body.append(overlay);
+  document.body.classList.add("has-diagram-overlay");
+  overlay.querySelector("[data-diagram-overlay-close]")?.focus();
+  window.addEventListener("keydown", handleDiagramOverlayKeydown);
+}
+
+function closeDiagramOverlay() {
+  const overlay = document.querySelector("[data-diagram-overlay]");
+  if (!overlay) return;
+  overlay.remove();
+  document.body.classList.remove("has-diagram-overlay");
+  window.removeEventListener("keydown", handleDiagramOverlayKeydown);
+}
+
+function handleDiagramOverlayKeydown(event) {
+  if (event.key === "Escape") closeDiagramOverlay();
 }
 
 async function renderDiagrams() {

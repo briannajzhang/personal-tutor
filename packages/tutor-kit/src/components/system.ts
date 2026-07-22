@@ -18,6 +18,8 @@ import { collectChapterBlocks } from "../core/traversal.js";
 
 const publicPrefix = "/__tutor-components/";
 const virtualPrefix = "\0tutor-component:";
+const syntaxRuntimePath = "/__tutor-assets/shiki/runtime.js";
+const syntaxRuntimeVirtualId = "\0tutor-syntax-highlighting-runtime";
 const reservedFrontendConfigKeys = ["root", "base", "appType", "server", "build"] as const;
 
 export interface ComponentRecord {
@@ -144,6 +146,39 @@ if (import.meta.hot) {
   };
 }
 
+function tutorSyntaxHighlightingPlugin(): Plugin {
+  return {
+    name: "tutor-kit-syntax-highlighting",
+    enforce: "pre",
+    resolveId(id) {
+      return id === syntaxRuntimePath ? syntaxRuntimeVirtualId : null;
+    },
+    load(id) {
+      if (id !== syntaxRuntimeVirtualId) return null;
+      return `import { bundledLanguages, createHighlighter } from "shiki/bundle/full";
+
+const theme = "github-light";
+const highlighterPromise = createHighlighter({ themes: [theme], langs: [] });
+const loadedLanguages = new Set();
+
+export function hasLanguage(language) {
+  return Boolean(bundledLanguages[String(language ?? "")]);
+}
+
+export async function highlightCode(code, language) {
+  const lang = String(language ?? "");
+  if (!hasLanguage(lang)) throw new Error("Unsupported syntax language: " + lang);
+  const highlighter = await highlighterPromise;
+  if (!loadedLanguages.has(lang)) {
+    await highlighter.loadLanguage(lang);
+    loadedLanguages.add(lang);
+  }
+  return highlighter.codeToHtml(String(code ?? ""), { lang, theme });
+}`;
+    }
+  };
+}
+
 async function componentViteConfig(
   cwd: string,
   registry: ComponentRegistry,
@@ -159,7 +194,7 @@ async function componentViteConfig(
     appType: "custom",
     publicDir: false,
     logLevel: "silent",
-    plugins: [tutorComponentPlugin(registry), ...plugins],
+    plugins: [tutorComponentPlugin(registry), tutorSyntaxHighlightingPlugin(), ...plugins],
     server: {
       middlewareMode: parentServer ? { server: parentServer } : true,
       fs: {
