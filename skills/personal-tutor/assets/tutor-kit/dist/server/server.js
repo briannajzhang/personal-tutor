@@ -411,18 +411,30 @@ function watchWorkspace(workspace) {
 }
 function watchTarget(path, options, invalidate) {
     try {
-        return [watch(path, options, invalidate)];
+        return [watchWithErrorHandler(path, options, invalidate)];
     }
     catch (error) {
         if (!options?.recursive)
             return [];
         try {
-            return [watch(path, invalidate)];
+            return [watchWithErrorHandler(path, undefined, invalidate)];
         }
         catch {
             return [];
         }
     }
+}
+function watchWithErrorHandler(path, options, invalidate) {
+    const watcher = options ? watch(path, options, invalidate) : watch(path, invalidate);
+    watcher.on("error", () => {
+        try {
+            watcher.close();
+        }
+        catch {
+            // Ignore unavailable file watching; requests still reload workspace state.
+        }
+    });
+    return watcher;
 }
 function closeWatchers(watchers) {
     for (const watcher of watchers) {
