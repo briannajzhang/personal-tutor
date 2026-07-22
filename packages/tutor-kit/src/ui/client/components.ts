@@ -112,7 +112,13 @@ function componentContext(component, record) {
 
 function componentTheme() {
   const styles = getComputedStyle(document.documentElement);
-  const names = ["--paper", "--panel", "--panel-soft", "--ink", "--ink-soft", "--muted", "--line", "--accent", "--accent-2"];
+  const baseNames = ["--paper", "--panel", "--panel-soft", "--ink", "--ink-soft", "--muted", "--line", "--accent", "--accent-2"];
+  const colorNames = ["red", "orange", "yellow", "green", "blue", "indigo", "violet", "success", "danger", "warning", "info", "category-1", "category-2", "category-3"];
+  const colorVariants = ["", "-soft", "-border", "-strong"];
+  const names = [
+    ...baseNames,
+    ...colorNames.flatMap((color) => colorVariants.map((variant) => \`--tutor-color-\${color}\${variant}\`))
+  ];
   return {
     mode: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
     tokens: Object.freeze(Object.fromEntries(names.map((name) => [name, styles.getPropertyValue(name).trim()])))

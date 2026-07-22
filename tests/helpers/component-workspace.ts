@@ -27,6 +27,12 @@ export function createComponentWorkspace(): string {
 .component-card { display: grid; gap: 12px; padding: 18px; }
 .component-card output { color: var(--tutor-color-accent); font-size: 1.5rem; font-weight: 650; }
 .component-card img { width: 18px; height: 18px; }
+.component-card .palette-chip {
+  background: var(--tutor-color-green-soft);
+  border: 1px solid var(--tutor-color-category-3-strong);
+  color: var(--tutor-color-info);
+  padding: 4px 6px;
+}
 `);
   writeFileSync(join(componentsDir, "explorer.tsx"), `import { renderToString } from "katex";
 import { defineComponent, type JsonValue } from "tutor-kit/client";
@@ -70,13 +76,19 @@ export default defineComponent<ExplorerProps>(async ({ root, props, signal, serv
   asset.dataset.assetUrl = services.assets.url("assets/example.txt");
   asset.dataset.pluginMessage = pluginMessage;
   asset.dataset.blockId = location.blockId;
+  const paletteChip = document.createElement("span");
+  paletteChip.className = "palette-chip";
+  paletteChip.textContent = "Theme palette";
+  paletteChip.dataset.greenToken = services.theme.tokens["--tutor-color-green"];
+  paletteChip.dataset.greenSoftToken = services.theme.tokens["--tutor-color-green-soft"];
+  paletteChip.dataset.category3StrongToken = services.theme.tokens["--tutor-color-category-3-strong"];
   const update = () => { output.value = String(Number(input.value) + step); };
   input.addEventListener("input", update, { signal });
   signal.addEventListener("abort", () => {
     document.documentElement.dataset.componentAbortCount = String(Number(document.documentElement.dataset.componentAbortCount ?? 0) + 1);
   });
   update();
-  card.append(label, input, output, math, image, asset);
+  card.append(label, input, output, math, image, asset, paletteChip);
   root.append(card);
   requestAnimationFrame(() => card.dataset.animated = "true");
   worker.postMessage(props.initialValue);

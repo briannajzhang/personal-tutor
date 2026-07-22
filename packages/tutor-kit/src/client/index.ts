@@ -20,6 +20,11 @@ export interface TutorComponentServices {
   };
   theme: {
     mode: "light" | "dark";
+    /**
+     * CSS theme tokens available to the lesson page, including Tutor Kit palette tokens
+     * such as "--tutor-color-success", "--tutor-color-blue-soft", and
+     * "--tutor-color-category-3-strong".
+     */
     tokens: Readonly<Record<string, string>>;
   };
 }

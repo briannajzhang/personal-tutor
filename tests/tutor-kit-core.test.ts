@@ -28,8 +28,17 @@ import {
   discoverTextbookFiles,
   resolveWorkspace
 } from "../packages/tutor-kit/dist/compile/discover.js";
+import { css } from "../packages/tutor-kit/dist/ui/styles.js";
 
 test.afterEach(() => clearWorkspaceCaches());
+
+test("Tutor Kit CSS exposes the component palette tokens", () => {
+  const stylesheet = css();
+  assert.match(stylesheet, /--tutor-color-red:\s*#a33b2f;/);
+  assert.match(stylesheet, /--tutor-color-blue-soft:\s*#e4e8e9;/);
+  assert.match(stylesheet, /--tutor-color-success:\s*#2f7d46;/);
+  assert.match(stylesheet, /--tutor-color-category-3-strong:\s*#624172;/);
+});
 
 function choiceQuestion(index: number, answer = "a") {
   return {

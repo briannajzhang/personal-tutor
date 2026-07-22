@@ -14,12 +14,30 @@ export default defineComponent(async ({ root }) => {
   root.innerHTML = `
     <style>
       .pressure-lab {
-        border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+        --pressure-lab-bg: var(--tutor-color-background);
+        --pressure-lab-surface: var(--tutor-color-surface);
+        --pressure-lab-text: var(--tutor-color-text);
+        --pressure-lab-muted: var(--tutor-color-text-muted);
+        --pressure-lab-border: var(--tutor-color-border);
+        --pressure-lab-accent: var(--tutor-color-info);
+        --pressure-lab-accent-soft: var(--tutor-color-info-soft);
+        --pressure-lab-accent-border: var(--tutor-color-info-border);
+        --pressure-lab-ok: var(--tutor-color-success);
+        --pressure-lab-ok-soft: var(--tutor-color-success-soft);
+        --pressure-lab-ok-border: var(--tutor-color-success-border);
+        --pressure-lab-warn: var(--tutor-color-warning);
+        --pressure-lab-warn-soft: var(--tutor-color-warning-soft);
+        --pressure-lab-warn-border: var(--tutor-color-warning-border);
+        --pressure-lab-danger: var(--tutor-color-danger);
+        --pressure-lab-danger-soft: var(--tutor-color-danger-soft);
+        --pressure-lab-danger-border: var(--tutor-color-danger-border);
+        border: 1px solid color-mix(in srgb, var(--pressure-lab-border) 72%, transparent);
         border-radius: 8px;
         padding: 16px;
         display: grid;
         gap: 16px;
-        background: color-mix(in srgb, Canvas 94%, CanvasText 6%);
+        background: color-mix(in srgb, var(--pressure-lab-surface) 72%, var(--pressure-lab-bg));
+        color: var(--pressure-lab-text);
       }
 
       .pressure-lab__controls {
@@ -38,11 +56,12 @@ export default defineComponent(async ({ root }) => {
 
       .pressure-lab__control input {
         width: 100%;
+        accent-color: var(--pressure-lab-accent);
       }
 
       .pressure-lab__hint {
         font-size: 0.92rem;
-        opacity: 0.78;
+        color: var(--pressure-lab-muted);
       }
 
       .pressure-lab__metrics {
@@ -52,15 +71,15 @@ export default defineComponent(async ({ root }) => {
       }
 
       .pressure-lab__metric {
-        border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+        border: 1px solid color-mix(in srgb, var(--pressure-lab-border) 78%, transparent);
         border-radius: 8px;
         padding: 12px;
-        background: Canvas;
+        background: var(--pressure-lab-bg);
       }
 
       .pressure-lab__label {
         font-size: 0.82rem;
-        opacity: 0.72;
+        color: var(--pressure-lab-muted);
       }
 
       .pressure-lab__value {
@@ -71,15 +90,30 @@ export default defineComponent(async ({ root }) => {
       }
 
       .pressure-lab__metric.ok .pressure-lab__value {
-        color: #177245;
+        color: var(--pressure-lab-ok);
       }
 
       .pressure-lab__metric.warn .pressure-lab__value {
-        color: #8a5a00;
+        color: var(--pressure-lab-warn);
       }
 
       .pressure-lab__metric.danger .pressure-lab__value {
-        color: #b42318;
+        color: var(--pressure-lab-danger);
+      }
+
+      .pressure-lab__metric.ok {
+        border-color: var(--pressure-lab-ok-border);
+        background: var(--pressure-lab-ok-soft);
+      }
+
+      .pressure-lab__metric.warn {
+        border-color: var(--pressure-lab-warn-border);
+        background: var(--pressure-lab-warn-soft);
+      }
+
+      .pressure-lab__metric.danger {
+        border-color: var(--pressure-lab-danger-border);
+        background: var(--pressure-lab-danger-soft);
       }
 
       .pressure-lab__bars {
@@ -103,28 +137,32 @@ export default defineComponent(async ({ root }) => {
         height: 12px;
         overflow: hidden;
         border-radius: 999px;
-        background: color-mix(in srgb, currentColor 10%, transparent);
+        background: color-mix(in srgb, var(--pressure-lab-border) 55%, transparent);
       }
 
       .pressure-lab__fill {
         height: 100%;
         width: 0%;
         border-radius: inherit;
-        background: #177245;
+        background: var(--pressure-lab-ok);
         transition: width 120ms ease, background-color 120ms ease;
       }
 
       .pressure-lab__fill.warn {
-        background: #b7791f;
+        background: var(--pressure-lab-warn);
       }
 
       .pressure-lab__fill.danger {
-        background: #c0362c;
+        background: var(--pressure-lab-danger);
       }
 
       .pressure-lab__readout {
-        border-left: 4px solid color-mix(in srgb, currentColor 28%, transparent);
-        padding-left: 12px;
+        border-left: 4px solid var(--pressure-lab-accent);
+        border-radius: 0 8px 8px 0;
+        padding: 10px 12px;
+        background: var(--pressure-lab-accent-soft);
+        box-shadow: inset 0 0 0 1px var(--pressure-lab-accent-border);
+        color: var(--pressure-lab-text);
       }
     </style>
     <div class="pressure-lab">

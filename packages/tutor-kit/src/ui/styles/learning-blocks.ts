@@ -23,7 +23,7 @@ export function learningBlocksCss(): string {
   padding: 18px;
 }
 .tutor-component-error {
-  border-left: 3px solid #a33b2f;
+  border-left: 3px solid var(--tutor-color-danger);
 }
 .tutor-component-error pre {
   overflow: auto;
@@ -233,12 +233,12 @@ export function learningBlocksCss(): string {
   margin-top: 3px;
 }
 .quiz-choice.correct {
-  border-color: color-mix(in srgb, #2f7d46 68%, var(--line));
-  background: color-mix(in srgb, #2f7d46 12%, var(--paper));
+  border-color: color-mix(in srgb, var(--tutor-color-success) 68%, var(--line));
+  background: var(--tutor-color-success-soft);
 }
 .quiz-choice.incorrect {
-  border-color: color-mix(in srgb, #a33b2f 62%, var(--line));
-  background: color-mix(in srgb, #a33b2f 10%, var(--paper));
+  border-color: color-mix(in srgb, var(--tutor-color-danger) 62%, var(--line));
+  background: var(--tutor-color-danger-soft);
 }
 .quiz-matching {
   display: grid;
@@ -303,10 +303,10 @@ export function learningBlocksCss(): string {
   opacity: 1;
 }
 .quiz-match-row.correct .quiz-match-select {
-  border-color: color-mix(in srgb, #2f7d46 52%, var(--line));
+  border-color: color-mix(in srgb, var(--tutor-color-success) 52%, var(--line));
 }
 .quiz-match-row.incorrect .quiz-match-select {
-  border-color: color-mix(in srgb, #a33b2f 52%, var(--line));
+  border-color: color-mix(in srgb, var(--tutor-color-danger) 52%, var(--line));
 }
 .quiz-match-result {
   min-width: 18px;
@@ -326,10 +326,10 @@ export function learningBlocksCss(): string {
   visibility: visible;
 }
 .quiz-match-row.correct .quiz-match-result {
-  color: #2f7d46;
+  color: var(--tutor-color-success);
 }
 .quiz-match-row.incorrect .quiz-match-result {
-  color: #a33b2f;
+  color: var(--tutor-color-danger);
 }
 .quiz-question[data-quiz-kind="matching"] > .quiz-explanation {
   margin-top: 10px;
@@ -345,8 +345,8 @@ export function learningBlocksCss(): string {
 .quiz-choice-feedback {
   margin-top: 12px;
   padding: 10px 12px;
-  border-left: 3px solid color-mix(in srgb, #a33b2f 58%, var(--line));
-  background: color-mix(in srgb, #a33b2f 8%, var(--paper));
+  border-left: 3px solid color-mix(in srgb, var(--tutor-color-danger) 58%, var(--line));
+  background: var(--tutor-color-danger-soft);
   color: var(--ink-soft);
 }
 .quiz-choice-feedback-label {
