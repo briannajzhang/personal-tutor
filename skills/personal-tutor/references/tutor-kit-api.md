@@ -300,6 +300,14 @@ export default defineComponent<ExplorerProps>(
 
 The context provides the mount `root`, the surrounding `host`, JSON props, an abort signal, the textbook and block location, and small services for textbook assets, events, and theme values. Cleanup must release every resource created by the component.
 
+### Component theme tokens
+
+Custom components should use Tutor Kit theme variables instead of hard-coded colors or local palettes.
+
+Use semantic variables when color carries meaning: `var(--tutor-color-success)`, `var(--tutor-color-danger)`, `var(--tutor-color-warning)`, and `var(--tutor-color-info)`. Use named or category variables for peer groups and series: `var(--tutor-color-orange)`, `var(--tutor-color-blue)`, `var(--tutor-color-violet)`, `var(--tutor-color-category-1)`, `var(--tutor-color-category-2)`, and `var(--tutor-color-category-3)`.
+
+Each palette color has `-soft`, `-border`, and `-strong` variants. Use `-soft` for subtle fills, `-border` for outlines, the base token for marks or icons, and `-strong` sparingly for high emphasis. The same values are available in code through `services.theme.tokens`, for example `services.theme.tokens["--tutor-color-violet"]`.
+
 Components may use TypeScript, JSX, CSS, JSON, local assets, workers, WebAssembly, literal dynamic imports, and packages installed in the workspace. Install packages in the workspace `package.json`. Tutor Kit does not install missing component packages.
 
 Add `tutor/frontend.config.ts` only when a framework or transform needs Vite configuration:
