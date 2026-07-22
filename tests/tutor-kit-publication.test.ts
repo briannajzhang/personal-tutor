@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -68,6 +68,24 @@ test("failed publication leaves published source and work area untouched", async
   writeFileSync(stagedPath, `import "./missing-module.js";\n${readFileSync(stagedPath, "utf8")}`);
 
   await assert.rejects(() => publishTextbook(dir, "getting-started"), /Tutor compile failed/);
+  assert.equal(readFileSync(publishedPath, "utf8"), original);
+  assert.equal(existsSync(begun.workDir), true);
+});
+
+test("publish restores the previous source when the installed textbook cannot load", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-publication-"));
+  initWorkspace(dir, { starter: true });
+  linkTutorKit(dir);
+  const publishedPath = join(dir, "textbooks", "getting-started", "textbook.ts");
+  const original = readFileSync(publishedPath, "utf8");
+  const begun = await beginTextbook(dir, "getting-started", "Getting Started");
+  rmSync(join(dir, "node_modules", "tutor-kit"), { recursive: true, force: true });
+
+  await assert.rejects(
+    () => publishTextbook(dir, "getting-started"),
+    /Published textbook getting-started could not be loaded/
+  );
+
   assert.equal(readFileSync(publishedPath, "utf8"), original);
   assert.equal(existsSync(begun.workDir), true);
 });
