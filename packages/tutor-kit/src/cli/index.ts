@@ -9,6 +9,7 @@ import { createWorkspaceBrief, formatWorkspaceBrief } from "./brief.js";
 import { formatProgress, summarizeProgress } from "./progress.js";
 import { recordDoctorEvidence } from "./evidence.js";
 import { beginTextbook, publishTextbook } from "./publication.js";
+import { reportDevTextbookIssues } from "./dev.js";
 
 interface ParsedArgs {
   cwd: string;
@@ -163,6 +164,7 @@ async function main(): Promise<void> {
   }
 
   if (command === "dev") {
+    await reportDevTextbookIssues(args.cwd);
     const server = await startDevServer({ cwd: args.cwd, port: args.port });
     console.log(`Tutor UI running at ${server.url}`);
     console.log("Press Ctrl+C to stop.");
