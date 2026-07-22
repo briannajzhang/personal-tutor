@@ -8,9 +8,11 @@ import { codingClientJs } from "./client/coding.js";
 import { shellClientJs } from "./client/shell.js";
 import { componentsClientJs } from "./client/components.js";
 import { highlightClientJs } from "./highlight-client.js";
+import { syntaxHighlightingClientJs } from "./client/syntax-highlighting.js";
 export function clientJs() {
     return [
         highlightClientJs(),
+        syntaxHighlightingClientJs(),
         coreClientJs(),
         componentsClientJs(),
         glossaryClientJs(),

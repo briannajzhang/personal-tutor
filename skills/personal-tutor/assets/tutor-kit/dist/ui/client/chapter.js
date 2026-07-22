@@ -56,6 +56,7 @@ async function renderChapter(textbookId, chapterId) {
   bindChapterCompletion(textbookId, chapterId, chapter.chapterCompleted);
   bindChapterNavigation(textbookId);
   bindGlossaryOverviewLinks();
+  void highlightCodeBlocks();
   bindGlossaryStarControls(textbookId);
   bindHighlighter(chapter);
   applyChapterHighlights(chapter);

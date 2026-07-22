@@ -661,6 +661,7 @@ h1 {
   padding-left: 22px;
 }
 .code-block {
+  position: relative;
   overflow: auto;
   margin: 0 0 12px;
   padding: 14px 16px;
@@ -670,6 +671,28 @@ h1 {
   color: var(--ink-soft);
   font-size: 13px;
   line-height: 1.55;
+}
+.code-block.syntax-highlighted {
+  color: var(--ink-soft);
+}
+.code-block.syntax-highlighted code {
+  display: block;
+  min-width: max-content;
+}
+.code-block.syntax-highlighted::before {
+  content: attr(data-syntax-language);
+  position: sticky;
+  left: 100%;
+  float: right;
+  margin: -1px 0 4px 12px;
+  padding: 0;
+  color: var(--muted-2);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.3;
+  text-transform: uppercase;
 }
 .math-block {
   max-width: 100%;
