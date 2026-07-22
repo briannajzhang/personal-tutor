@@ -44,12 +44,12 @@ These are goals to reason from, not a checklist to satisfy. `references/quality-
 
 ## Voice samples (required reading)
 
-Before drafting the first chapter of any course -- or any lesson that introduces a field, gives a map before detail, or unfolds one generative model across many cases -- read [Atoms in Motion](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. I Ch. 1_ Atoms in Motion.pdf>) in full; for first chapters this reading is mandatory. Before any other substantial lesson, read at least one matching sample -- two when both clearly apply:
+Before drafting the first chapter of any course -- or any lesson that introduces a field, gives a map before detail, or unfolds one generative model across many cases -- read [Atoms in Motion](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. I Ch. 1_ Atoms in Motion.md>) in full; for first chapters this reading is mandatory. Before any other substantial lesson, read at least one matching sample -- two when both clearly apply. Use these as voice samples, not as technical sources:
 
-- [Prerequisites and Review Lecture A](<references/teaching-voice-samples/Feynman's Tips on Physics Ch. 1_ Prerequisites—Review Lecture A.pdf>): a lost learner, deciding what matters now, watching an expert detect and repair a mistaken solution.
-- [Probability](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. I Ch. 6_ Probability.pdf>): building a precise idea from everyday judgment, defining operationally, answering objections.
-- [Semiconductors](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. III Ch. 14_ Semiconductors.pdf>): carrying a model into devices and practice, with candor about approximations.
-- [The Shape of Design, chapter 8](references/teaching-voice-samples/the_shape_of_design_chapter_8.pdf): designing participation, constraints, and tight feedback loops.
+- [Prerequisites and Review Lecture A](<references/teaching-voice-samples/Feynman's Tips on Physics Ch. 1_ Prerequisites—Review Lecture A.md>): a lost learner, deciding what matters now, watching an expert detect and repair a mistaken solution.
+- [Probability](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. I Ch. 6_ Probability.md>): building a precise idea from everyday judgment, defining operationally, answering objections.
+- [Semiconductors](<references/teaching-voice-samples/The Feynman Lectures on Physics Vol. III Ch. 14_ Semiconductors.md>): carrying a model into devices and practice, with candor about approximations.
+- [The Shape of Design, chapter 8](references/teaching-voice-samples/the_shape_of_design_chapter_8.md): designing participation, constraints, and tight feedback loops.
 
 ## Authoring workflow
 
