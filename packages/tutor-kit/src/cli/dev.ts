@@ -20,7 +20,9 @@ export function formatDevTextbookIssues(issues: ValidationIssue[]): string {
   for (const issue of issues) {
     const location = issue.file ? ` (${issue.file})` : "";
     lines.push(`- ${issue.textbookId ?? "workspace"}${location}`);
-    for (const line of issue.message.split("\n")) lines.push(`  ${line}`);
+    const detail = issue.message.split("\n").find((line) => line.trim().length > 0)?.trim()
+      ?? "This textbook could not be loaded.";
+    lines.push(`  ${detail}`);
   }
   return lines.join("\n");
 }

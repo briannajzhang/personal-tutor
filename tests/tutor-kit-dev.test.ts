@@ -26,6 +26,7 @@ test("dev reports load issues and stops when no textbooks can load", async () =>
   assert.match(reports[0] ?? "", /textbook load issue before starting the Tutor UI/);
   assert.match(reports[0] ?? "", /data-modeling/);
   assert.match(reports[0] ?? "", /Cannot find package 'tutor-kit'/);
+  assert.doesNotMatch(reports[0] ?? "", /node:internal/);
 
   const cli = join(process.cwd(), "packages", "tutor-kit", "dist", "cli", "index.js");
   const result = spawnSync(process.execPath, [cli, "--cwd", dir, "dev"], { encoding: "utf8" });
