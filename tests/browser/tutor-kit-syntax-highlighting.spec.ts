@@ -60,6 +60,7 @@ test("syntax highlighting preserves plain code block line spacing", async ({ pag
     const source = block.querySelector("code")?.textContent ?? block.textContent ?? "";
     const plain = document.createElement("pre");
     plain.className = "code-block";
+    plain.dataset.language = block.getAttribute("data-language") ?? "";
     const code = document.createElement("code");
     code.textContent = source;
     plain.append(code);
@@ -71,8 +72,12 @@ test("syntax highlighting preserves plain code block line spacing", async ({ pag
       heightDelta: Math.abs(block.getBoundingClientRect().height - plain.getBoundingClientRect().height),
       lineHeight: blockStyle.lineHeight,
       plainLineHeight: plainStyle.lineHeight,
-      padding: blockStyle.padding,
-      plainPadding: plainStyle.padding
+      paddingTop: blockStyle.paddingTop,
+      plainPaddingTop: plainStyle.paddingTop,
+      paddingBottom: blockStyle.paddingBottom,
+      plainPaddingBottom: plainStyle.paddingBottom,
+      paddingLeft: blockStyle.paddingLeft,
+      plainPaddingLeft: plainStyle.paddingLeft
     };
 
     plain.remove();
@@ -83,6 +88,30 @@ test("syntax highlighting preserves plain code block line spacing", async ({ pag
   for (const comparison of comparisons) {
     expect(comparison.heightDelta).toBeLessThan(0.5);
     expect(comparison.lineHeight).toBe(comparison.plainLineHeight);
-    expect(comparison.padding).toBe(comparison.plainPadding);
+    expect(comparison.paddingTop).toBe(comparison.plainPaddingTop);
+    expect(comparison.paddingBottom).toBe(comparison.plainPaddingBottom);
+    expect(comparison.paddingLeft).toBe(comparison.plainPaddingLeft);
   }
+});
+
+test("syntax language labels are inset inside code blocks", async ({ page }) => {
+  await page.goto(`${server.url}/textbooks/concert-ticketing-onsale/chapters/on-sale-control-plane`);
+  const sqlBlock = page.locator('.code-block[data-language="sql"][data-syntax-highlighted="true"]').first();
+  await expect(sqlBlock).toBeVisible({ timeout: 20_000 });
+
+  const labelStyle = await sqlBlock.evaluate((block) => {
+    const style = getComputedStyle(block, "::before");
+    const blockStyle = getComputedStyle(block);
+    return {
+      content: style.content,
+      position: style.position,
+      right: style.right,
+      paddingRight: blockStyle.paddingRight
+    };
+  });
+
+  expect(labelStyle.content).toBe('"sql"');
+  expect(labelStyle.position).toBe("absolute");
+  expect(labelStyle.right).toBe("16px");
+  expect(labelStyle.paddingRight).toBe("64px");
 });
