@@ -728,6 +728,9 @@ h1 {
   font-size: 13px;
   line-height: 1.55;
 }
+.code-block[data-language] {
+  padding-right: 64px;
+}
 .code-block.syntax-highlighted {
   color: var(--ink-soft);
 }
@@ -737,10 +740,9 @@ h1 {
 }
 .code-block.syntax-highlighted::before {
   content: attr(data-syntax-language);
-  position: sticky;
-  left: 100%;
-  float: right;
-  margin: -1px 0 4px 12px;
+  position: absolute;
+  top: 13px;
+  right: 16px;
   padding: 0;
   color: var(--muted-2);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
