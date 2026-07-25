@@ -244,6 +244,7 @@ h1 {
   .chapter-index {
     max-height: calc(100vh - 96px);
     overflow-y: auto;
+    overscroll-behavior-y: contain;
   }
 }
 .chapter-tools-summary {
