@@ -79,6 +79,21 @@ test("bundled Tutor Kit matches the package build", () => {
   assert.match(output, /up to date/);
 });
 
+test("Tutor Kit runtime lockfile covers every package dependency", () => {
+  const packageDir = join(root, "packages", "tutor-kit");
+  const packageJson = JSON.parse(readFileSync(join(packageDir, "package.json"), "utf8")) as {
+    dependencies: Record<string, string>;
+  };
+  const packageLock = JSON.parse(readFileSync(join(packageDir, "package-lock.json"), "utf8")) as {
+    packages: Record<string, { dependencies?: Record<string, string> }>;
+  };
+
+  assert.deepEqual(packageLock.packages[""]?.dependencies, packageJson.dependencies);
+  for (const dependency of Object.keys(packageJson.dependencies)) {
+    assert.ok(packageLock.packages[`node_modules/${dependency}`], `package-lock.json is missing ${dependency}`);
+  }
+});
+
 test("personal tutor routes visual grounding before authoring", () => {
   const skill = readFileSync(join(skillDir, "SKILL.md"), "utf8");
   const quality = readFileSync(join(skillDir, "references", "quality-core.md"), "utf8");
