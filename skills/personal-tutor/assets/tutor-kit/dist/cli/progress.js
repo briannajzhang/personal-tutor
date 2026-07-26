@@ -1,16 +1,22 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadTextbooks, resolveWorkspace } from "../compile/discover.js";
+import { loadReadingProgress, summarizeReadingProgress } from "../server/reading-progress.js";
 export async function summarizeProgress(cwd, options = {}) {
     const workspace = await resolveWorkspace(cwd);
     const { events, invalidCount } = readEvents(join(workspace.dataDir, "events.jsonl"));
     const filtered = events.filter((event) => !options.textbookId || event.textbookId === options.textbookId);
-    const questionTags = await loadQuestionTags(cwd, options);
+    const loaded = await loadTextbooks(cwd, options);
+    const questionTags = loadQuestionTags(loaded.chapters);
     const quizzes = summarizeQuizzes(filtered);
     const weakTags = summarizeWeakTags(filtered, questionTags);
     const coding = summarizeCoding(filtered);
     const glossaryAgain = summarizeGlossary(filtered);
     const openHighlights = countOpenHighlights(filtered);
+    const reading = loaded.textbooks.map(({ textbook }) => ({
+        textbookId: textbook.id,
+        ...summarizeReadingProgress(loadReadingProgress(workspace.dataDir, textbook.id), textbook)
+    }));
     return {
         textbookId: options.textbookId,
         eventCount: filtered.length,
@@ -21,6 +27,7 @@ export async function summarizeProgress(cwd, options = {}) {
         coding,
         glossaryAgain,
         openHighlights,
+        reading,
         nextMove: chooseNextMove(filtered.length, weakTags, coding, glossaryAgain)
     };
 }
@@ -36,6 +43,10 @@ export function formatProgress(summary) {
         for (const quiz of summary.quizzes) {
             lines.push(`  ${quiz.textbookId}/${quiz.chapterId}/${quiz.quizId}: latest ${quiz.latestScore}/${quiz.total}, best ${quiz.bestScore}/${quiz.total}, ${quiz.attempts} attempts`);
         }
+    }
+    for (const reading of summary.reading) {
+        const continueLabel = reading.continueChapter ? `, continue: ${reading.continueChapter.title}` : "";
+        lines.push(`reading ${reading.textbookId}: ${reading.completedChapters}/${reading.totalChapters} chapters complete (${reading.percent}%)${continueLabel}`);
     }
     if (summary.weakTags.length > 0) {
         lines.push(`weak tags: ${summary.weakTags.map(({ tag, misses }) => `${tag} (${misses})`).join(", ")}`);
@@ -75,10 +86,9 @@ function readEvents(path) {
     }
     return { events, invalidCount };
 }
-async function loadQuestionTags(cwd, options) {
+function loadQuestionTags(chapters) {
     const tags = new Map();
-    const loaded = await loadTextbooks(cwd, options);
-    for (const candidate of loaded.chapters) {
+    for (const candidate of chapters) {
         for (const block of collectBlocks(candidate.chapter.sections)) {
             if (!isQuizBlock(block))
                 continue;

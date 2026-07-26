@@ -23,6 +23,8 @@ node <skill-dir>/scripts/tutor-kit.mjs <command>
 
 The wrapper delegates to the bundled Tutor Kit CLI at `assets/tutor-kit/dist/cli/index.js`, which keeps the SDK, CLI, and UI aligned with the installed skill.
 
+The wrapper uses `~/.personal-tutor` as the central learner library. Set `PERSONAL_TUTOR_HOME` to choose another default location. Pass `--cwd <path>` when the user wants a separate workspace.
+
 Use a workspace command only when the user explicitly wants a separately installed Tutor Kit CLI:
 
 ```bash
@@ -35,13 +37,15 @@ During local Tutor Kit development in this source repo, this is also valid:
 npm run tutor -- <command>
 ```
 
-Use `--cwd <path>` when the learner workspace is not the shell cwd.
+The separately installed `tutor` command still uses the shell cwd unless you pass `--cwd <path>`.
 
 ## Core Commands
 
 ```bash
 tutor init
 tutor init --starter
+tutor begin <textbook-id> [title]
+tutor publish <textbook-id>
 tutor add textbook <id> [title]
 tutor add chapter <textbook-id> <id> [title]
 tutor add block <p|heading|list|codeBlock|mathBlock|diagram|chart|image|callout|transformation|glossary|quiz|codingProblem>
@@ -81,13 +85,18 @@ tutor/
   blocks/
 tutor-data/
   events.jsonl
+  reading-progress/
   drafts/
   feedback/
+tutor-work/
+  <textbook-id>/
+tutor-archive/
+  <textbook-id>/<timestamp>/
 ```
 
-Authored curriculum lives in `textbooks/<textbook-id>/textbook.ts` and chapter modules. `course.md` keeps the learner profile, course map, and current publication contract in one short file. Optional source artifacts such as `materials-index.md` and `source-notes.md` preserve source context for future generation. Runtime learner activity lives under `tutor-data/`.
+Published curriculum lives in `textbooks/<textbook-id>/textbook.ts` and chapter modules. Start or continue work with `tutor begin <id>`, then edit the copy under `tutor-work/<id>`. Run `tutor publish <id>` from the main workspace when it is ready. Publish verifies the staged source before replacing the published copy. The prior source moves to `tutor-archive/`. Runtime learner activity stays under `tutor-data/`.
 
-`tutor brief` gives the agent a compact workspace view. `tutor progress` reduces raw learner events into quiz results, weak tags, coding status, glossary review, and a suggested next move. `tutor doctor --textbook <id> --record` writes `compile-result.md` automatically.
+`tutor brief` gives the agent a compact workspace view. `tutor progress` reduces raw learner events into reading position, chapter completion, quiz results, weak tags, coding status, glossary review, and a suggested next move. Publish runs the same checks as doctor and writes `compile-result.md` automatically.
 
 ## Textbook And Chapter Modules
 
@@ -290,6 +299,14 @@ export default defineComponent<ExplorerProps>(
 ```
 
 The context provides the mount `root`, the surrounding `host`, JSON props, an abort signal, the textbook and block location, and small services for textbook assets, events, and theme values. Cleanup must release every resource created by the component.
+
+### Component theme tokens
+
+Custom components should use Tutor Kit theme variables instead of hard-coded colors or local palettes.
+
+Use semantic variables when color carries meaning: `var(--tutor-color-success)`, `var(--tutor-color-danger)`, `var(--tutor-color-warning)`, and `var(--tutor-color-info)`. Use named or category variables for peer groups and series: `var(--tutor-color-orange)`, `var(--tutor-color-blue)`, `var(--tutor-color-violet)`, `var(--tutor-color-category-1)`, `var(--tutor-color-category-2)`, and `var(--tutor-color-category-3)`.
+
+Each palette color has `-soft`, `-border`, and `-strong` variants. Use `-soft` for subtle fills, `-border` for outlines, the base token for marks or icons, and `-strong` sparingly for high emphasis. The same values are available in code through `services.theme.tokens`, for example `services.theme.tokens["--tutor-color-violet"]`.
 
 Components may use TypeScript, JSX, CSS, JSON, local assets, workers, WebAssembly, literal dynamic imports, and packages installed in the workspace. Install packages in the workspace `package.json`. Tutor Kit does not install missing component packages.
 

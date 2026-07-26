@@ -10,6 +10,7 @@ Use this reference when writing learner-facing Tutor Kit chapters, sections, exa
 - Worked examples
 - Semantic blocks
 - Choosing visual blocks
+- Custom interactions
 - Glossaries
 - Transformation blocks
 - Quizzes in lessons
@@ -116,7 +117,7 @@ Use semantic blocks as teaching moves:
 - `diagram`: show a flow, relationship, hierarchy, state transition, or system structure.
 - `chart`: show a small numeric comparison or trend.
 - `image`: show a durable raster artifact such as a screenshot, source figure, generated illustration, photo, scanned figure, UI capture, or concrete visual example.
-- `component`: mount trusted frontend code for an interaction, simulation, or animation that built in blocks cannot express.
+- `component`: mount trusted frontend code for a purpose-built interaction, animation, simulation, staged reveal, or learner-controlled state.
 - `callout`: protect the learner from a misconception, warning, boundary, or key idea.
 - `transformation`: model an inspectable input-to-result relationship.
 - `glossary`: give compact retrieval support for important terms already introduced in prose.
@@ -125,7 +126,7 @@ Use semantic blocks as teaching moves:
 
 Prefer several semantic blocks over one giant Markdown string.
 
-Prefer built in blocks before creating a component. When a component is justified, keep one clear teaching purpose, give the learner a meaningful control, and show a visible consequence. The component runs in the lesson page and can use the DOM, SVG, Canvas, WebGL, workers, browser storage, and installed frontend packages. It is trusted application code, not isolated content.
+Use the lightest block that faithfully teaches the intended move. When a component is justified, keep one clear teaching purpose, give the learner a meaningful control, and show a visible consequence. The component runs in the lesson page and can use the DOM, SVG, Canvas, WebGL, workers, browser storage, and installed frontend packages. It is trusted application code, not isolated content.
 
 Before a `codeBlock`, `mathBlock`, table, diagram, image, formal notation, or example, tell the learner what to inspect. After it, explain what it showed.
 
@@ -134,6 +135,12 @@ Before a `codeBlock`, `mathBlock`, table, diagram, image, formal notation, or ex
 ## Choosing Visual Blocks
 
 Use visual blocks when seeing something helps the learner build or check the mental model, not because a chapter needs decoration.
+
+An image block is not automatically visual grounding. When the learner must recognize a real-world appearance, use observational images that preserve the relevant perceptual cues. A schematic drawing saved as PNG or SVG is still a diagram and usually does not satisfy this need.
+
+Use diagrams and transformations alongside appearance evidence to explain causes, processes, or reasoning, not as substitutes for the appearance the learner must inspect.
+
+When no suitable source or user image is available and image-generation tools are available, use them to create photo-like teaching exemplars rather than schematic stand-ins when realism affects the teaching claim. Generated examples should be labeled as generated. In medical, safety-critical, scientific-evidence, or authenticity-sensitive contexts, prefer authoritative real examples; generated images should not be presented as diagnostic ground truth.
 
 Use `image(...)` for durable raster artifacts that ground the learner in visual appearance, context, evidence, examples, source figures, screenshots, generated illustrations, or concrete real-world referents. An image can be supportive context; it does not need to carry the whole teaching move, but it should be tied to nearby explanation, alt text, and a useful caption or readout.
 
@@ -151,6 +158,8 @@ For charts, make one numeric inspection question visible: what magnitude, direct
 
 When a lesson involves something learners would naturally benefit from seeing, consider `image(...)` even if a diagram or `transformation(...)` is also useful. Use both when helpful: image for grounding, context, evidence, or recognition; diagram for labels, structure, flow, or abstraction; chart for numeric comparison or trend.
 
+When a physical or practical lesson asks learners to connect visible outcomes to controllable variables, images may ground recognition while a component can make the cause-and-effect relationship inspectable.
+
 Project-bound images belong under `textbooks/<textbook-id>/assets/` and should be referenced with `src: "assets/..."`. The agent may generate images, extract or screenshot useful visuals from user-provided PDFs/slides/notes, use user-provided images, or use online images while authoring. Save the chosen asset locally before referencing it. For online images, include credit or source context when known, especially if the material may be shared.
 
 For generated, extracted, screenshot, user-provided, or online images, audit whether the important visible features are accurate and distinguishable enough for the teaching claim. If not, revise the image choice or add a companion scaffold before relying on it.
@@ -158,6 +167,16 @@ For generated, extracted, screenshot, user-provided, or online images, audit whe
 Prefer prose, lists, code, math, `transformation(...)`, or a table when the teaching move is qualitative, definitional, or a concrete input-to-output model.
 
 Avoid visuals with vague node names, unlabeled arrows that mix meanings, decorative flowcharts, or scores that imply precision without a defined scale. Split or replace diagrams that mix unrelated meanings, such as buyer/user roles, data movement, and product output in one unclear picture. Frame what to inspect before the visual and explain the takeaway afterward.
+
+## Custom Interactions
+
+Custom blocks are authored as `component(...)`.
+
+A component earns its place when learner action changes visible state in a way that exposes the concept: varying an input, stepping through a process, manipulating a system, comparing live cases, revealing a consequence, animating a hidden motion, or simulating a relationship that static blocks would make harder to inspect.
+
+Strong components usually create a tight teaching loop: predict, change one meaningful control, see a clear consequence, and explain or transfer the result. Weak components are decorative, broad dashboards, or bespoke renderings of material that a diagram, chart, transformation, quiz, or short worked example would teach just as well.
+
+When implementation risk is high, narrow it to the smallest faithful interaction rather than automatically replacing it with prose or a static diagram.
 
 ## Glossaries
 

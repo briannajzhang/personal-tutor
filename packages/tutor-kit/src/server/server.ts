@@ -7,10 +7,12 @@ import { mermaidAssetPath, mermaidJsPath } from "../ui/mermaid-assets.js";
 import { monacoAssetPath } from "../ui/monaco-assets.js";
 import { invalidateWorkspaceCaches, loadTextbooks, resolveWorkspace, type WorkspacePaths } from "../compile/discover.js";
 import { summarizeChapter, summarizeTextbook } from "../core/traversal.js";
+import type { ValidationIssue } from "../core/types.js";
 import { loadCodingDraft, loadCodingFeedback, runCodingProblem, saveCodingDraft } from "./coding.js";
 import { loadGlossaryStudyState, saveGlossaryStudyState, submitGlossaryStudyRating } from "./glossary-study.js";
 import { deleteHighlight, loadHighlights, saveHighlight } from "./highlights.js";
 import { loadQuizState, saveQuizState, submitQuizAttempt } from "./quizzes.js";
+import { loadReadingProgress, summarizeReadingProgress, updateReadingProgress } from "./reading-progress.js";
 import { appendEvent } from "./shared.js";
 import {
   collectComponentRecords,
@@ -43,7 +45,7 @@ export async function startDevServer(options: DevServerOptions): Promise<{ url: 
     });
   });
 
-  await new Promise<void>((resolve) => server.listen(options.port, resolve));
+  await new Promise<void>((resolve) => server.listen(options.port, "127.0.0.1", resolve));
   const address = server.address();
   const port = typeof address === "object" && address ? address.port : options.port;
 
@@ -132,14 +134,12 @@ async function handleRequest(
   }
 
   if (request.method === "GET" && url.pathname === "/api/textbooks") {
-    const loaded = await loadWithComponents(cwd, componentRegistry);
-    if (loaded.issues.length > 0) {
-      sendJson(response, 422, { issues: loaded.issues });
-      return;
-    }
-    sendJson(response, 200, loaded.textbooks.map(({ textbook }) => {
+    const workspace = await resolveWorkspace(cwd);
+    const loaded = await loadTextbooks(cwd);
+    const entries: Array<Record<string, unknown>> = loaded.textbooks.map(({ textbook }) => {
       const summary = summarizeTextbook(textbook);
       return {
+        status: "ready",
         id: textbook.id,
         title: textbook.title,
         description: textbook.description,
@@ -147,16 +147,29 @@ async function handleRequest(
         chapterCount: summary.chapters,
         sectionCount: summary.sections,
         subsectionCount: summary.subsections,
-        blockCount: summary.blocks
+        blockCount: summary.blocks,
+        progress: summarizeReadingProgress(loadReadingProgress(workspace.dataDir, textbook.id), textbook)
       };
-    }));
+    });
+    for (const [id, issue] of firstIssueByTextbook(loaded.issues)) {
+      entries.push({
+        status: "error",
+        id,
+        title: titleFromId(id),
+        description: conciseIssue(issue.message),
+        file: issue.file,
+        chapterCount: 0
+      });
+    }
+    entries.sort((left, right) => String(left.title).localeCompare(String(right.title)));
+    sendJson(response, 200, entries);
     return;
   }
 
   const textbookMatch = url.pathname.match(/^\/api\/textbooks\/([^/]+)$/);
   if (request.method === "GET" && textbookMatch) {
     const id = decodeURIComponent(textbookMatch[1] ?? "");
-    const loaded = await loadWithComponents(cwd, componentRegistry);
+    const loaded = await loadWithComponents(cwd, componentRegistry, { textbookId: id });
     if (loaded.issues.length > 0) {
       sendJson(response, 422, { issues: loaded.issues });
       return;
@@ -166,7 +179,11 @@ async function handleRequest(
       sendJson(response, 404, { error: `Textbook not found: ${id}` });
       return;
     }
-    sendJson(response, 200, serializeTextbookComponents(cwd, componentRegistry, found.textbook));
+    const workspace = await resolveWorkspace(cwd);
+    sendJson(response, 200, {
+      ...serializeTextbookComponents(cwd, componentRegistry, found.textbook),
+      readingProgress: summarizeReadingProgress(loadReadingProgress(workspace.dataDir, id), found.textbook)
+    });
     return;
   }
 
@@ -174,7 +191,7 @@ async function handleRequest(
   if (request.method === "GET" && chapterMatch) {
     const textbookId = decodeURIComponent(chapterMatch[1] ?? "");
     const chapterId = decodeURIComponent(chapterMatch[2] ?? "");
-    const loaded = await loadWithComponents(cwd, componentRegistry);
+    const loaded = await loadWithComponents(cwd, componentRegistry, { textbookId });
     if (loaded.issues.length > 0) {
       sendJson(response, 422, { issues: loaded.issues });
       return;
@@ -191,6 +208,8 @@ async function handleRequest(
     const previousChapter = chapterIndex > 0 ? textbook?.chapters[chapterIndex - 1] : undefined;
     const nextChapter = textbook && chapterIndex >= 0 ? textbook.chapters[chapterIndex + 1] : undefined;
     const summary = summarizeChapter(found.chapter);
+    const workspace = await resolveWorkspace(cwd);
+    const chapterCompleted = loadReadingProgress(workspace.dataDir, textbookId).completedChapterIds.includes(chapterId);
     sendJson(response, 200, {
       ...serializeChapterComponents(cwd, componentRegistry, found.chapter),
       textbookId: found.textbookId,
@@ -199,8 +218,14 @@ async function handleRequest(
       nextChapter: nextChapter ? { id: nextChapter.id, title: nextChapter.title } : null,
       sectionCount: summary.sections,
       subsectionCount: summary.subsections,
-      blockCount: summary.blocks
+      blockCount: summary.blocks,
+      chapterCompleted
     });
+    return;
+  }
+
+  if (request.method === "PUT" && url.pathname === "/api/reading-progress") {
+    sendJson(response, 200, await updateReadingProgress(cwd, await readJson(request)));
     return;
   }
 
@@ -287,10 +312,40 @@ async function handleRequest(
   sendJson(response, 404, { error: "Not found" });
 }
 
-async function loadWithComponents(cwd: string, registry: ComponentRegistry) {
-  const loaded = await loadTextbooks(cwd);
-  if (loaded.issues.length === 0) registry.replace(collectComponentRecords(cwd, loaded.textbooks));
+async function loadWithComponents(
+  cwd: string,
+  registry: ComponentRegistry,
+  options: { textbookId?: string } = {}
+) {
+  const loaded = await loadTextbooks(cwd, options);
+  if (loaded.issues.length === 0) {
+    try {
+      registry.replace(collectComponentRecords(cwd, loaded.textbooks));
+    } catch (error) {
+      loaded.issues.push({
+        textbookId: options.textbookId,
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
   return loaded;
+}
+
+function firstIssueByTextbook(issues: ValidationIssue[]): Map<string, ValidationIssue> {
+  const grouped = new Map<string, ValidationIssue>();
+  for (const issue of issues) {
+    const id = issue.textbookId ?? "unknown";
+    if (!grouped.has(id)) grouped.set(id, issue);
+  }
+  return grouped;
+}
+
+function titleFromId(id: string): string {
+  return id.split("-").filter(Boolean).map((part) => `${part[0]?.toUpperCase() ?? ""}${part.slice(1)}`).join(" ") || "Unknown textbook";
+}
+
+function conciseIssue(message: string): string {
+  return message.split("\n").find((line) => line.trim().length > 0)?.trim() ?? "This textbook could not be loaded.";
 }
 
 function isKnownAppPath(pathname: string): boolean {
@@ -412,15 +467,31 @@ function watchTarget(
   invalidate: () => void
 ): FSWatcher[] {
   try {
-    return [watch(path, options, invalidate)];
+    return [watchWithErrorHandler(path, options, invalidate)];
   } catch (error) {
     if (!options?.recursive) return [];
     try {
-      return [watch(path, invalidate)];
+      return [watchWithErrorHandler(path, undefined, invalidate)];
     } catch {
       return [];
     }
   }
+}
+
+function watchWithErrorHandler(
+  path: string,
+  options: { recursive?: boolean } | undefined,
+  invalidate: () => void
+): FSWatcher {
+  const watcher = options ? watch(path, options, invalidate) : watch(path, invalidate);
+  watcher.on("error", () => {
+    try {
+      watcher.close();
+    } catch {
+      // Ignore unavailable file watching; requests still reload workspace state.
+    }
+  });
+  return watcher;
 }
 
 function closeWatchers(watchers: FSWatcher[]): void {

@@ -11,31 +11,38 @@ Use this reference for the common Tutor Kit authoring path. Read the complete AP
 
 ## Commands
 
+The skill wrapper uses one central learner library at `~/.personal-tutor`. If `PERSONAL_TUTOR_HOME` is set, it uses that location. Every textbook created through the wrapper appears in the same list and study app. Pass `--cwd <path>` only for a separate workspace.
+
 ```bash
 node <skill-dir>/scripts/tutor-kit.mjs brief
-node <skill-dir>/scripts/tutor-kit.mjs add textbook <id> <title>
-node <skill-dir>/scripts/tutor-kit.mjs add chapter <textbook-id> <id> <title>
 node <skill-dir>/scripts/tutor-kit.mjs progress --textbook <id>
-node <skill-dir>/scripts/tutor-kit.mjs doctor --textbook <id> --record
+node <skill-dir>/scripts/tutor-kit.mjs begin <id> <title>
+node <skill-dir>/scripts/tutor-kit.mjs --cwd ~/.personal-tutor/tutor-work/<id> add chapter <id> <chapter-id> <title>
+node <skill-dir>/scripts/tutor-kit.mjs publish <id>
 node <skill-dir>/scripts/tutor-kit.mjs dev
 ```
 
-`brief` reports textbooks, chapters, useful authoring files, and a small learner activity summary. Read raw files only when their contents affect the current publication.
+`brief` reports textbooks, chapters, useful authoring files, and a small learner activity summary. `begin` initializes a missing central library and creates or resumes an isolated work area. Edit only that work area. `publish` verifies the work, installs it, and loads it from the published location before reporting success. A failed publish restores the previous textbook and keeps the work area for repair. `dev` reports textbook load issues before it starts. It stops when no textbook can load and allows a mixed library to start with warnings.
 
 ## Source layout
 
 ```txt
-textbooks/<textbook-id>/
-  textbook.ts
-  course.md
-  compile-result.md
-  chapters/<chapter-id>.chapter.ts
-  chapters/problems/<problem-id>/
-  assets/
-tutor-data/
+~/.personal-tutor/
+  textbooks/<textbook-id>/
+    textbook.ts
+    course.md
+    compile-result.md
+    chapters/<chapter-id>.chapter.ts
+    chapters/problems/<problem-id>/
+    assets/
+  tutor-work/<textbook-id>/
+    textbooks/<textbook-id>/
+  tutor-archive/<textbook-id>/<timestamp>/
+  tutor-data/
+    reading-progress/<textbook-id>.json
 ```
 
-Tutor Kit writes `compile-result.md` when `doctor --record` runs. Runtime learner data belongs under `tutor-data/`.
+Tutor Kit writes `compile-result.md` during publish. Runtime learner data belongs under `tutor-data/` and is not replaced or archived with textbook source.
 
 ## Textbook and chapter
 
@@ -118,4 +125,4 @@ The example shows common syntax, not a required chapter shape. Use it as a seed 
 
 Tutor Kit also provides `heading`, `mathBlock`, `diagram`, `chart`, `image`, `component`, `callout`, `transformation`, `glossary`, `quiz`, `codingProblem`, `subsection`, and `projectFiles`.
 
-Use a custom component when the lesson needs an unusual interaction that built in blocks cannot express. Put its browser source in the textbook workspace, reference it with `componentModule(import.meta.url, path)`, and export a definition made with `defineComponent(...)` from `tutor-kit/client`. Run `tutor compile` after adding the component or any frontend package. The compact workflow does not restrict the authoring API or lesson shape.
+Custom blocks are authored as `component(...)`. Use one when a purpose-built interaction or animation materially improves the teaching move. See `lesson-authoring.md` for pedagogical fit and `tutor-kit-api.md` for syntax, technical constraints, and shared component theme tokens. Put browser source in the textbook workspace, reference it with `componentModule(import.meta.url, path)`, export a definition made with `defineComponent(...)` from `tutor-kit/client`, and run `tutor compile` after adding the component or any frontend package. The compact workflow does not restrict the authoring API or lesson shape.

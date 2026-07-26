@@ -674,10 +674,10 @@ export function glossaryCss() {
   outline-offset: 4px;
 }
 .glossary-rate-button.again {
-  color: color-mix(in srgb, #a33b2f 88%, var(--ink));
+  color: color-mix(in srgb, var(--tutor-color-danger) 88%, var(--ink));
 }
 .glossary-rate-button.known {
-  color: color-mix(in srgb, #2f7d46 88%, var(--ink));
+  color: color-mix(in srgb, var(--tutor-color-success) 88%, var(--ink));
 }
 .glossary-rate-button.is-selected {
   background: color-mix(in srgb, currentColor 10%, var(--paper));

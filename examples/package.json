@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "compile": "tutor compile",
+    "dev": "tutor dev"
+  },
+  "dependencies": {
+    "tutor-kit": "file:../packages/tutor-kit"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

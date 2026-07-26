@@ -142,11 +142,13 @@ function renderInlineMarkdown(value) {
   const source = String(value ?? "");
   let html = "";
   let cursor = 0;
-  const pattern = /(\`[^\`]*\`|\\$[^$\\n]+\\$)/g;
+  const pattern = /(\\\\\\$|\`[^\`]*\`|\\$[^$\\n]+\\$)/g;
   for (const match of source.matchAll(pattern)) {
     html += renderInlineEmphasis(source.slice(cursor, match.index));
     const token = match[0];
-    if (token.startsWith("\`")) {
+    if (token.startsWith("\\\\")) {
+      html += escapeHtml(token.slice(1));
+    } else if (token.startsWith("\`")) {
       html += \`<code>\${escapeHtml(token.slice(1, -1))}</code>\`;
     } else {
       html += \`<span class="math">\${renderMath(token.slice(1, -1), false)}</span>\`;

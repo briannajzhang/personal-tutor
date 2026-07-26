@@ -17,7 +17,7 @@ test.beforeAll(async () => {
   const sections = Array.from({ length: 30 }, (_, index) => `section({
     id: "section-${index + 1}",
     title: "Section ${index + 1}",
-    blocks: [p({ body: ${JSON.stringify("Lesson content ".repeat(30))} })]
+    blocks: [p({ id: "copy-${index + 1}", body: ${JSON.stringify("Lesson content ".repeat(30))} })]
   })`).join(",\n");
 
   writeFileSync(join(cwd, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), `import { chapter, p, section } from "tutor-kit";

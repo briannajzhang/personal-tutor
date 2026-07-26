@@ -32,9 +32,9 @@ async function renderChapter(textbookId, chapterId) {
             <div class="index-label">Contents</div>
             <div class="index-list">
               \${chapter.sections.map((section) => \`
-                <a class="index-link" href="#\${escapeAttr(anchorId(section.id))}">\${escapeHtml(section.title)}</a>
+                <a class="index-link" href="#\${escapeAttr(anchorId(section.id))}" data-heading-id="\${escapeAttr(section.id)}">\${escapeHtml(section.title)}</a>
                 \${section.subsections.map((subsection) => \`
-                  <a class="index-link subsection" href="#\${escapeAttr(anchorId(subsection.id))}">\${escapeHtml(subsection.title)}</a>
+                  <a class="index-link subsection" href="#\${escapeAttr(anchorId(subsection.id))}" data-heading-id="\${escapeAttr(subsection.id)}">\${escapeHtml(subsection.title)}</a>
                 \`).join("")}
             \`).join("")}
             </div>
@@ -44,15 +44,17 @@ async function renderChapter(textbookId, chapterId) {
       </aside>
       <div class="chapter-content">
         \${chapter.sections.map((section) => renderSection(section, renderContext)).join("")}
-        \${renderChapterNavigation(chapter)}
+        \${renderChapterFooter(chapter)}
       </div>
     </section>
   \`;
   syncChapterToolsDisclosure();
   bindCrumbs();
   bindChapterIndex();
+  bindChapterCompletion(textbookId, chapterId, chapter.chapterCompleted);
   bindChapterNavigation(textbookId);
   bindGlossaryOverviewLinks();
+  void highlightCodeBlocks();
   bindGlossaryStarControls(textbookId);
   bindHighlighter(chapter);
   applyChapterHighlights(chapter);
@@ -61,10 +63,12 @@ async function renderChapter(textbookId, chapterId) {
   bindCodingProblems(chapter);
   scheduleTransformationLayouts();
   void renderDiagrams();
+  bindDiagramExpanders();
   mountRenderedComponents();
   if (document.fonts?.ready) void document.fonts.ready.then(scheduleTransformationLayouts);
   finishRouteLoad(token);
   scrollToHashTarget(window.location.hash, "auto");
+  void saveReadingProgress(textbookId, chapterId, "visit", headingIdForHash(chapter));
 }
 
 function syncChapterToolsDisclosure() {
@@ -76,24 +80,79 @@ function syncChapterToolsDisclosure() {
   disclosure.open = !compact;
 }
 
-function renderChapterNavigation(chapter) {
-  if (!chapter.previousChapter && !chapter.nextChapter) return "";
+function renderChapterFooter(chapter) {
   return \`
-    <nav class="chapter-navigation" aria-label="Chapter navigation">
-      \${chapter.previousChapter ? \`
-        <button class="chapter-navigation-button previous" data-chapter-navigation="\${escapeAttr(chapter.previousChapter.id)}">
-          <span class="chapter-navigation-label">Previous chapter</span>
-          <span class="chapter-navigation-title">\${escapeHtml(chapter.previousChapter.title)}</span>
+    <footer class="chapter-footer">
+      <div class="chapter-completion">
+        <strong class="chapter-completion-state \${chapter.chapterCompleted ? "is-complete" : ""}" data-completion-label>\${chapter.chapterCompleted ? "Chapter complete" : "Finished this chapter?"}</strong>
+        <button class="chapter-completion-button \${chapter.chapterCompleted ? "is-complete" : ""}" type="button" aria-pressed="\${chapter.chapterCompleted}" aria-label="\${chapter.chapterCompleted ? "Mark chapter incomplete" : "Mark chapter complete"}" data-chapter-completion>
+          \${chapter.chapterCompleted ? "Mark incomplete" : "Mark chapter complete"}
         </button>
+        <span class="sr-only" aria-live="polite" data-completion-status></span>
+      </div>
+      \${chapter.previousChapter || chapter.nextChapter ? \`
+        <nav class="chapter-navigation" aria-label="Chapter navigation">
+          \${chapter.previousChapter ? \`
+            <button class="chapter-navigation-button previous" data-chapter-navigation="\${escapeAttr(chapter.previousChapter.id)}">
+              <span class="chapter-navigation-label">Previous chapter</span>
+              <span class="chapter-navigation-title">\${escapeHtml(chapter.previousChapter.title)}</span>
+            </button>
+          \` : ""}
+          \${chapter.nextChapter ? \`
+            <button class="chapter-navigation-button next" data-chapter-navigation="\${escapeAttr(chapter.nextChapter.id)}">
+              <span class="chapter-navigation-label">Next chapter</span>
+              <span class="chapter-navigation-title">\${escapeHtml(chapter.nextChapter.title)}</span>
+            </button>
+          \` : ""}
+        </nav>
       \` : ""}
-      \${chapter.nextChapter ? \`
-        <button class="chapter-navigation-button next" data-chapter-navigation="\${escapeAttr(chapter.nextChapter.id)}">
-          <span class="chapter-navigation-label">Next chapter</span>
-          <span class="chapter-navigation-title">\${escapeHtml(chapter.nextChapter.title)}</span>
-        </button>
-      \` : ""}
-    </nav>
+    </footer>
   \`;
+}
+
+function bindChapterCompletion(textbookId, chapterId, completed) {
+  const button = document.querySelector("[data-chapter-completion]");
+  if (!button) return;
+  let isComplete = completed;
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    try {
+      const result = await saveReadingProgress(textbookId, chapterId, isComplete ? "reopen" : "complete");
+      isComplete = result.summary.completedChapterIds.includes(chapterId);
+      button.classList.toggle("is-complete", isComplete);
+      button.setAttribute("aria-pressed", String(isComplete));
+      button.setAttribute("aria-label", isComplete ? "Mark chapter incomplete" : "Mark chapter complete");
+      button.textContent = isComplete ? "Mark incomplete" : "Mark chapter complete";
+      const label = document.querySelector("[data-completion-label]");
+      label.classList.toggle("is-complete", isComplete);
+      label.textContent = isComplete ? "Chapter complete" : "Finished this chapter?";
+      document.querySelector("[data-completion-status]").textContent = isComplete ? "Chapter marked complete." : "Chapter marked not complete.";
+    } catch (error) {
+      document.querySelector("[data-completion-status]").textContent = error?.message ?? "Could not update progress.";
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
+function saveReadingProgress(textbookId, chapterId, action, headingId = "") {
+  return fetchJson("/api/reading-progress", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ textbookId, chapterId, action, headingId: headingId || undefined })
+  });
+}
+
+function headingIdForHash(chapter) {
+  const hashId = parseHashId(window.location.hash);
+  if (!hashId || !chapter) return "";
+  for (const section of chapter.sections ?? []) {
+    if (anchorId(section.id) === hashId) return section.id;
+    for (const subsection of section.subsections ?? []) {
+      if (anchorId(subsection.id) === hashId) return subsection.id;
+    }
+  }
+  return "";
 }
 
 function bindChapterNavigation(textbookId) {
@@ -120,6 +179,7 @@ function bindChapterIndex() {
         history.pushState({}, "", nextUrl);
       }
       scrollToHashTarget(hash, "smooth");
+      if (activeChapter) void saveReadingProgress(activeChapter.textbookId, activeChapter.id, "visit", link.dataset.headingId);
     });
   });
 }
@@ -258,8 +318,9 @@ function bindGlossaryOverviewLinks() {
   });
 }
 
-function navigateChapter(textbookId, chapterId, scrollToTop = false) {
-  history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
+function navigateChapter(textbookId, chapterId, scrollToTop = false, headingId = "") {
+  const hash = headingId ? \`#\${encodeURIComponent(anchorId(headingId))}\` : "";
+  history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\${hash}\`);
   if (scrollToTop) window.scrollTo({ top: 0, behavior: "auto" });
   void renderRoute();
 }
@@ -336,11 +397,80 @@ function renderDiagram(block) {
   return \`
     <article class="block diagram" data-diagram="\${escapeAttr(block.id)}"\${highlightUnsupportedAttrs()}>
       \${title}
-      <div class="diagram-body" data-diagram-body>
-        <pre class="diagram-source code-block" data-diagram-source>\${escapeHtml(block.props.body)}</pre>
+      <div class="diagram-frame">
+        <div class="diagram-actions">
+          <button class="diagram-icon-button diagram-expand-button" type="button" data-diagram-expand aria-label="Expand diagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M8 3H3v5"></path>
+              <path d="M3 3l7 7"></path>
+              <path d="M16 21h5v-5"></path>
+              <path d="M21 21l-7-7"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="diagram-body" data-diagram-body>
+          <pre class="diagram-source code-block" data-diagram-source>\${escapeHtml(block.props.body)}</pre>
+        </div>
       </div>
     </article>
   \`;
+}
+
+function bindDiagramExpanders() {
+  document.querySelectorAll("[data-diagram-expand]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const diagram = button.closest("[data-diagram]");
+      if (!diagram) return;
+      openDiagramOverlay(diagram);
+    });
+  });
+}
+
+function openDiagramOverlay(diagram) {
+  const svg = diagram.querySelector("[data-diagram-body] svg");
+  if (!svg) return;
+  closeDiagramOverlay();
+  const title = diagram.querySelector(".diagram-title")?.textContent?.trim() || "Diagram";
+  const overlay = document.createElement("div");
+  overlay.className = "diagram-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", title);
+  overlay.dataset.diagramOverlay = "true";
+  overlay.innerHTML = \`
+    <div class="diagram-overlay-panel">
+      <div class="diagram-overlay-toolbar">
+        <div class="diagram-overlay-title">\${escapeHtml(title)}</div>
+        <button class="diagram-icon-button diagram-overlay-close" type="button" data-diagram-overlay-close aria-label="Close expanded diagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18 6L6 18"></path>
+            <path d="M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="diagram-overlay-body">\${svg.outerHTML}</div>
+    </div>
+  \`;
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeDiagramOverlay();
+  });
+  overlay.querySelector("[data-diagram-overlay-close]")?.addEventListener("click", closeDiagramOverlay);
+  document.body.append(overlay);
+  document.body.classList.add("has-diagram-overlay");
+  overlay.querySelector("[data-diagram-overlay-close]")?.focus();
+  window.addEventListener("keydown", handleDiagramOverlayKeydown);
+}
+
+function closeDiagramOverlay() {
+  const overlay = document.querySelector("[data-diagram-overlay]");
+  if (!overlay) return;
+  overlay.remove();
+  document.body.classList.remove("has-diagram-overlay");
+  window.removeEventListener("keydown", handleDiagramOverlayKeydown);
+}
+
+function handleDiagramOverlayKeydown(event) {
+  if (event.key === "Escape") closeDiagramOverlay();
 }
 
 async function renderDiagrams() {

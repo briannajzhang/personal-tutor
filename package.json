@@ -1,8 +1,16 @@
 {
   "name": "personal-tutor",
   "version": "0.1.0",
-  "description": "Adaptive tutoring skill and Tutor Kit workspace tooling for Codex.",
-  "license": "MIT",
+  "description": "Local tutoring skill with interactive courses and practice.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/briannajzhang/personal-tutor.git"
+  },
+  "homepage": "https://github.com/briannajzhang/personal-tutor#readme",
+  "bugs": {
+    "url": "https://github.com/briannajzhang/personal-tutor/issues"
+  },
   "type": "module",
   "bin": {
     "personal-tutor": "./bin/personal-tutor.js"
@@ -17,7 +25,6 @@
     "node": ">=20.19"
   },
   "keywords": [
-    "codex",
     "skill",
     "tutor",
     "education",
@@ -33,7 +40,9 @@
     "prepack": "npm run build:skill",
     "test": "npm run build && node --import tsx --test tests/*.test.ts tests/server/*.test.ts",
     "test:browser": "npm run build && playwright test",
-    "tutor": "tsx packages/tutor-kit/src/cli/index.ts"
+    "tutor": "tsx packages/tutor-kit/src/cli/index.ts",
+    "examples:check": "npm run build && node packages/tutor-kit/dist/cli/index.js --cwd examples doctor",
+    "examples:dev": "npm run build && node packages/tutor-kit/dist/cli/index.js --cwd examples dev"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
