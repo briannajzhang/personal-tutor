@@ -126,7 +126,8 @@ function tutorSyntaxHighlightingPlugin() {
         resolveId(id, importer) {
             if (id === syntaxRuntimePath)
                 return syntaxRuntimeVirtualId;
-            if (id === shikiBundleFullId && importer === syntaxRuntimeVirtualId)
+            if (id === shikiBundleFullId && (importer === syntaxRuntimeVirtualId ||
+                importer?.startsWith(`${syntaxRuntimeVirtualId}?`)))
                 return shikiBundleFullPath;
             return null;
         },

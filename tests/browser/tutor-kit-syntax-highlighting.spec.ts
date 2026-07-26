@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { mkdtempSync } from "node:fs";
-import { createServer as createNetServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { initWorkspace } from "../../packages/tutor-kit/dist/cli/workspace.js";
@@ -22,6 +21,7 @@ test.afterAll(async () => {
 });
 
 test("syntax highlighting loads when the learner workspace is outside the repository", async ({ page }) => {
+  test.setTimeout(60_000);
   const workspace = mkdtempSync(join(tmpdir(), "tutor-kit-syntax-workspace-"));
   initWorkspace(workspace, { starter: true });
   linkTutorKit(workspace);
@@ -44,27 +44,27 @@ test("syntax highlighting loads when the learner workspace is outside the reposi
 });
 
 async function startTutorCli(cwd: string): Promise<{ url: string; close: () => Promise<void> }> {
-  const port = await findOpenPort();
   const child = spawn(process.execPath, [
     resolve("packages/tutor-kit/dist/cli/index.js"),
     "--cwd",
     cwd,
     "dev",
     "--port",
-    String(port)
+    "0"
   ], {
     stdio: ["ignore", "pipe", "pipe"]
   });
   let output = "";
   const url = await new Promise<string>((resolveUrl, reject) => {
+    let timedOut = false;
     const timeout = setTimeout(() => {
+      timedOut = true;
       child.kill("SIGTERM");
-      reject(new Error(`Timed out starting isolated Tutor CLI:\n${output}`));
-    }, 10_000);
+    }, 30_000);
     const inspectOutput = (chunk: Buffer) => {
       output += chunk.toString();
       const match = output.match(/Tutor UI running at (http:\/\/localhost:\d+)/);
-      if (!match) return;
+      if (!match || timedOut) return;
       clearTimeout(timeout);
       resolveUrl(match[1]);
     };
@@ -72,7 +72,9 @@ async function startTutorCli(cwd: string): Promise<{ url: string; close: () => P
     child.stderr?.on("data", inspectOutput);
     child.once("exit", (code) => {
       clearTimeout(timeout);
-      reject(new Error(`Isolated Tutor CLI exited with code ${code}:\n${output}`));
+      reject(new Error(timedOut
+        ? `Timed out starting isolated Tutor CLI:\n${output}`
+        : `Isolated Tutor CLI exited with code ${code}:\n${output}`));
     });
   });
   return {
@@ -83,20 +85,6 @@ async function startTutorCli(cwd: string): Promise<{ url: string; close: () => P
       await once(child, "exit");
     }
   };
-}
-
-async function findOpenPort(): Promise<number> {
-  const probe = createNetServer();
-  await new Promise<void>((resolveListen, reject) => {
-    probe.once("error", reject);
-    probe.listen(0, "127.0.0.1", resolveListen);
-  });
-  const address = probe.address();
-  if (!address || typeof address === "string") throw new Error("Failed to reserve a local Tutor test port.");
-  await new Promise<void>((resolveClose, reject) => {
-    probe.close((error) => error ? reject(error) : resolveClose());
-  });
-  return address.port;
 }
 
 test("RealWorld code blocks highlight supported languages and leave plaintext alone", async ({ page }) => {

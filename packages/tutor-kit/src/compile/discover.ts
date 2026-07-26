@@ -26,7 +26,7 @@ const workspaceCache = new Map<string, WorkspacePaths>();
 const textbookCache = new Map<string, TextbookLoadResult>();
 // Re-registering scoped tsx ESM hooks can leave Node blocked in makeSyncRequest.
 // Keep one importer per tsconfig alive for the lifetime of this Tutor process.
-const tsImporters = new Map<string, NamespacedUnregister>();
+const tsImporters = new Map<false | string, NamespacedUnregister>();
 let importNamespaceCounter = 0;
 
 export async function resolveWorkspace(cwd: string): Promise<WorkspacePaths> {
@@ -290,14 +290,13 @@ function createTsImporter(tsconfig: false | string) {
       async unregister(): Promise<void> {}
     };
   }
-  const key = tsconfig || "";
-  let importer = tsImporters.get(key);
+  let importer = tsImporters.get(tsconfig);
   if (!importer) {
     importer = register({
       namespace: `tutor-kit-${importNamespaceCounter += 1}`,
       tsconfig
     });
-    tsImporters.set(key, importer);
+    tsImporters.set(tsconfig, importer);
   }
   return {
     import(specifier: string, parentURL: string): Promise<unknown> {

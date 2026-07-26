@@ -254,14 +254,13 @@ function createTsImporter(tsconfig) {
             async unregister() { }
         };
     }
-    const key = tsconfig || "";
-    let importer = tsImporters.get(key);
+    let importer = tsImporters.get(tsconfig);
     if (!importer) {
         importer = register({
             namespace: `tutor-kit-${importNamespaceCounter += 1}`,
             tsconfig
         });
-        tsImporters.set(key, importer);
+        tsImporters.set(tsconfig, importer);
     }
     return {
         import(specifier, parentURL) {

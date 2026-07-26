@@ -178,8 +178,8 @@ function parseArgs(argv) {
             if (!value)
                 throw new Error("--port requires a number");
             port = Number(value);
-            if (!Number.isInteger(port) || port <= 0)
-                throw new Error("--port must be a positive integer");
+            if (!Number.isInteger(port) || port < 0)
+                throw new Error("--port must be a non-negative integer");
             continue;
         }
         if (arg === "--package-spec") {

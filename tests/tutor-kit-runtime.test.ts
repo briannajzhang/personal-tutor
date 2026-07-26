@@ -16,10 +16,12 @@ test("textbook loading can be refreshed after source edits", async () => {
   const textbookPath = join(dir, "textbooks", "getting-started", "textbook.ts");
 
   assert.equal((await loadTextbooks(dir)).textbooks[0]?.textbook.title, "Getting Started");
+  assert.equal((await loadTextbooks(dir, { textbookId: "getting-started" })).textbooks[0]?.textbook.title, "Getting Started");
   writeFileSync(textbookPath, readFileSync(textbookPath, "utf8").replace("Getting Started", "Changed Title"));
   invalidateWorkspaceCaches(dir);
 
   assert.equal((await loadTextbooks(dir)).textbooks[0]?.textbook.title, "Changed Title");
+  assert.equal((await loadTextbooks(dir, { textbookId: "getting-started" })).textbooks[0]?.textbook.title, "Changed Title");
 });
 
 test("addTextbook preserves course notes and runtime history", () => {
