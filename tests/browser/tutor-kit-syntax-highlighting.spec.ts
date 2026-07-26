@@ -1,7 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { resolve } from "node:path";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { initWorkspace } from "../../packages/tutor-kit/dist/cli/workspace.js";
 import { clearWorkspaceCaches } from "../../packages/tutor-kit/dist/compile/discover.js";
 import { startDevServer } from "../../packages/tutor-kit/dist/server/server.js";
+import { linkTutorKit } from "../helpers/tutor-kit.ts";
 
 let server: Awaited<ReturnType<typeof startDevServer>>;
 
@@ -12,6 +16,23 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
   await server?.close();
   clearWorkspaceCaches();
+});
+
+test("syntax highlighting loads when the learner workspace is outside the repository", async ({ page }) => {
+  const workspace = mkdtempSync(join(tmpdir(), "tutor-kit-syntax-workspace-"));
+  initWorkspace(workspace, { starter: true });
+  linkTutorKit(workspace);
+
+  const isolatedServer = await startDevServer({ cwd: workspace, port: 0 });
+  try {
+    await page.goto(`${isolatedServer.url}/textbooks/getting-started/chapters/welcome`);
+    await expect(page.getByRole("heading", { name: "Chapter 1: Welcome" })).toBeVisible();
+    await expect(page.locator('.code-block[data-language="ts"][data-syntax-highlighted="true"]')).toBeVisible({
+      timeout: 20_000
+    });
+  } finally {
+    await isolatedServer.close();
+  }
 });
 
 test("RealWorld code blocks highlight supported languages and leave plaintext alone", async ({ page }) => {
