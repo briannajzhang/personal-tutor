@@ -1,7 +1,7 @@
 import { existsSync, lstatSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
-import { register } from "tsx/esm/api";
+import { register, type NamespacedUnregister } from "tsx/esm/api";
 import type { CodeRunnerConfig, LoadedChapter, LoadedTextbook, TutorConfig, ValidationIssue } from "../core/types.js";
 import { validateTextbook } from "../core/validation.js";
 
@@ -24,6 +24,9 @@ const workspaceLoadPromises = new Map<string, Promise<WorkspacePaths>>();
 const textbookLoadPromises = new Map<string, Promise<TextbookLoadResult>>();
 const workspaceCache = new Map<string, WorkspacePaths>();
 const textbookCache = new Map<string, TextbookLoadResult>();
+// Re-registering scoped tsx ESM hooks can leave Node blocked in makeSyncRequest.
+// Keep one importer per tsconfig alive for the lifetime of this Tutor process.
+const tsImporters = new Map<string, NamespacedUnregister>();
 let importNamespaceCounter = 0;
 
 export async function resolveWorkspace(cwd: string): Promise<WorkspacePaths> {
@@ -132,21 +135,21 @@ function discoverFiles(rootDir: string, pattern: RegExp): string[] {
 
 export async function loadTextbooks(cwd: string, options: { textbookId?: string } = {}): Promise<TextbookLoadResult> {
   const root = resolve(cwd);
-  if (options.textbookId) return loadTextbooksUncached(root, options.textbookId);
-  const cachedTextbooks = textbookCache.get(root);
+  const cacheKey = textbookLoadCacheKey(root, options.textbookId);
+  const cachedTextbooks = textbookCache.get(cacheKey);
   if (cachedTextbooks) return cachedTextbooks;
 
-  const cached = textbookLoadPromises.get(root);
+  const cached = textbookLoadPromises.get(cacheKey);
   if (cached) return cached;
 
-  const loadPromise = loadTextbooksUncached(root);
-  textbookLoadPromises.set(root, loadPromise);
+  const loadPromise = loadTextbooksUncached(root, options.textbookId);
+  textbookLoadPromises.set(cacheKey, loadPromise);
   try {
     const loaded = await loadPromise;
-    textbookCache.set(root, loaded);
+    textbookCache.set(cacheKey, loaded);
     return loaded;
   } finally {
-    textbookLoadPromises.delete(root);
+    textbookLoadPromises.delete(cacheKey);
   }
 }
 
@@ -253,9 +256,8 @@ function formatLoadError(error: unknown): string {
 export function invalidateWorkspaceCaches(cwd: string): void {
   const root = resolve(cwd);
   workspaceLoadPromises.delete(root);
-  textbookLoadPromises.delete(root);
   workspaceCache.delete(root);
-  textbookCache.delete(root);
+  clearTextbookLoadCache(root);
 }
 
 export function clearWorkspaceCaches(): void {
@@ -263,6 +265,19 @@ export function clearWorkspaceCaches(): void {
   textbookLoadPromises.clear();
   workspaceCache.clear();
   textbookCache.clear();
+}
+
+function textbookLoadCacheKey(root: string, textbookId?: string): string {
+  return textbookId ? `${root}\0${textbookId}` : root;
+}
+
+function clearTextbookLoadCache(root: string): void {
+  for (const key of textbookLoadPromises.keys()) {
+    if (key === root || key.startsWith(`${root}\0`)) textbookLoadPromises.delete(key);
+  }
+  for (const key of textbookCache.keys()) {
+    if (key === root || key.startsWith(`${root}\0`)) textbookCache.delete(key);
+  }
 }
 
 function createTsImporter(tsconfig: false | string) {
@@ -275,10 +290,21 @@ function createTsImporter(tsconfig: false | string) {
       async unregister(): Promise<void> {}
     };
   }
-  return register({
-    namespace: `tutor-kit-${importNamespaceCounter += 1}`,
-    tsconfig
-  });
+  const key = tsconfig || "";
+  let importer = tsImporters.get(key);
+  if (!importer) {
+    importer = register({
+      namespace: `tutor-kit-${importNamespaceCounter += 1}`,
+      tsconfig
+    });
+    tsImporters.set(key, importer);
+  }
+  return {
+    import(specifier: string, parentURL: string): Promise<unknown> {
+      return importer.import(specifier, parentURL);
+    },
+    async unregister(): Promise<void> {}
+  };
 }
 
 function hasTsxPreload(): boolean {

@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
 import { mkdtempSync } from "node:fs";
+import { createServer as createNetServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { initWorkspace } from "../../packages/tutor-kit/dist/cli/workspace.js";
@@ -23,17 +26,78 @@ test("syntax highlighting loads when the learner workspace is outside the reposi
   initWorkspace(workspace, { starter: true });
   linkTutorKit(workspace);
 
-  const isolatedServer = await startDevServer({ cwd: workspace, port: 0 });
+  const isolatedServer = await startTutorCli(workspace);
   try {
-    await page.goto(`${isolatedServer.url}/textbooks/getting-started/chapters/welcome`);
-    await expect(page.getByRole("heading", { name: "Chapter 1: Welcome" })).toBeVisible();
-    await expect(page.locator('.code-block[data-language="ts"][data-syntax-highlighted="true"]')).toBeVisible({
-      timeout: 20_000
-    });
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await page.goto(`${isolatedServer.url}/textbooks/getting-started/chapters/welcome`);
+      await expect(page.getByRole("heading", { name: "Chapter 1: Welcome" })).toBeVisible();
+      await expect(page.locator('.code-block[data-language="ts"][data-syntax-highlighted="true"]')).toBeVisible({
+        timeout: 20_000
+      });
+    }
+
+    const response = await page.request.get(`${isolatedServer.url}/api/textbooks/getting-started`);
+    expect(response.ok()).toBe(true);
   } finally {
     await isolatedServer.close();
   }
 });
+
+async function startTutorCli(cwd: string): Promise<{ url: string; close: () => Promise<void> }> {
+  const port = await findOpenPort();
+  const child = spawn(process.execPath, [
+    resolve("packages/tutor-kit/dist/cli/index.js"),
+    "--cwd",
+    cwd,
+    "dev",
+    "--port",
+    String(port)
+  ], {
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  let output = "";
+  const url = await new Promise<string>((resolveUrl, reject) => {
+    const timeout = setTimeout(() => {
+      child.kill("SIGTERM");
+      reject(new Error(`Timed out starting isolated Tutor CLI:\n${output}`));
+    }, 10_000);
+    const inspectOutput = (chunk: Buffer) => {
+      output += chunk.toString();
+      const match = output.match(/Tutor UI running at (http:\/\/localhost:\d+)/);
+      if (!match) return;
+      clearTimeout(timeout);
+      resolveUrl(match[1]);
+    };
+    child.stdout?.on("data", inspectOutput);
+    child.stderr?.on("data", inspectOutput);
+    child.once("exit", (code) => {
+      clearTimeout(timeout);
+      reject(new Error(`Isolated Tutor CLI exited with code ${code}:\n${output}`));
+    });
+  });
+  return {
+    url,
+    close: async () => {
+      if (child.exitCode !== null) return;
+      child.kill("SIGTERM");
+      await once(child, "exit");
+    }
+  };
+}
+
+async function findOpenPort(): Promise<number> {
+  const probe = createNetServer();
+  await new Promise<void>((resolveListen, reject) => {
+    probe.once("error", reject);
+    probe.listen(0, "127.0.0.1", resolveListen);
+  });
+  const address = probe.address();
+  if (!address || typeof address === "string") throw new Error("Failed to reserve a local Tutor test port.");
+  await new Promise<void>((resolveClose, reject) => {
+    probe.close((error) => error ? reject(error) : resolveClose());
+  });
+  return address.port;
+}
 
 test("RealWorld code blocks highlight supported languages and leave plaintext alone", async ({ page }) => {
   await page.goto(`${server.url}/textbooks/express-prisma-realworld-articles/chapters/publish-new-article`);

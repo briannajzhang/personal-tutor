@@ -7,6 +7,9 @@ const workspaceLoadPromises = new Map();
 const textbookLoadPromises = new Map();
 const workspaceCache = new Map();
 const textbookCache = new Map();
+// Re-registering scoped tsx ESM hooks can leave Node blocked in makeSyncRequest.
+// Keep one importer per tsconfig alive for the lifetime of this Tutor process.
+const tsImporters = new Map();
 let importNamespaceCounter = 0;
 export async function resolveWorkspace(cwd) {
     const root = resolve(cwd);
@@ -105,23 +108,22 @@ function discoverFiles(rootDir, pattern) {
 }
 export async function loadTextbooks(cwd, options = {}) {
     const root = resolve(cwd);
-    if (options.textbookId)
-        return loadTextbooksUncached(root, options.textbookId);
-    const cachedTextbooks = textbookCache.get(root);
+    const cacheKey = textbookLoadCacheKey(root, options.textbookId);
+    const cachedTextbooks = textbookCache.get(cacheKey);
     if (cachedTextbooks)
         return cachedTextbooks;
-    const cached = textbookLoadPromises.get(root);
+    const cached = textbookLoadPromises.get(cacheKey);
     if (cached)
         return cached;
-    const loadPromise = loadTextbooksUncached(root);
-    textbookLoadPromises.set(root, loadPromise);
+    const loadPromise = loadTextbooksUncached(root, options.textbookId);
+    textbookLoadPromises.set(cacheKey, loadPromise);
     try {
         const loaded = await loadPromise;
-        textbookCache.set(root, loaded);
+        textbookCache.set(cacheKey, loaded);
         return loaded;
     }
     finally {
-        textbookLoadPromises.delete(root);
+        textbookLoadPromises.delete(cacheKey);
     }
 }
 async function loadTextbooksUncached(cwd, textbookId) {
@@ -220,15 +222,27 @@ function formatLoadError(error) {
 export function invalidateWorkspaceCaches(cwd) {
     const root = resolve(cwd);
     workspaceLoadPromises.delete(root);
-    textbookLoadPromises.delete(root);
     workspaceCache.delete(root);
-    textbookCache.delete(root);
+    clearTextbookLoadCache(root);
 }
 export function clearWorkspaceCaches() {
     workspaceLoadPromises.clear();
     textbookLoadPromises.clear();
     workspaceCache.clear();
     textbookCache.clear();
+}
+function textbookLoadCacheKey(root, textbookId) {
+    return textbookId ? `${root}\0${textbookId}` : root;
+}
+function clearTextbookLoadCache(root) {
+    for (const key of textbookLoadPromises.keys()) {
+        if (key === root || key.startsWith(`${root}\0`))
+            textbookLoadPromises.delete(key);
+    }
+    for (const key of textbookCache.keys()) {
+        if (key === root || key.startsWith(`${root}\0`))
+            textbookCache.delete(key);
+    }
 }
 function createTsImporter(tsconfig) {
     if (hasTsxPreload()) {
@@ -240,10 +254,21 @@ function createTsImporter(tsconfig) {
             async unregister() { }
         };
     }
-    return register({
-        namespace: `tutor-kit-${importNamespaceCounter += 1}`,
-        tsconfig
-    });
+    const key = tsconfig || "";
+    let importer = tsImporters.get(key);
+    if (!importer) {
+        importer = register({
+            namespace: `tutor-kit-${importNamespaceCounter += 1}`,
+            tsconfig
+        });
+        tsImporters.set(key, importer);
+    }
+    return {
+        import(specifier, parentURL) {
+            return importer.import(specifier, parentURL);
+        },
+        async unregister() { }
+    };
 }
 function hasTsxPreload() {
     return process.execArgv.some((arg, index, args) => (arg === "tsx" ||
