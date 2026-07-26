@@ -11,6 +11,8 @@ const quizStates = new Map();
 let monacoReady = null;
 let mermaidReady = null;
 let routeToken = 0;
+let routeLoadingTimer = null;
+const routeLoadingDelayMs = 180;
 
 async function load() {
   window.addEventListener("popstate", () => { void renderRoute(); });
