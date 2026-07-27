@@ -1,7 +1,7 @@
 import type { TutorConfig } from "tutor-kit";
 
 const config: TutorConfig = {
-  title: "Study",
+  title: "Courses",
   textbooksDir: "textbooks",
   dataDir: "tutor-data",
   codeRunner: {

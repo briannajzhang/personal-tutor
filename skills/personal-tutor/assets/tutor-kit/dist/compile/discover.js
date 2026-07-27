@@ -62,7 +62,7 @@ async function loadWorkspaceWithImporter(root, importer) {
         configPath,
         textbooksDir: resolve(root, config.textbooksDir ?? "textbooks"),
         dataDir: resolve(root, config.dataDir ?? "tutor-data"),
-        title: config.title ?? "Study",
+        title: config.title ?? "Courses",
         codeRunner: config.codeRunner ?? {}
     };
 }
