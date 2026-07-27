@@ -40,6 +40,10 @@ export class ComponentRegistry {
 
   replace(records: ComponentRecord[]): void {
     this.#records.clear();
+    this.merge(records);
+  }
+
+  merge(records: ComponentRecord[]): void {
     for (const record of records) this.#records.set(record.id, record);
   }
 

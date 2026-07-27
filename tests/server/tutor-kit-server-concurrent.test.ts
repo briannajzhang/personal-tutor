@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { mkdtempSync } from "node:fs";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -32,5 +33,23 @@ test("dev server handles concurrent root and textbooks requests", async () => {
     assert.equal(textbooksResponse.status, 200, textbooksBody);
   } finally {
     await server.close();
+  }
+});
+
+test("dev server rejects a busy port without hanging", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-"));
+  initWorkspace(dir, { starter: true });
+  linkTutorKit(dir);
+  const blocker = createServer();
+  await new Promise<void>((resolve) => blocker.listen(0, "127.0.0.1", resolve));
+  const address = blocker.address();
+  assert.ok(address && typeof address === "object");
+  try {
+    await assert.rejects(
+      startDevServer({ cwd: dir, port: address.port }),
+      (error: NodeJS.ErrnoException) => error.code === "EADDRINUSE"
+    );
+  } finally {
+    await new Promise<void>((resolve, reject) => blocker.close((error) => error ? reject(error) : resolve()));
   }
 });

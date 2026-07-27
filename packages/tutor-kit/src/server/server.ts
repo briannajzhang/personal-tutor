@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { mkdirSync, createReadStream, existsSync, realpathSync, watch, type FSWatcher } from "node:fs";
 import { relative, resolve } from "node:path";
-import { html } from "../ui/app.js";
+import { appAssetVersion, appCss, appJs, html } from "../ui/app.js";
 import { wizardIconPath } from "../ui/brand-assets.js";
 import { katexCssPath, katexFontPath, katexJsPath } from "../ui/katex-assets.js";
 import { mermaidAssetPath, mermaidJsPath } from "../ui/mermaid-assets.js";
@@ -28,39 +28,52 @@ export interface DevServerOptions {
   port: number;
 }
 
+const maxJsonBodyBytes = 1_000_000;
+
 export async function startDevServer(options: DevServerOptions): Promise<{ url: string; close: () => Promise<void> }> {
   const workspace = await resolveWorkspace(options.cwd);
   mkdirSync(workspace.dataDir, { recursive: true });
-  const watchers = watchWorkspace(workspace);
   const componentRegistry = new ComponentRegistry();
   const server = createServer();
-  const vite = await createComponentViteServer(workspace.cwd, componentRegistry, server);
-  server.on("request", (request, response) => {
-    vite.middlewares(request, response, () => {
-      void handleRequest(workspace.cwd, componentRegistry, request, response).catch((error) => {
-        if (response.writableEnded) return;
-        response.statusCode = 500;
-        response.setHeader("content-type", "text/plain; charset=utf-8");
-        response.end(error instanceof Error ? error.stack : String(error));
+  const watchers: FSWatcher[] = [];
+  let vite: Awaited<ReturnType<typeof createComponentViteServer>> | undefined;
+
+  try {
+    vite = await createComponentViteServer(workspace.cwd, componentRegistry, server);
+    server.on("request", (request, response) => {
+      vite!.middlewares(request, response, () => {
+        void handleRequest(workspace.cwd, componentRegistry, request, response).catch((error) => {
+          if (response.writableEnded) return;
+          const status = error instanceof RequestError ? error.status : 500;
+          response.statusCode = status;
+          response.setHeader("content-type", "text/plain; charset=utf-8");
+          response.end(status === 500 && error instanceof Error ? error.stack : String(error));
+        });
       });
     });
-  });
+    await listen(server, options.port);
+    watchers.push(...watchWorkspace(workspace));
+  } catch (error) {
+    closeWatchers(watchers);
+    await vite?.close().catch(() => {});
+    if (server.listening) await closeServer(server).catch(() => {});
+    throw error;
+  }
 
-  await new Promise<void>((resolve) => server.listen(options.port, "127.0.0.1", resolve));
   const address = server.address();
   const port = typeof address === "object" && address ? address.port : options.port;
+  let closePromise: Promise<void> | undefined;
 
   return {
     url: `http://localhost:${port}`,
-    close: async () => {
+    close: () => closePromise ??= (async () => {
       closeWatchers(watchers);
-      await vite.close();
-      await new Promise<void>((resolve, reject) => {
-        server.close((error) => error ? reject(error) : resolve());
-        server.closeIdleConnections?.();
-        server.closeAllConnections?.();
-      });
-    }
+      try {
+        await vite.close();
+      } finally {
+        await closeServer(server);
+      }
+    })()
   };
 }
 
@@ -71,6 +84,16 @@ async function handleRequest(
   response: ServerResponse
 ): Promise<void> {
   const url = new URL(request.url ?? "/", "http://localhost");
+
+  if (request.method === "GET" && url.pathname === "/__tutor-assets/app.css") {
+    sendAppAsset(response, url, "text/css; charset=utf-8", appCss);
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/__tutor-assets/app.js") {
+    sendAppAsset(response, url, "text/javascript; charset=utf-8", appJs);
+    return;
+  }
 
   const katexFontMatch = url.pathname.match(/^\/__tutor-assets\/katex\/fonts\/([^/]+)$/);
   if (request.method === "GET" && katexFontMatch) {
@@ -324,12 +347,17 @@ async function loadWithComponents(
   const loaded = await loadTextbooks(cwd, options);
   if (loaded.issues.length === 0) {
     try {
-      registry.replace(collectComponentRecords(cwd, loaded.textbooks));
+      const records = collectComponentRecords(cwd, loaded.textbooks);
+      if (options.textbookId) registry.merge(records);
+      else registry.replace(records);
     } catch (error) {
-      loaded.issues.push({
-        textbookId: options.textbookId,
-        message: error instanceof Error ? error.message : String(error)
-      });
+      return {
+        ...loaded,
+        issues: [...loaded.issues, {
+          textbookId: options.textbookId,
+          message: error instanceof Error ? error.message : String(error)
+        }]
+      };
     }
   }
   return loaded;
@@ -373,18 +401,16 @@ function decodePathParts(pathname: string): string[] | null {
 
 function send(response: ServerResponse, status: number, contentType: string, body: string): void {
   response.statusCode = status;
-  response.setHeader("connection", "close");
   response.setHeader("content-type", contentType);
   response.end(body);
 }
 
 function sendJson(response: ServerResponse, status: number, body: unknown): void {
-  send(response, status, "application/json; charset=utf-8", JSON.stringify(body, null, 2));
+  send(response, status, "application/json; charset=utf-8", JSON.stringify(body));
 }
 
 function sendFile(response: ServerResponse, path: string): void {
   response.statusCode = 200;
-  response.setHeader("connection", "close");
   response.setHeader("content-type", contentType(path));
   createReadStream(path)
     .on("error", () => {
@@ -395,6 +421,16 @@ function sendFile(response: ServerResponse, path: string): void {
       response.end("Not found");
     })
     .pipe(response);
+}
+
+function sendAppAsset(response: ServerResponse, url: URL, contentType: string, body: string): void {
+  response.setHeader(
+    "cache-control",
+    url.searchParams.get("v") === appAssetVersion
+      ? "public, max-age=31536000, immutable"
+      : "no-cache"
+  );
+  send(response, 200, contentType, body);
 }
 
 function resolveTextbookAssetPath(workspace: WorkspacePaths, textbookId: string, assetPath: string): string | null {
@@ -444,12 +480,62 @@ function contentType(path: string): string {
 }
 
 async function readJson(request: IncomingMessage): Promise<Record<string, unknown>> {
+  const contentLength = Number(request.headers["content-length"]);
+  if (Number.isFinite(contentLength) && contentLength > maxJsonBodyBytes) {
+    request.resume();
+    throw new RequestError(413, `JSON body exceeds ${maxJsonBodyBytes} bytes`);
+  }
   const chunks: Buffer[] = [];
+  let totalBytes = 0;
   for await (const chunk of request) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    totalBytes += buffer.length;
+    if (totalBytes > maxJsonBodyBytes) {
+      throw new RequestError(413, `JSON body exceeds ${maxJsonBodyBytes} bytes`);
+    }
+    chunks.push(buffer);
   }
   if (chunks.length === 0) return {};
-  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(Buffer.concat(chunks, totalBytes).toString("utf8"));
+  } catch {
+    throw new RequestError(400, "Request body must contain valid JSON");
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new RequestError(400, "Request body must be a JSON object");
+  }
+  return parsed as Record<string, unknown>;
+}
+
+class RequestError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+  }
+}
+
+function listen(server: ReturnType<typeof createServer>, port: number): Promise<void> {
+  return new Promise((resolvePromise, reject) => {
+    const onError = (error: Error) => {
+      server.off("listening", onListening);
+      reject(error);
+    };
+    const onListening = () => {
+      server.off("error", onError);
+      resolvePromise();
+    };
+    server.once("error", onError);
+    server.once("listening", onListening);
+    server.listen(port, "127.0.0.1");
+  });
+}
+
+function closeServer(server: ReturnType<typeof createServer>): Promise<void> {
+  return new Promise((resolvePromise, reject) => {
+    server.close((error) => error ? reject(error) : resolvePromise());
+    server.closeIdleConnections?.();
+    server.closeAllConnections?.();
+  });
 }
 
 function watchWorkspace(workspace: WorkspacePaths): FSWatcher[] {

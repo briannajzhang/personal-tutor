@@ -37,6 +37,24 @@ test("dev server exposes workspace data and protects asset paths", async () => {
     const pageHtml = await page.text();
     assert.match(pageHtml, /<main id="main"><\/main>/);
     assert.match(pageHtml, /<link rel="icon" type="image\/png" href="\/favicon\.ico" \/>/);
+    assert.match(pageHtml, /\/__tutor-assets\/app\.css\?v=[a-f0-9]{12}/);
+    assert.match(pageHtml, /\/__tutor-assets\/app\.js\?v=[a-f0-9]{12}/);
+    assert.ok(Buffer.byteLength(pageHtml) < 2_000);
+
+    const appCssUrl = pageHtml.match(/href="([^"]*\/__tutor-assets\/app\.css\?v=[a-f0-9]{12})"/)?.[1];
+    const appJsUrl = pageHtml.match(/src="([^"]*\/__tutor-assets\/app\.js\?v=[a-f0-9]{12})"/)?.[1];
+    assert.ok(appCssUrl);
+    assert.ok(appJsUrl);
+    const [appCss, appJs] = await Promise.all([
+      fetch(new URL(appCssUrl, server.url)),
+      fetch(new URL(appJsUrl, server.url))
+    ]);
+    assert.equal(appCss.headers.get("content-type"), "text/css; charset=utf-8");
+    assert.equal(appJs.headers.get("content-type"), "text/javascript; charset=utf-8");
+    assert.match(appCss.headers.get("cache-control") ?? "", /immutable/);
+    assert.match(appJs.headers.get("cache-control") ?? "", /immutable/);
+    assert.ok((await appCss.text()).length > 10_000);
+    assert.ok((await appJs.text()).length > 10_000);
 
     const brandIcon = await fetch(`${server.url}/__tutor-assets/brand/wizard-icon.png`);
     assert.equal(brandIcon.status, 200);
@@ -68,6 +86,20 @@ test("dev server exposes workspace data and protects asset paths", async () => {
       body: JSON.stringify({ type: "test_event" })
     });
     assert.equal(event.ok, true);
+
+    const invalidJson = await fetch(`${server.url}/api/events`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{"
+    });
+    assert.equal(invalidJson.status, 400);
+
+    const oversizedJson = await fetch(`${server.url}/api/events`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ value: "x".repeat(1_000_000) })
+    });
+    assert.equal(oversizedJson.status, 413);
   } finally {
     await server.close();
   }
