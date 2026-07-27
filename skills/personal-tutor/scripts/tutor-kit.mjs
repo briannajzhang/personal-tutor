@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const skillDir = dirname(scriptDir);
-const cliPath = join(skillDir, "assets", "tutor-kit", "dist", "cli", "index.js");
+const kitDir = join(skillDir, "assets", "tutor-kit");
+const cliPath = join(kitDir, "dist", "cli", "index.js");
 const supportedNodeRange = "^20.19.0 || >=22.12.0";
 
 if (!isSupportedNode(process.versions.node)) {
@@ -22,6 +23,8 @@ if (!existsSync(cliPath)) {
   console.error("Reinstall the personal-tutor skill or rebuild the bundled Tutor Kit asset.");
   process.exit(1);
 }
+
+ensureTutorKitDependencies();
 
 const args = process.argv.slice(2);
 const cliArgs = hasCwdOption(args) ? args : ["--cwd", defaultLibraryDir(), ...args];
@@ -60,4 +63,86 @@ function isSupportedNode(version) {
     return minor > 19 || (minor === 19 && patch >= 0);
   }
   return major > 22 || (major === 22 && minor >= 12);
+}
+
+function ensureTutorKitDependencies() {
+  const missing = missingTutorKitDependencies();
+  if (missing.length === 0) return;
+
+  console.error("Preparing Tutor Kit for first use...");
+  const npm = npmInvocation();
+  const installCommand = existsSync(join(kitDir, "package-lock.json")) ? "ci" : "install";
+  const npmArgs = [
+    ...npm.args,
+    installCommand,
+    "--omit=dev",
+    "--ignore-scripts",
+    "--no-audit",
+    "--fund=false"
+  ];
+  const install = spawnSync(npm.command, npmArgs, {
+    cwd: kitDir,
+    stdio: "inherit"
+  });
+
+  if (install.error || install.status !== 0) {
+    if (install.error) console.error(install.error.message);
+    console.error("Tutor Kit package installation failed.");
+    console.error(`Run this command to try again: ${repairCommand(installCommand)}`);
+    process.exit(typeof install.status === "number" && install.status !== 0 ? install.status : 1);
+  }
+
+  const stillMissing = missingTutorKitDependencies();
+  if (stillMissing.length > 0) {
+    console.error(`Tutor Kit is still missing these packages: ${stillMissing.join(", ")}`);
+    console.error(`Run this command to repair it: ${repairCommand(installCommand)}`);
+    process.exit(1);
+  }
+}
+
+function missingTutorKitDependencies() {
+  const packageJsonPath = join(kitDir, "package.json");
+  if (!existsSync(packageJsonPath)) {
+    console.error(`Tutor Kit package file not found at ${packageJsonPath}`);
+    process.exit(1);
+  }
+
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+  return Object.keys(packageJson.dependencies ?? {}).filter((dependency) => {
+    return !dependencyPackageExists(dependency);
+  });
+}
+
+function dependencyPackageExists(dependency) {
+  let current = kitDir;
+  while (true) {
+    const packageJsonPath = join(current, "node_modules", ...dependency.split("/"), "package.json");
+    if (existsSync(packageJsonPath)) return true;
+
+    const parent = dirname(current);
+    if (parent === current) return false;
+    current = parent;
+  }
+}
+
+function npmInvocation() {
+  if (process.env.PERSONAL_TUTOR_NPM_BIN) {
+    return { command: resolve(process.env.PERSONAL_TUTOR_NPM_BIN), args: [] };
+  }
+  if (process.env.npm_execpath) {
+    return { command: process.execPath, args: [process.env.npm_execpath] };
+  }
+  return {
+    command: process.platform === "win32" ? "npm.cmd" : "npm",
+    args: []
+  };
+}
+
+function repairCommand(installCommand) {
+  return `cd ${shellQuote(kitDir)} && npm ${installCommand} --omit=dev --ignore-scripts --no-audit --fund=false`;
+}
+
+function shellQuote(value) {
+  if (/^[A-Za-z0-9_./:=@+-]+$/.test(value)) return value;
+  return `'${value.replaceAll("'", "'\\''")}'`;
 }

@@ -1,12 +1,31 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import {
+  chmodSync,
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
 const root = process.cwd();
 const skillDir = join(root, "skills", "personal-tutor");
+
+test("README installs the skill from GitHub instead of npm", () => {
+  const readme = readFileSync(join(root, "README.md"), "utf8");
+  const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
+    private?: boolean;
+  };
+
+  assert.match(readme, /npx skills add briannajzhang\/personal-tutor/);
+  assert.match(readme, /node ~\/\.agents\/skills\/personal-tutor\/scripts\/tutor-kit\.mjs dev/);
+  assert.doesNotMatch(readme, /npx personal-tutor/);
+  assert.equal(packageJson.private, true);
+});
 
 test("skill package has a valid entry point and runnable bundled CLI", () => {
   const skill = readFileSync(join(skillDir, "SKILL.md"), "utf8");
@@ -23,6 +42,53 @@ test("skill package has a valid entry point and runnable bundled CLI", () => {
   assert.match(help, /Tutor Kit/);
   assert.match(help, /compile/);
   assert.match(help, /verify coding-problems/);
+});
+
+test("skill wrapper installs missing runtime packages on first use", () => {
+  const installedSkill = join(mkdtempSync(join(tmpdir(), "personal-tutor-bootstrap-")), "personal-tutor");
+  cpSync(skillDir, installedSkill, { recursive: true });
+
+  const kitDir = join(installedSkill, "assets", "tutor-kit");
+  writeFileSync(join(kitDir, "package.json"), JSON.stringify({
+    name: "fake-tutor-kit",
+    private: true,
+    type: "module",
+    dependencies: {
+      "fake-runtime": "1.0.0"
+    }
+  }));
+  writeFileSync(
+    join(kitDir, "dist", "cli", "index.js"),
+    "console.log('fake Tutor Kit started');\n"
+  );
+
+  const fakeNpm = join(installedSkill, "fake-npm.mjs");
+  writeFileSync(fakeNpm, [
+    "#!/usr/bin/env node",
+    "import { mkdirSync, writeFileSync } from 'node:fs';",
+    "import { join } from 'node:path';",
+    "const packageDir = join(process.cwd(), 'node_modules', 'fake-runtime');",
+    "mkdirSync(packageDir, { recursive: true });",
+    "writeFileSync(join(packageDir, 'package.json'), JSON.stringify({ name: 'fake-runtime', version: '1.0.0' }));",
+    "console.log('fake npm install completed');"
+  ].join("\n"));
+  chmodSync(fakeNpm, 0o755);
+
+  const output = execFileSync(
+    process.execPath,
+    [join(installedSkill, "scripts", "tutor-kit.mjs"), "--help"],
+    {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        PERSONAL_TUTOR_NPM_BIN: fakeNpm
+      }
+    }
+  );
+
+  assert.match(output, /fake npm install completed/);
+  assert.match(output, /fake Tutor Kit started/);
+  assert.equal(existsSync(join(kitDir, "node_modules", "fake-runtime", "package.json")), true);
 });
 
 test("personal tutor reads and updates learner memory conservatively", () => {

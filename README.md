@@ -83,22 +83,22 @@ Personal Tutor requires Node.js 20.19.x, or Node.js 22.12.0 or newer. Node.js 21
 For Codex:
 
 ```bash
-npx personal-tutor@latest
+npx skills add briannajzhang/personal-tutor --skill personal-tutor --global --agent codex
 ```
 
 For Claude Code:
 
 ```bash
-npx personal-tutor@latest --agent claude-code
+npx skills add briannajzhang/personal-tutor --skill personal-tutor --global --agent claude-code
 ```
 
 For both:
 
 ```bash
-npx personal-tutor@latest --agent all
+npx skills add briannajzhang/personal-tutor --skill personal-tutor --global --agent codex --agent claude-code
 ```
 
-You can run `npx personal-tutor@latest --help` to see the other install options.
+These commands use the [skills CLI](https://github.com/vercel-labs/skills). Personal Tutor installs its Tutor Kit packages the first time you use it.
 
 ### 2. Ask your coding agent to build a course
 
@@ -110,11 +110,11 @@ Personal Tutor may ask a few questions before it creates the first chapter, just
 
 ### 3. Open the course
 
-```bash
-npx personal-tutor@latest dev
-```
+Start the local course app:
 
-Claude Code users can run `npx personal-tutor@latest dev --agent claude-code`.
+```bash
+node ~/.agents/skills/personal-tutor/scripts/tutor-kit.mjs dev
+```
 
 Your courses and learning history stay in `~/.personal-tutor`.
 

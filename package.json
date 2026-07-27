@@ -1,6 +1,7 @@
 {
   "name": "personal-tutor",
   "version": "0.1.0",
+  "private": true,
   "description": "Local tutoring skill with interactive courses and practice.",
   "license": "Apache-2.0",
   "repository": {
@@ -12,15 +13,6 @@
     "url": "https://github.com/briannajzhang/personal-tutor/issues"
   },
   "type": "module",
-  "bin": {
-    "personal-tutor": "bin/personal-tutor.js"
-  },
-  "files": [
-    "bin",
-    "skills/personal-tutor",
-    "README.md",
-    "LICENSE"
-  ],
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
@@ -37,7 +29,6 @@
     "build": "rm -rf packages/tutor-kit/dist && tsc -b packages/tutor-kit --force && chmod +x packages/tutor-kit/dist/cli/index.js",
     "build:skill": "npm run build && node scripts/build-skill.mjs",
     "build:skill:check": "npm run build && node scripts/build-skill.mjs --check",
-    "prepack": "npm run build:skill",
     "test": "npm run build && node --import tsx --test tests/*.test.ts tests/server/*.test.ts",
     "test:browser": "npm run build && playwright test",
     "tutor": "tsx packages/tutor-kit/src/cli/index.ts",
