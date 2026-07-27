@@ -6,7 +6,7 @@
 
 **Turn your coding agent into a tutor that learns how you learn.**
 
-<img src="assets/course-library.png" alt="Personal Tutor course library showing courses on ceramic glazes, concert ticketing, and an Express codebase" />
+<img src="assets/course-library.png" width="760" alt="Personal Tutor course library showing courses on ceramic glazes, concert ticketing, and an Express codebase" />
 
 </div>
 
