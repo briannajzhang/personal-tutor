@@ -13,4 +13,3 @@ export function monacoAssetPath(assetPath) {
     }
     return resolved;
 }
-//# sourceMappingURL=monaco-assets.js.map

@@ -6,8 +6,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
-  statSync,
-  writeFileSync
+  statSync
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
@@ -88,7 +87,6 @@ function writeBundle(destination) {
   cpSync(packageLock, join(destination, "package-lock.json"));
   cpSync(assets, join(destination, "assets"), { recursive: true });
   cpSync(dist, join(destination, "dist"), { recursive: true });
-  writeFileSync(join(destination, ".gitkeep"), "");
 }
 
 function diffDirectories(expected, actual) {

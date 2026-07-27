@@ -1,11 +1,10 @@
-import type { BlurbBlock, CalloutBlock, CalloutProps, ChartBlock, ChartType, CodingProblemBlock, CodingProblemFile, CodeBlock, ComponentBlock, ComponentModule, DiagramBlock, DiagramProps, GlossaryBlock, HeadingBlock, HeadingProps, ImageBlock, ImageProps, JsonValue, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, ChapterRole, SectionRole, Section, Subsection, Textbook, Chapter, TransformationArtifact, TransformationBlock, TransformationLayout, TutorBlock } from "./types.js";
+import type { CalloutBlock, CalloutProps, ChartBlock, ChartType, CodingProblemBlock, CodingProblemFile, CodeBlock, ComponentBlock, ComponentModule, DiagramBlock, DiagramProps, GlossaryBlock, HeadingBlock, HeadingProps, ImageBlock, ImageProps, JsonValue, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, ChapterRole, SectionRole, Section, Subsection, Textbook, Chapter, TransformationArtifact, TransformationBlock, TransformationLayout, TutorBlock } from "./types.js";
 interface SubsectionInput {
     id: string;
     title: string;
     description?: string;
     tags?: string[];
     blocks?: TutorBlock[];
-    widgets?: TutorBlock[];
 }
 interface SectionInput extends SubsectionInput {
     role?: SectionRole;
@@ -167,9 +166,6 @@ interface QuizInput extends BlockInput {
     mode?: QuizMode;
     questions: QuizQuestionInput[];
 }
-interface LegacyExplanationInput extends ParagraphInput {
-    title?: string;
-}
 export declare function subsection(input: SubsectionInput): Subsection;
 export declare function section(input: SectionInput): Section;
 export declare function chapter(input: ChapterInput): Chapter;
@@ -194,6 +190,4 @@ export declare function projectFiles(baseUrl: string, dir: string): {
     file(path: string, options?: CodingProblemFileOptions): CodingProblemFile;
     inline(path: string, content: string, options?: CodingProblemFileOptions): CodingProblemFile;
 };
-export declare function explanation(input: LegacyExplanationInput): BlurbBlock;
-export declare function blurb(input: LegacyExplanationInput): BlurbBlock;
 export {};

@@ -128,4 +128,3 @@ function renderTransformationArtifact(artifact) {
 }
 `;
 }
-//# sourceMappingURL=blocks.js.map

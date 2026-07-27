@@ -17,9 +17,10 @@ export function summarizeReadingProgress(state, textbook) {
     const chapterIds = new Set(textbook.chapters.map((chapter) => chapter.id));
     const visited = state.visitedChapterIds.filter((id) => chapterIds.has(id));
     const completed = state.completedChapterIds.filter((id) => chapterIds.has(id));
+    const completedIds = new Set(completed);
     const last = textbook.chapters.find((chapter) => chapter.id === state.lastChapterId) ?? null;
-    const firstIncomplete = textbook.chapters.find((chapter) => !completed.includes(chapter.id)) ?? null;
-    const continueChapter = last && !completed.includes(last.id) ? last : firstIncomplete;
+    const firstIncomplete = textbook.chapters.find((chapter) => !completedIds.has(chapter.id)) ?? null;
+    const continueChapter = last && !completedIds.has(last.id) ? last : firstIncomplete;
     const total = textbook.chapters.length;
     return {
         visitedChapters: visited.length,
@@ -123,4 +124,3 @@ function chapterHeadingIds(chapter) {
         ...section.subsections.map((subsection) => subsection.id)
     ]));
 }
-//# sourceMappingURL=reading-progress.js.map

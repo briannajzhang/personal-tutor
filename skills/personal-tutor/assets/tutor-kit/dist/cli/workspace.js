@@ -54,9 +54,6 @@ export function addBlock(cwd, kind) {
     }
     throw new Error(`Unknown block "${kind}". Available blocks: ${blockKinds.join(", ")}.`);
 }
-export function addWidget(cwd, kind) {
-    return addBlock(cwd, kind);
-}
 function ensureDir(path) {
     mkdirSync(path, { recursive: true });
 }
@@ -112,4 +109,3 @@ function filePackagePath(cwd, packageSpec) {
         return fileURLToPath(packageSpec);
     return resolve(cwd, raw);
 }
-//# sourceMappingURL=workspace.js.map

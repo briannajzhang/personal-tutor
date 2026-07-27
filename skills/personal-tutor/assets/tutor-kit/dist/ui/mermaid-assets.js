@@ -16,4 +16,3 @@ export function mermaidAssetPath(assetPath) {
     }
     return resolved;
 }
-//# sourceMappingURL=mermaid-assets.js.map

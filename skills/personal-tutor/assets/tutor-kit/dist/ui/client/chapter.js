@@ -1,11 +1,11 @@
 export function chapterClientJs() {
     return `
 async function renderChapter(textbookId, chapterId, token) {
-  const chapter = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
-  if (token !== routeToken) return;
-  const glossaryStudyState = await loadGlossaryStudyState(textbookId);
-  if (token !== routeToken) return;
-  const highlightState = await loadChapterHighlights(textbookId, chapterId);
+  const [chapter, glossaryStudyState, highlightState] = await Promise.all([
+    fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`),
+    loadGlossaryStudyState(textbookId),
+    loadChapterHighlights(textbookId, chapterId)
+  ]);
   if (token !== routeToken) return;
   activeChapter = chapter;
   activeChapterHighlights = highlightState.highlights;
@@ -48,21 +48,16 @@ async function renderChapter(textbookId, chapterId, token) {
     </section>
   \`;
   syncChapterToolsDisclosure();
-  bindCrumbs();
-  bindChapterIndex();
   bindChapterCompletion(textbookId, chapterId, chapter.chapterCompleted);
-  bindChapterNavigation(textbookId);
-  bindGlossaryOverviewLinks();
   void highlightCodeBlocks();
-  bindGlossaryStarControls(textbookId);
-  bindHighlighter(chapter);
-  applyChapterHighlights(chapter);
-  renderChapterHighlightsList(chapter);
+  setGlossaryContext(textbookId);
+  refreshHighlightModeAffordances();
+  applyChapterHighlights();
+  renderChapterHighlightsList();
   bindQuizzes(chapter);
   bindCodingProblems(chapter);
   scheduleTransformationLayouts();
   void renderDiagrams();
-  bindDiagramExpanders();
   mountRenderedComponents();
   if (document.fonts?.ready) void document.fonts.ready.then(scheduleTransformationLayouts);
   finishRouteLoad(token);
@@ -154,35 +149,6 @@ function headingIdForHash(chapter) {
   return "";
 }
 
-function bindChapterNavigation(textbookId) {
-  document.querySelectorAll("[data-chapter-navigation]").forEach((button) => {
-    button.addEventListener("click", () => {
-      navigateChapter(textbookId, button.dataset.chapterNavigation, true);
-    });
-  });
-}
-
-function bindChapterIndex() {
-  document.querySelectorAll(".index-link[href^='#']").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      const hash = link.getAttribute("href") ?? "";
-      if (!hash || hash === "#") return;
-      const id = parseHashId(hash);
-      if (!id || !document.getElementById(id)) return;
-
-      event.preventDefault();
-      const nextUrl = window.location.pathname + window.location.search + hash;
-      if (window.location.hash === hash) {
-        history.replaceState(history.state, "", nextUrl);
-      } else {
-        history.pushState({}, "", nextUrl);
-      }
-      scrollToHashTarget(hash, "smooth");
-      if (activeChapter) void saveReadingProgress(activeChapter.textbookId, activeChapter.id, "visit", link.dataset.headingId);
-    });
-  });
-}
-
 function scrollToHashTarget(hash = window.location.hash, behavior = "auto") {
   const id = parseHashId(hash);
   if (!id) return false;
@@ -222,6 +188,7 @@ function renderSection(section, context) {
 
 async function renderRoute() {
   const route = parseRoute(window.location.pathname);
+  activeGlossaryContext = null;
   const token = beginRouteLoad(routeLoadingMessage(route));
   try {
     await unmountAllComponents();
@@ -316,17 +283,6 @@ function navigateTextbookGlossaryStudy(textbookId, studySet = "all") {
   void renderRoute();
 }
 
-function bindGlossaryOverviewLinks() {
-  document.querySelectorAll("[data-glossary-overview]").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      const textbookId = link.dataset.glossaryOverview;
-      if (!textbookId) return;
-      event.preventDefault();
-      navigateTextbookGlossary(textbookId);
-    });
-  });
-}
-
 function navigateChapter(textbookId, chapterId, scrollToTop = false, headingId = "") {
   const hash = headingId ? \`#\${encodeURIComponent(anchorId(headingId))}\` : "";
   history.pushState({}, "", \`/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\${hash}\`);
@@ -334,13 +290,76 @@ function navigateChapter(textbookId, chapterId, scrollToTop = false, headingId =
   void renderRoute();
 }
 
+function handleNavigationClick(event) {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+  const nav = target.closest("[data-nav]");
+  if (nav) {
+    if (nav.dataset.nav === "home") navigateHome();
+    else if (nav.dataset.nav === "textbook" && nav.dataset.textbook) navigateTextbook(nav.dataset.textbook);
+    else if (nav.dataset.nav === "glossary" && nav.dataset.textbook) navigateTextbookGlossary(nav.dataset.textbook);
+    return;
+  }
+  const tab = target.closest("[data-textbook-tab]");
+  if (tab?.dataset.tabTextbook) {
+    if (tab.dataset.textbookTab === "glossary") navigateTextbookGlossary(tab.dataset.tabTextbook);
+    else navigateTextbook(tab.dataset.tabTextbook);
+    return;
+  }
+  const continuation = target.closest("[data-continue-textbook]");
+  if (continuation) {
+    navigateChapter(continuation.dataset.continueTextbook, continuation.dataset.continueChapter, true, continuation.dataset.continueHeading);
+    return;
+  }
+  const review = target.closest("[data-review-textbook]");
+  if (review?.dataset.reviewTextbook) {
+    navigateTextbook(review.dataset.reviewTextbook);
+    return;
+  }
+  const textbook = target.closest("[data-textbook]");
+  if (textbook?.dataset.textbook) {
+    navigateTextbook(textbook.dataset.textbook);
+    return;
+  }
+  const chapter = target.closest("[data-chapter]");
+  if (chapter?.dataset.chapterTextbook) {
+    navigateChapter(chapter.dataset.chapterTextbook, chapter.dataset.chapter);
+    return;
+  }
+  const chapterNavigation = target.closest("[data-chapter-navigation]");
+  if (chapterNavigation?.dataset.chapterNavigation && activeChapter) {
+    navigateChapter(activeChapter.textbookId, chapterNavigation.dataset.chapterNavigation, true);
+    return;
+  }
+  const glossary = target.closest("[data-glossary-overview]");
+  if (glossary?.dataset.glossaryOverview) {
+    event.preventDefault();
+    navigateTextbookGlossary(glossary.dataset.glossaryOverview);
+    return;
+  }
+  const indexLink = target.closest(".index-link[href^='#']");
+  if (indexLink) {
+    const hash = indexLink.getAttribute("href") ?? "";
+    const id = parseHashId(hash);
+    if (!id || !document.getElementById(id)) return;
+    event.preventDefault();
+    const nextUrl = window.location.pathname + window.location.search + hash;
+    history[window.location.hash === hash ? "replaceState" : "pushState"]({}, "", nextUrl);
+    scrollToHashTarget(hash, "smooth");
+    if (activeChapter) void saveReadingProgress(activeChapter.textbookId, activeChapter.id, "visit", indexLink.dataset.headingId);
+    return;
+  }
+  const expand = target.closest("[data-diagram-expand]");
+  const diagram = expand?.closest("[data-diagram]");
+  if (diagram) openDiagramOverlay(diagram);
+}
+
 function renderBlock(block, context) {
   if (block.kind === "component") {
     return renderComponent(block, context);
   }
-  if (block.kind === "p" || block.kind === "explanation" || block.kind === "blurb") {
-    const title = block.props.title ? \`<h4 class="local-heading">\${escapeHtml(block.props.title)}</h4>\` : "";
-    return \`<article class="block">\${title}<div class="markdown"\${highlightAnchorAttrs(block, context)}>\${renderMarkdown(block.props.body)}</div></article>\`;
+  if (block.kind === "p") {
+    return \`<article class="block"><div class="markdown"\${highlightAnchorAttrs(block, context)}>\${renderMarkdown(block.props.body)}</div></article>\`;
   }
   if (block.kind === "heading") {
     return \`<h\${block.props.level} class="local-heading level-\${block.props.level}"\${highlightUnsupportedAttrs()}>\${escapeHtml(block.props.text)}</h\${block.props.level}>\`;
@@ -423,16 +442,6 @@ function renderDiagram(block) {
       </div>
     </article>
   \`;
-}
-
-function bindDiagramExpanders() {
-  document.querySelectorAll("[data-diagram-expand]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const diagram = button.closest("[data-diagram]");
-      if (!diagram) return;
-      openDiagramOverlay(diagram);
-    });
-  });
 }
 
 function openDiagramOverlay(diagram) {
@@ -719,4 +728,3 @@ function formatNumber(value) {
 }
 `;
 }
-//# sourceMappingURL=chapter.js.map

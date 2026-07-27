@@ -20,4 +20,3 @@ export function formatDevTextbookIssues(issues) {
     }
     return lines.join("\n");
 }
-//# sourceMappingURL=dev.js.map

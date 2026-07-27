@@ -1,6 +1,5 @@
-import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
-import { appendEvent, isStringRecord, readJsonFile, relativeDataPath, requireNonNegativeInteger, requireString, safeSegment, writeJsonFile } from "./shared.js";
+import { appendEvent, isStringRecord, jsonStatePaths, readJsonFile, requireNonNegativeInteger, requireString, writeJsonFile } from "./shared.js";
 const emptyState = () => ({
     selectedAnswers: {},
     submitted: false,
@@ -31,7 +30,7 @@ export async function saveQuizState(cwd, body) {
         total: null,
         updatedAt: new Date().toISOString()
     };
-    writeState(paths.absolutePath, next);
+    writeJsonFile(paths.absolutePath, next);
     return { ...next, statePath: paths.path };
 }
 export async function submitQuizAttempt(cwd, body) {
@@ -54,7 +53,7 @@ export async function submitQuizAttempt(cwd, body) {
         attempts: [...previous.attempts, attempt],
         updatedAt: attempt.submittedAt
     };
-    writeState(paths.absolutePath, next);
+    writeJsonFile(paths.absolutePath, next);
     appendEvent(workspace.dataDir, {
         type: "quiz_checked",
         textbookId: requireString(body.textbookId, "textbookId"),
@@ -68,8 +67,11 @@ export async function submitQuizAttempt(cwd, body) {
     return { ...next, statePath: paths.path };
 }
 function quizPaths(cwd, dataDir, request) {
-    const absolutePath = join(dataDir, "quiz-state", safeSegment(requireString(request.textbookId, "textbookId")), safeSegment(requireString(request.chapterId, "chapterId")), `${safeSegment(requireString(request.quizId, "quizId"))}.json`);
-    return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
+    return jsonStatePaths(cwd, dataDir, "quiz-state", [
+        [request.textbookId, "textbookId"],
+        [request.chapterId, "chapterId"],
+        [request.quizId, "quizId"]
+    ]);
 }
 function readState(path) {
     const parsed = readJsonFile(path);
@@ -84,9 +86,6 @@ function readState(path) {
         attempts: Array.isArray(parsed.attempts) ? parsed.attempts : [],
         updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null
     };
-}
-function writeState(path, state) {
-    writeJsonFile(path, state);
 }
 function responseList(value) {
     if (!Array.isArray(value))
@@ -124,4 +123,3 @@ function requireQuizAnswer(value, label) {
         return { ...value };
     throw new Error(`${label} must be a string or string record`);
 }
-//# sourceMappingURL=quizzes.js.map

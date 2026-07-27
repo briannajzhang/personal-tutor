@@ -111,4 +111,3 @@ function validateTextbookId(textbookId) {
 function archiveTimestamp() {
     return new Date().toISOString().replace(/[:.]/g, "-");
 }
-//# sourceMappingURL=publication.js.map

@@ -13,44 +13,49 @@ const defaultRuntimeCommands = {
 };
 export async function runShell(command, cwd, language, config) {
     const timeoutMs = config.timeoutMs ?? defaultRunner.timeoutMs;
-    const maxOutputBytes = config.maxOutputBytes ?? defaultRunner.maxOutputBytes;
+    const maxOutputBytes = Math.max(0, config.maxOutputBytes ?? defaultRunner.maxOutputBytes);
     const startedAt = Date.now();
-    let stdout = "";
-    let stderr = "";
+    const stdout = emptyOutput();
+    const stderr = emptyOutput();
     let truncated = false;
     let timedOut = false;
-    return await new Promise((resolvePromise) => {
+    return new Promise((resolvePromise) => {
         const child = spawn(command, {
             cwd,
             env: runnerEnv(language, config),
-            shell: true
+            shell: true,
+            detached: process.platform !== "win32"
         });
         const timer = setTimeout(() => {
             timedOut = true;
-            child.kill("SIGKILL");
+            killProcess(child);
         }, timeoutMs);
         child.stdout.on("data", (chunk) => {
-            const result = appendLimited(stdout, chunk, maxOutputBytes);
-            stdout = result.output;
-            truncated = truncated || result.truncated;
+            truncated = appendLimited(stdout, chunk, maxOutputBytes) || truncated;
         });
         child.stderr.on("data", (chunk) => {
-            const result = appendLimited(stderr, chunk, maxOutputBytes);
-            stderr = result.output;
-            truncated = truncated || result.truncated;
+            truncated = appendLimited(stderr, chunk, maxOutputBytes) || truncated;
         });
-        child.on("close", (exitCode, signal) => {
+        let settled = false;
+        const finish = (exitCode, signal, error) => {
+            if (settled)
+                return;
+            settled = true;
             clearTimeout(timer);
+            if (error)
+                truncated = appendLimited(stderr, Buffer.from(error.message), maxOutputBytes) || truncated;
             resolvePromise({
                 exitCode,
                 signal,
-                stdout,
-                stderr,
+                stdout: outputText(stdout),
+                stderr: outputText(stderr),
                 timedOut,
                 durationMs: Date.now() - startedAt,
                 truncated
             });
-        });
+        };
+        child.once("error", (error) => finish(null, null, error));
+        child.once("close", (exitCode, signal) => finish(exitCode, signal));
     });
 }
 export function writeProblemFiles(root, files, replacements = {}) {
@@ -75,10 +80,30 @@ function runnerEnv(language, config) {
     Object.assign(env, runtimeConfig?.env ?? {});
     return env;
 }
-function appendLimited(current, chunk, limit) {
-    const combined = Buffer.concat([Buffer.from(current), chunk]);
-    if (combined.length <= limit)
-        return { output: combined.toString("utf8"), truncated: false };
-    return { output: combined.subarray(0, limit).toString("utf8"), truncated: true };
+function emptyOutput() {
+    return { chunks: [], length: 0 };
 }
-//# sourceMappingURL=command-runner.js.map
+function appendLimited(output, chunk, limit) {
+    const remaining = limit - output.length;
+    if (remaining > 0) {
+        const kept = chunk.length > remaining ? chunk.subarray(0, remaining) : chunk;
+        output.chunks.push(kept);
+        output.length += kept.length;
+    }
+    return chunk.length > Math.max(0, remaining);
+}
+function outputText(output) {
+    return Buffer.concat(output.chunks, output.length).toString("utf8");
+}
+function killProcess(child) {
+    if (process.platform !== "win32" && child.pid) {
+        try {
+            process.kill(-child.pid, "SIGKILL");
+            return;
+        }
+        catch {
+            // The process may have exited between the timeout and this signal.
+        }
+    }
+    child.kill("SIGKILL");
+}

@@ -36,4 +36,3 @@ export function summarizeTextbook(textbook) {
         return summary;
     }, { chapters: textbook.chapters.length, sections: 0, subsections: 0, blocks: 0 });
 }
-//# sourceMappingURL=traversal.js.map

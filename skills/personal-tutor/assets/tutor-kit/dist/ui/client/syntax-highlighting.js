@@ -78,4 +78,3 @@ function codeElementFromHighlightedHtml(html) {
 }
 `;
 }
-//# sourceMappingURL=syntax-highlighting.js.map

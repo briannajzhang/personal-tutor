@@ -89,4 +89,3 @@ function failure(problemCount, messages) {
         passedCount: 0
     };
 }
-//# sourceMappingURL=verify-coding.js.map

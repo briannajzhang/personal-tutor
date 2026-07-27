@@ -84,4 +84,3 @@ export function selectionFullyCovered(selection, ranges) {
     }
     return coveredUntil >= selection.endOffset;
 }
-//# sourceMappingURL=highlight-ranges.js.map

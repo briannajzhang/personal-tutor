@@ -24,4 +24,3 @@ export function clientJs() {
         shellClientJs()
     ].join("\n\n");
 }
-//# sourceMappingURL=client.js.map

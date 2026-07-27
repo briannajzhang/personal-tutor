@@ -142,4 +142,3 @@ function publicCodingDataPaths(paths) {
         feedbackAbsolutePath: paths.feedbackAbsolutePath
     };
 }
-//# sourceMappingURL=coding.js.map

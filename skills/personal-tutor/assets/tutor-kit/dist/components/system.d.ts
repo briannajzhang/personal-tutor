@@ -10,6 +10,7 @@ export declare class ComponentRegistry {
     #private;
     constructor(records?: ComponentRecord[]);
     replace(records: ComponentRecord[]): void;
+    merge(records: ComponentRecord[]): void;
     get(id: string): ComponentRecord | undefined;
     values(): ComponentRecord[];
     moduleUrl(id: string): string;

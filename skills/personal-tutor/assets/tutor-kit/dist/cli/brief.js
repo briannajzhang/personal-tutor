@@ -70,4 +70,3 @@ export function formatWorkspaceBrief(brief) {
 function singleLine(value) {
     return value.replace(/\s+/g, " ").trim();
 }
-//# sourceMappingURL=brief.js.map

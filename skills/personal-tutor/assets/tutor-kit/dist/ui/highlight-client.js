@@ -9,4 +9,3 @@ const clientHighlightHelpers = [
 export function highlightClientJs() {
     return clientHighlightHelpers.map((helper) => helper.toString()).join("\n\n");
 }
-//# sourceMappingURL=highlight-client.js.map

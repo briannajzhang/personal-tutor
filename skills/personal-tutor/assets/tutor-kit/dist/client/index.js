@@ -2,4 +2,3 @@
 export function defineComponent(mount) {
     return mount;
 }
-//# sourceMappingURL=index.js.map

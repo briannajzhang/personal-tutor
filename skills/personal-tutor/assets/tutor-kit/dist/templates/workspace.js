@@ -283,4 +283,3 @@ export const blockRegistry = {
 };
 `;
 }
-//# sourceMappingURL=workspace.js.map

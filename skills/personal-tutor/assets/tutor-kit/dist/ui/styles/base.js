@@ -1049,4 +1049,3 @@ h1 {
 }
 `;
 }
-//# sourceMappingURL=base.js.map

@@ -35,4 +35,3 @@ export async function recordDoctorEvidence(cwd, textbookId, compile, verificatio
     writeFileSync(path, `${sections.join("\n")}\n`);
     return path;
 }
-//# sourceMappingURL=evidence.js.map

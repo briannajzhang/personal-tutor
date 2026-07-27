@@ -212,7 +212,7 @@ export function validateBlock(block, path, file, issues) {
         issues.push(issue("Block props must be an object.", `${path}.props`, file));
         return;
     }
-    if (block.kind === "p" || block.kind === "explanation" || block.kind === "blurb") {
+    if (block.kind === "p") {
         validateTextProp(block.props.body, `${path}.props.body`, file, issues);
         return;
     }
@@ -851,4 +851,3 @@ function looksLikeTaskList(block) {
     return block.props.items.some((item) => (typeof item === "string" &&
         (item.includes("?") || taskVerbPattern.test(item.trim()))));
 }
-//# sourceMappingURL=validation.js.map

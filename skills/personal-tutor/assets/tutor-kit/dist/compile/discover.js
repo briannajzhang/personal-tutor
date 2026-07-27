@@ -286,4 +286,3 @@ function hasTsxPreload() {
 async function importTsModule(importer, specifier, parentURL) {
     return importer.import(specifier, parentURL);
 }
-//# sourceMappingURL=discover.js.map

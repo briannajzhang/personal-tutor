@@ -41,4 +41,3 @@ function formatDiagnostic(diagnostic, cwd) {
     const file = relative(cwd, diagnostic.file.fileName);
     return `${file}:${position.line + 1}:${position.character + 1} - ${message}`;
 }
-//# sourceMappingURL=typecheck.js.map

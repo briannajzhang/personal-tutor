@@ -16,6 +16,14 @@ export function writeJsonFile(path, value) {
 export function relativeDataPath(cwd, absolutePath) {
     return relative(cwd, absolutePath).replaceAll("\\", "/");
 }
+export function jsonStatePaths(cwd, dataDir, directory, segments) {
+    const parts = segments.map(([value, label]) => safeSegment(requireString(value, label)));
+    const file = parts.pop();
+    if (!file)
+        throw new Error("A state file segment is required");
+    const absolutePath = join(dataDir, directory, ...parts, `${file}.json`);
+    return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
+}
 export function safeSegment(value) {
     const segment = value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
     return segment === "." || segment === ".." ? "_" : segment;
@@ -38,4 +46,3 @@ export function isStringRecord(value) {
         !Array.isArray(value) &&
         Object.values(value).every((entry) => typeof entry === "string");
 }
-//# sourceMappingURL=shared.js.map

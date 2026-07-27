@@ -1,6 +1,5 @@
-import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
-import { appendEvent, readJsonFile, relativeDataPath, requireNonNegativeInteger, requireString, safeSegment, writeJsonFile } from "./shared.js";
+import { appendEvent, jsonStatePaths, readJsonFile, requireNonNegativeInteger, requireString, writeJsonFile } from "./shared.js";
 const emptyState = () => ({ highlights: [], updatedAt: null });
 export async function loadHighlights(cwd, query) {
     const workspace = await resolveWorkspace(cwd);
@@ -21,7 +20,7 @@ export async function saveHighlight(cwd, body) {
         ? previous.highlights.map((candidate) => candidate.id === highlight.id ? highlight : candidate)
         : [...previous.highlights, highlight];
     const next = { highlights, updatedAt: now };
-    writeState(paths.absolutePath, next);
+    writeJsonFile(paths.absolutePath, next);
     appendHighlightEvents(workspace.dataDir, previousHighlight, highlight);
     return { ...next, statePath: paths.path, highlight };
 }
@@ -35,7 +34,7 @@ export async function deleteHighlight(cwd, body) {
         highlights: previous.highlights.filter((candidate) => candidate.id !== id),
         updatedAt: new Date().toISOString()
     };
-    writeState(paths.absolutePath, next);
+    writeJsonFile(paths.absolutePath, next);
     if (removed) {
         appendEvent(workspace.dataDir, {
             type: "highlight_deleted",
@@ -99,8 +98,10 @@ function appendHighlightEvents(dataDir, previous, next) {
     }
 }
 function highlightPaths(cwd, dataDir, request) {
-    const absolutePath = join(dataDir, "highlights", safeSegment(requireString(request.textbookId, "textbookId")), `${safeSegment(requireString(request.chapterId, "chapterId"))}.json`);
-    return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
+    return jsonStatePaths(cwd, dataDir, "highlights", [
+        [request.textbookId, "textbookId"],
+        [request.chapterId, "chapterId"]
+    ]);
 }
 function readState(path) {
     const parsed = readJsonFile(path);
@@ -121,9 +122,6 @@ function highlightFromStored(value) {
         return null;
     }
 }
-function writeState(path, state) {
-    writeJsonFile(path, state);
-}
 function highlightColor(value) {
     if (value === "yellow" || value === undefined)
         return "yellow";
@@ -140,4 +138,3 @@ function stringValue(value) {
 function optionalString(value) {
     return typeof value === "string" && value.trim().length > 0 ? value : undefined;
 }
-//# sourceMappingURL=highlights.js.map

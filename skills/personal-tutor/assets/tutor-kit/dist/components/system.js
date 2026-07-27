@@ -18,6 +18,9 @@ export class ComponentRegistry {
     }
     replace(records) {
         this.#records.clear();
+        this.merge(records);
+    }
+    merge(records) {
         for (const record of records)
             this.#records.set(record.id, record);
     }
@@ -231,4 +234,3 @@ function isComponentBlock(block) {
     const module = props?.module;
     return block.kind === "component" && module?.kind === "component-module" && typeof module.sourcePath === "string";
 }
-//# sourceMappingURL=system.js.map

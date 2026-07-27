@@ -14,13 +14,16 @@ function requireItems(value, label) {
     }
     return value.map((item, index) => requireText(item, `${label}[${index}]`));
 }
+function defineBlock(kind, input, props) {
+    return { kind, id: requireText(input.id, `${kind}.id`), props };
+}
 export function subsection(input) {
     return {
         id: requireText(input.id, "subsection.id"),
         title: requireText(input.title, "subsection.title"),
         description: input.description,
         tags: input.tags ?? [],
-        blocks: input.blocks ?? input.widgets ?? []
+        blocks: input.blocks ?? []
     };
 }
 export function section(input) {
@@ -30,7 +33,7 @@ export function section(input) {
         description: input.description,
         tags: input.tags ?? [],
         role: input.role,
-        blocks: input.blocks ?? input.widgets ?? [],
+        blocks: input.blocks ?? [],
         subsections: input.subsections ?? []
     };
 }
@@ -54,88 +57,56 @@ export function textbook(input) {
     };
 }
 export function p(input) {
-    return {
-        kind: "p",
-        id: requireText(input.id, "p.id"),
-        props: {
-            body: requireText(input.body, "p.body")
-        }
-    };
+    return defineBlock("p", input, {
+        body: requireText(input.body, "p.body")
+    });
 }
 export function heading(input) {
-    return {
-        kind: "heading",
-        id: requireText(input.id, "heading.id"),
-        props: {
-            text: requireText(input.text, "heading.text"),
-            level: input.level ?? 4
-        }
-    };
+    return defineBlock("heading", input, {
+        text: requireText(input.text, "heading.text"),
+        level: input.level ?? 4
+    });
 }
 export function list(input) {
-    return {
-        kind: "list",
-        id: requireText(input.id, "list.id"),
-        props: {
-            style: input.style ?? "bullet",
-            items: requireItems(input.items, "list.items")
-        }
-    };
+    return defineBlock("list", input, {
+        style: input.style ?? "bullet",
+        items: requireItems(input.items, "list.items")
+    });
 }
 export function codeBlock(input) {
-    return {
-        kind: "codeBlock",
-        id: requireText(input.id, "codeBlock.id"),
-        props: {
-            code: requireText(input.code, "codeBlock.code"),
-            language: input.language
-        }
-    };
+    return defineBlock("codeBlock", input, {
+        code: requireText(input.code, "codeBlock.code"),
+        language: input.language
+    });
 }
 export function mathBlock(input) {
-    return {
-        kind: "mathBlock",
-        id: requireText(input.id, "mathBlock.id"),
-        props: {
-            body: requireText(input.body, "mathBlock.body")
-        }
-    };
+    return defineBlock("mathBlock", input, {
+        body: requireText(input.body, "mathBlock.body")
+    });
 }
 export function diagram(input) {
-    return {
-        kind: "diagram",
-        id: requireText(input.id, "diagram.id"),
-        props: {
-            title: input.title,
-            syntax: input.syntax ?? "mermaid",
-            body: requireText(input.body, "diagram.body")
-        }
-    };
+    return defineBlock("diagram", input, {
+        title: input.title,
+        syntax: input.syntax ?? "mermaid",
+        body: requireText(input.body, "diagram.body")
+    });
 }
 export function chart(input) {
-    return {
-        kind: "chart",
-        id: requireText(input.id, "chart.id"),
-        props: {
-            title: requireText(input.title, "chart.title"),
-            type: input.type,
-            xLabel: input.xLabel,
-            yLabel: input.yLabel,
-            points: requireChartPoints(input.points, "chart.points")
-        }
-    };
+    return defineBlock("chart", input, {
+        title: requireText(input.title, "chart.title"),
+        type: input.type,
+        xLabel: input.xLabel,
+        yLabel: input.yLabel,
+        points: requireChartPoints(input.points, "chart.points")
+    });
 }
 export function image(input) {
-    return {
-        kind: "image",
-        id: requireText(input.id, "image.id"),
-        props: {
-            src: requireText(input.src, "image.src"),
-            alt: requireText(input.alt, "image.alt"),
-            caption: input.caption,
-            credit: input.credit
-        }
-    };
+    return defineBlock("image", input, {
+        src: requireText(input.src, "image.src"),
+        alt: requireText(input.alt, "image.alt"),
+        caption: input.caption,
+        credit: input.credit
+    });
 }
 export function componentModule(baseUrl, path) {
     let sourcePath;
@@ -156,84 +127,60 @@ export function component(input) {
     }
     if (!isJsonData(input.props))
         throw new Error("component.props must be JSON serializable");
-    return {
-        kind: "component",
-        id: requireText(input.id, "component.id"),
-        props: {
-            title: input.title,
-            module: input.module,
-            props: input.props
-        }
-    };
+    return defineBlock("component", input, {
+        title: input.title,
+        module: input.module,
+        props: input.props
+    });
 }
 export function callout(input) {
-    return {
-        kind: "callout",
-        id: requireText(input.id, "callout.id"),
-        props: {
-            tone: input.tone ?? "note",
-            title: input.title,
-            body: requireText(input.body, "callout.body")
-        }
-    };
+    return defineBlock("callout", input, {
+        tone: input.tone ?? "note",
+        title: input.title,
+        body: requireText(input.body, "callout.body")
+    });
 }
 export function glossary(input) {
-    return {
-        kind: "glossary",
-        id: requireText(input.id, "glossary.id"),
-        props: {
-            title: requireText(input.title ?? "Glossary", "glossary.title"),
-            entries: requireGlossaryEntries(input.entries, "glossary.entries")
-        }
-    };
+    return defineBlock("glossary", input, {
+        title: requireText(input.title ?? "Glossary", "glossary.title"),
+        entries: requireGlossaryEntries(input.entries, "glossary.entries")
+    });
 }
 export function transformation(input) {
-    return {
-        kind: "transformation",
-        id: requireText(input.id, "transformation.id"),
-        props: {
-            title: requireText(input.title, "transformation.title"),
-            focus: requireText(input.focus, "transformation.focus"),
-            layout: input.layout ?? "auto",
-            inputLabel: requireText(input.inputLabel ?? "Input", "transformation.inputLabel"),
-            operationLabel: requireText(input.operationLabel ?? "Operation", "transformation.operationLabel"),
-            outputLabel: requireText(input.outputLabel ?? "Output", "transformation.outputLabel"),
-            input: requireArtifacts(input.input, "transformation.input"),
-            operation: normalizeTransformationArtifact(input.operation, "transformation.operation"),
-            output: requireArtifacts(input.output, "transformation.output"),
-            explanation: requireText(input.explanation, "transformation.explanation")
-        }
-    };
+    return defineBlock("transformation", input, {
+        title: requireText(input.title, "transformation.title"),
+        focus: requireText(input.focus, "transformation.focus"),
+        layout: input.layout ?? "auto",
+        inputLabel: requireText(input.inputLabel ?? "Input", "transformation.inputLabel"),
+        operationLabel: requireText(input.operationLabel ?? "Operation", "transformation.operationLabel"),
+        outputLabel: requireText(input.outputLabel ?? "Output", "transformation.outputLabel"),
+        input: requireArtifacts(input.input, "transformation.input"),
+        operation: normalizeTransformationArtifact(input.operation, "transformation.operation"),
+        output: requireArtifacts(input.output, "transformation.output"),
+        explanation: requireText(input.explanation, "transformation.explanation")
+    });
 }
 export function codingProblem(input) {
-    return {
-        kind: "codingProblem",
-        id: requireText(input.id, "codingProblem.id"),
-        props: {
-            title: requireText(input.title, "codingProblem.title"),
-            prompt: requireText(input.prompt, "codingProblem.prompt"),
-            language: input.language ?? "python",
-            files: input.files.map(normalizeProblemFile),
-            setup: input.setup === undefined ? undefined : normalizeCodingAction("setup", input.setup, "Setup", "setup"),
-            actions: normalizeCodingActions(input),
-            verification: input.verification === undefined ? undefined : {
-                actionId: requireText(input.verification.actionId, "codingProblem.verification.actionId"),
-                referenceFiles: { ...input.verification.referenceFiles }
-            },
-            review: input.review ?? input.reviewPrompt
-        }
-    };
+    return defineBlock("codingProblem", input, {
+        title: requireText(input.title, "codingProblem.title"),
+        prompt: requireText(input.prompt, "codingProblem.prompt"),
+        language: input.language ?? "python",
+        files: input.files.map(normalizeProblemFile),
+        setup: input.setup === undefined ? undefined : normalizeCodingAction("setup", input.setup, "Setup", "setup"),
+        actions: normalizeCodingActions(input),
+        verification: input.verification === undefined ? undefined : {
+            actionId: requireText(input.verification.actionId, "codingProblem.verification.actionId"),
+            referenceFiles: { ...input.verification.referenceFiles }
+        },
+        review: input.review ?? input.reviewPrompt
+    });
 }
 export function quiz(input) {
-    return {
-        kind: "quiz",
-        id: requireText(input.id, "quiz.id"),
-        props: {
-            title: requireText(input.title, "quiz.title"),
-            mode: input.mode ?? "check",
-            questions: input.questions.map(normalizeQuizQuestion)
-        }
-    };
+    return defineBlock("quiz", input, {
+        title: requireText(input.title, "quiz.title"),
+        mode: input.mode ?? "check",
+        questions: input.questions.map(normalizeQuizQuestion)
+    });
 }
 export function balancedQuiz(input) {
     return quiz({
@@ -434,19 +381,6 @@ function normalizeTransformationArtifact(artifact, label) {
     }
     throw new Error(`${label}.format is invalid`);
 }
-export function explanation(input) {
-    return {
-        kind: "explanation",
-        id: requireText(input.id, "explanation.id"),
-        props: {
-            title: input.title,
-            body: requireText(input.body, "explanation.body")
-        }
-    };
-}
-export function blurb(input) {
-    return explanation(input);
-}
 function normalizeProblemFile(input) {
     return {
         path: requireText(input.path, "codingProblem.files[].path"),
@@ -490,4 +424,3 @@ function titleCase(value) {
         .replace(/[-_]+/g, " ")
         .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
-//# sourceMappingURL=builders.js.map

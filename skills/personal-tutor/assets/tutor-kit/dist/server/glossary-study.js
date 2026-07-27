@@ -1,6 +1,5 @@
-import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
-import { appendEvent, readJsonFile, relativeDataPath, requireString, safeSegment, writeJsonFile } from "./shared.js";
+import { appendEvent, jsonStatePaths, readJsonFile, requireString, writeJsonFile } from "./shared.js";
 const emptyState = () => ({
     starredTermIds: [],
     ratings: {},
@@ -34,7 +33,7 @@ export async function saveGlossaryStudyState(cwd, body) {
         sessionCompleted: typeof body.sessionCompleted === "boolean" ? body.sessionCompleted : previous.sessionCompleted,
         updatedAt: now
     };
-    writeState(paths.absolutePath, next);
+    writeJsonFile(paths.absolutePath, next);
     appendStarEvents(workspace.dataDir, requireString(body.textbookId, "textbookId"), previous.starredTermIds, starredTermIds);
     return { ...next, statePath: paths.path };
 }
@@ -58,7 +57,7 @@ export async function submitGlossaryStudyRating(cwd, body) {
         ratings: { ...previous.ratings, [termId]: nextRating },
         updatedAt: now
     };
-    writeState(paths.absolutePath, next);
+    writeJsonFile(paths.absolutePath, next);
     appendEvent(workspace.dataDir, {
         type: "glossary_card_rated",
         textbookId: requireString(body.textbookId, "textbookId"),
@@ -69,8 +68,7 @@ export async function submitGlossaryStudyRating(cwd, body) {
     return { ...next, statePath: paths.path };
 }
 function glossaryStudyPaths(cwd, dataDir, request) {
-    const absolutePath = join(dataDir, "glossary-study-state", `${safeSegment(requireString(request.textbookId, "textbookId"))}.json`);
-    return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
+    return jsonStatePaths(cwd, dataDir, "glossary-study-state", [[request.textbookId, "textbookId"]]);
 }
 function readState(path) {
     const parsed = readJsonFile(path);
@@ -86,9 +84,6 @@ function readState(path) {
         sessionCompleted: parsed.sessionCompleted === true,
         updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null
     };
-}
-function writeState(path, state) {
-    writeJsonFile(path, state);
 }
 function appendStarEvents(dataDir, textbookId, previous, next) {
     const previousSet = new Set(previous);
@@ -154,4 +149,3 @@ function optionalString(value, fallback) {
 function nonNegativeInteger(value, fallback) {
     return Number.isInteger(value) && value >= 0 ? value : fallback;
 }
-//# sourceMappingURL=glossary-study.js.map

@@ -69,8 +69,7 @@ export async function compileWorkspace(cwd, options = {}) {
         chapterCount: loaded.chapters.length,
         sectionCount,
         subsectionCount,
-        blockCount,
-        widgetCount: blockCount
+        blockCount
     };
 }
 function emptyFailure(message, title = "Tutor validation failed") {
@@ -84,8 +83,7 @@ function failure(title, messages) {
         chapterCount: 0,
         sectionCount: 0,
         subsectionCount: 0,
-        blockCount: 0,
-        widgetCount: 0
+        blockCount: 0
     };
 }
 function formatComponentBuildError(root, records, error) {
@@ -106,4 +104,3 @@ function formatFailure(title, messages) {
         ...messages.map((message) => `- ${message}`)
     ].join("\n");
 }
-//# sourceMappingURL=compile.js.map

@@ -17,24 +17,6 @@ function renderCrumbs(items) {
   \`;
 }
 
-function bindCrumbs() {
-  document.querySelectorAll("[data-nav]").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (button.dataset.nav === "home") {
-        navigateHome();
-        return;
-      }
-      if (button.dataset.nav === "textbook" && button.dataset.textbook) {
-        navigateTextbook(button.dataset.textbook);
-        return;
-      }
-      if (button.dataset.nav === "glossary" && button.dataset.textbook) {
-        navigateTextbookGlossary(button.dataset.textbook);
-      }
-    });
-  });
-}
-
 function renderNotFoundPage(details = {}) {
   const title = details.title ?? "Page not found";
   const message = details.message ?? "That page does not exist in this Tutor Kit workspace.";
@@ -58,7 +40,6 @@ function renderNotFoundPage(details = {}) {
       </div>
     </section>
   \`;
-  bindCrumbs();
 }
 
 function notFoundDetails(route) {
@@ -248,4 +229,3 @@ load().catch((error) => {
 });
 `;
 }
-//# sourceMappingURL=shell.js.map

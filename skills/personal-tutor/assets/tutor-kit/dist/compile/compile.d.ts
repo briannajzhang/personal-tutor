@@ -6,7 +6,6 @@ export interface CompileResult {
     sectionCount: number;
     subsectionCount: number;
     blockCount: number;
-    widgetCount: number;
 }
 export declare function compileWorkspace(cwd: string, options?: {
     textbookId?: string;
