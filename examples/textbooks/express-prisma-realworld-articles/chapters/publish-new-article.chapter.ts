@@ -145,20 +145,25 @@ router.post('/articles', auth.required, async (req, res, next) => {
           id: "auth-code",
           language: "ts",
           code: `// src/app/routes/auth/token.utils.ts
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  throw new Error('JWT_SECRET is required');
+}
+
 const generateToken = (id: number): string =>
-  jwt.sign({ user: { id } }, process.env.JWT_SECRET || 'superSecret', {
+  jwt.sign({ user: { id } }, jwtSecret, {
     expiresIn: '60d',
   });
 
 // src/app/routes/auth/auth.ts
 const auth = {
   required: jwt({
-    secret: process.env.JWT_SECRET || 'superSecret',
+    secret: jwtSecret,
     getToken: getTokenFromHeaders,
     algorithms: ['HS256'],
   }),
   optional: jwt({
-    secret: process.env.JWT_SECRET || 'superSecret',
+    secret: jwtSecret,
     credentialsRequired: false,
     getToken: getTokenFromHeaders,
     algorithms: ['HS256'],
