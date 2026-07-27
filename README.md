@@ -6,7 +6,7 @@ Turn your coding agent into a tutor that learns how you learn.
 
 You can ask an AI to explain almost anything, and honestly, that's still a little magical. But have you ever actually *learned* something hard from a chat window? You ask a question, you get a wall of text, you nod along, you scroll, and three days later you remember approximately none of it. Chat is a great place to get answers. It's a pretty bad place to learn.
 
-That's because learning isn't reading — it's doing. It's answering a question *before* you see the explanation. It's changing a number in a simulation and watching the system react. It's writing code, running it, and finding out you were wrong in an interesting way. In a chat, all of those moments flatten into more text in a very long scroll.
+That's because learning isn't reading. It's doing. It's answering a question *before* you see the explanation. It's changing a number in a simulation and watching the system react. It's writing code, running it, and finding out you were wrong in an interesting way. In a chat, all of those moments flatten into more text in a very long scroll.
 
 Personal Tutor gives your coding agent an actual teaching toolkit instead. It builds real courses, locally, out of things like:
 
@@ -18,27 +18,27 @@ Personal Tutor gives your coding agent an actual teaching toolkit instead. It bu
 - Glossaries and flashcards for later review
 - Fully custom interfaces when a topic needs something weird (more on this below)
 
-## A tutor that remembers you
+## A tutor that remembers you 🧠
 
 Here's the thing about a good human tutor: half their value isn't what they know, it's what they know *about you*. They remember that you already get recursion but freeze up on off-by-one errors. They remember you like diagrams. They don't re-explain chapter one every Tuesday.
 
 Your coding agent, by default, has the memory of a goldfish. Every new session, you're a stranger again.
 
-Personal Tutor fixes that by keeping your courses, progress, quiz results, coding attempts, and study history together in `~/.personal-tutor`. When your agent writes the next lesson, it reads that history first — what you've finished, where you struggled, how you like things explained. The more you use it, the better it gets at teaching *you specifically*, which is kind of the whole point of the word "personal."
+Personal Tutor fixes that by keeping your courses, progress, quiz results, coding attempts, and study history together in `~/.personal-tutor`. When your agent writes the next lesson, it reads that history first. It checks what you've finished, where you struggled, and how you like things explained. The more you use it, the better it gets at teaching *you specifically*, which is kind of the whole point of the word "personal."
 
 ## What's up with the fancy UI?
 
 I'm glad you asked! This is my favorite part, and it's a bit of a have-your-cake-and-eat-it-too situation.
 
-Coding agents can build genuinely wonderful custom interfaces — that flexibility is one of the coolest things about them. But asking an agent to hand-write a quiz component, a progress tracker, and a chart renderer from scratch for every single lesson is slow, expensive, and burns a pile of tokens reinventing the same wheels. Nobody needs their tutor to lovingly craft a bespoke multiple-choice button for the 40th time.
+Coding agents can build genuinely wonderful custom interfaces, and that flexibility is one of the coolest things about them. But asking an agent to hand-write a quiz component, a progress tracker, and a chart renderer from scratch for every single lesson is slow, expensive, and burns a pile of tokens reinventing the same wheels. Nobody needs their tutor to lovingly craft a bespoke multiple-choice button for the 40th time.
 
-So Personal Tutor ships with a kit of polished, pre-built teaching components as part of the skill. Quizzes, flashcards, diagrams, charts, glossaries, coding exercises — the agent invokes them procedurally with a few lines of code, which is fast, cheap, and token-efficient. And when a topic genuinely calls for something unusual (a little traffic simulator, a kiln temperature explorer, whatever), the agent can still drop down and write raw TypeScript, JSX, CSS, Canvas, SVG, or WebGL.
+So Personal Tutor ships with a kit of polished, pre-built teaching components as part of the skill. The agent invokes quizzes, flashcards, diagrams, charts, glossaries, and coding exercises with a few lines of code, which is fast, cheap, and token-efficient. And when a topic genuinely calls for something unusual (a little traffic simulator, a kiln temperature explorer, whatever), the agent can still drop down and write raw TypeScript, JSX, CSS, Canvas, SVG, or WebGL.
 
 Sturdy building blocks for the common stuff, full creative freedom for the moments that make an idea click. Best of both worlds.
 
-## See it in action
+## See it in action ✨
 
-Here are three courses made from simple prompts. They all live in the same local library, even though the subjects have almost nothing in common — which is sort of the fun of having an "expert in everything" as your tutor.
+Here are three courses made from simple prompts. They all live in the same local library, even though the subjects have almost nothing in common. That's part of the fun of having an "expert in everything" as your tutor.
 
 ![A local Personal Tutor library containing courses on ceramic glazes, concert ticketing, and an Express codebase](./assets/course-library.png)
 
@@ -100,7 +100,7 @@ Use `$personal-tutor` in Codex or `/personal-tutor` in Claude Code. Then describ
 
 > Teach me 1D dynamic programming for technical interviews. I understand recursion, but I struggle to recognize when to use DP.
 
-Personal Tutor may ask a few questions before it creates the first chapter — the same way a good tutor wouldn't start lecturing before asking what you already know.
+Personal Tutor may ask a few questions before it creates the first chapter, just as a good tutor would ask what you already know before starting a lesson.
 
 ### 3. Open the course
 
@@ -117,7 +117,7 @@ Your courses and learning history stay in `~/.personal-tutor`.
 
 ### 4. Continue later
 
-Come back whenever you want — tomorrow, next month, whenever the motivation strikes — and just ask:
+Come back tomorrow, next month, or whenever the motivation strikes, and just ask:
 
 > Continue my dynamic programming course.
 
