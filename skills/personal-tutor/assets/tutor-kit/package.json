@@ -25,7 +25,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=20.19"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "build": "rm -rf dist && tsc -b --force && chmod +x dist/cli/index.js"
