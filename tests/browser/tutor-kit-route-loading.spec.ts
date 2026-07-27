@@ -38,3 +38,16 @@ test("slow route loads still show the loading screen", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Current textbook" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Loading chapter..." })).toBeVisible();
 });
+
+test("a route without the current token cannot cancel the loading screen", async ({ page }) => {
+  await page.evaluate(() => {
+    const app = window as any;
+    const staleToken = app.beginRouteLoad("Loading textbook...");
+    app.testRouteToken = app.beginRouteLoad("Loading chapter...");
+    app.finishRouteLoad(staleToken);
+    app.finishRouteLoad();
+  });
+
+  await expect(page.getByRole("heading", { name: "Loading chapter..." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Loading textbook..." })).toHaveCount(0);
+});

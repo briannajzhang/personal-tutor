@@ -123,7 +123,7 @@ function beginRouteLoad(message) {
 }
 
 function finishRouteLoad(token) {
-  if (token && token !== routeToken) return;
+  if (token !== routeToken) return;
   clearRouteLoadingTimer();
   document.body.classList.remove("route-loading");
 }

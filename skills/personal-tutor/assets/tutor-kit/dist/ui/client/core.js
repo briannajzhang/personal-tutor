@@ -39,8 +39,7 @@ async function loadTextbook(textbookId) {
   return fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}\`);
 }
 
-async function renderHome() {
-  const token = beginRouteLoad("Loading textbooks...");
+async function renderHome(token) {
   textbooks = await fetchJson("/api/textbooks");
   if (token !== routeToken) return;
   const readyTextbooks = textbooks.filter((textbook) => textbook.status !== "error");
@@ -143,8 +142,7 @@ function renderEmptyTextbooks() {
   \`;
 }
 
-async function renderTextbook(textbookId) {
-  const token = beginRouteLoad("Loading textbook...");
+async function renderTextbook(textbookId, token) {
   const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
   const glossaryEntries = collectTextbookGlossaryEntries(textbook);
