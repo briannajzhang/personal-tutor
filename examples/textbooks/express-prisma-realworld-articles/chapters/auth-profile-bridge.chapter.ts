@@ -29,8 +29,13 @@ export default chapter({
           id: "token-code",
           language: "ts",
           code: `// src/app/routes/auth/token.utils.ts
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  throw new Error('JWT_SECRET is required');
+}
+
 const generateToken = (id: number): string =>
-  jwt.sign({ user: { id } }, process.env.JWT_SECRET || 'superSecret', {
+  jwt.sign({ user: { id } }, jwtSecret, {
     expiresIn: '60d',
   });`
         }),
@@ -94,7 +99,12 @@ const generateToken = (id: number): string =>
         codeBlock({
           id: "auth-middleware-code",
           language: "ts",
-          code: `const getTokenFromHeaders = (req: express.Request): string | null => {
+          code: `const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  throw new Error('JWT_SECRET is required');
+}
+
+const getTokenFromHeaders = (req: express.Request): string | null => {
   if (
     (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Token') ||
     (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer')
@@ -106,12 +116,12 @@ const generateToken = (id: number): string =>
 
 const auth = {
   required: jwt({
-    secret: process.env.JWT_SECRET || 'superSecret',
+    secret: jwtSecret,
     getToken: getTokenFromHeaders,
     algorithms: ['HS256'],
   }),
   optional: jwt({
-    secret: process.env.JWT_SECRET || 'superSecret',
+    secret: jwtSecret,
     credentialsRequired: false,
     getToken: getTokenFromHeaders,
     algorithms: ['HS256'],
