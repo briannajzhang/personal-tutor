@@ -95,29 +95,43 @@ function parseResponseError(body) {
   return String(body ?? "").trim();
 }
 
+let routeLoadingTimer = null;
+
 function beginRouteLoad(message) {
   const token = ++routeToken;
-  document.body.classList.add("route-loading");
-  document.querySelector("#main").innerHTML = \`
-    <section class="loading-shell" aria-busy="true">
-      <div class="page-head">
-        <h1>\${escapeHtml(message)}</h1>
-        <div class="meta">Fetching content</div>
-      </div>
-      <div class="loading-stack" aria-hidden="true">
-        <div class="loading-bar wide"></div>
-        <div class="loading-bar mid"></div>
-        <div class="loading-bar wide"></div>
-        <div class="loading-bar short"></div>
-      </div>
-    </section>
-  \`;
+  clearRouteLoadingTimer();
+  routeLoadingTimer = window.setTimeout(() => {
+    if (token !== routeToken) return;
+    routeLoadingTimer = null;
+    document.body.classList.add("route-loading");
+    document.querySelector("#main").innerHTML = \`
+      <section class="loading-shell" aria-busy="true">
+        <div class="page-head">
+          <h1>\${escapeHtml(message)}</h1>
+          <div class="meta">Fetching content</div>
+        </div>
+        <div class="loading-stack" aria-hidden="true">
+          <div class="loading-bar wide"></div>
+          <div class="loading-bar mid"></div>
+          <div class="loading-bar wide"></div>
+          <div class="loading-bar short"></div>
+        </div>
+      </section>
+    \`;
+  }, 150);
   return token;
 }
 
 function finishRouteLoad(token) {
-  if (token && token !== routeToken) return;
+  if (token !== routeToken) return;
+  clearRouteLoadingTimer();
   document.body.classList.remove("route-loading");
+}
+
+function clearRouteLoadingTimer() {
+  if (routeLoadingTimer === null) return;
+  window.clearTimeout(routeLoadingTimer);
+  routeLoadingTimer = null;
 }
 
 function renderRouteError(error) {

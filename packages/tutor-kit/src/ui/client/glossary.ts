@@ -1,13 +1,12 @@
 export function glossaryClientJs(): string {
   return `
-async function renderTextbookGlossary(textbookId) {
-  const token = beginRouteLoad("Loading glossary...");
+async function renderTextbookGlossary(textbookId, token) {
   const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
   const entries = collectTextbookGlossaryEntries(textbook);
   if (entries.length === 0) {
     history.replaceState(history.state, "", "/textbooks/" + encodeURIComponent(textbookId));
-    await renderTextbook(textbookId);
+    await renderTextbook(textbookId, token);
     return;
   }
   const studyState = await loadGlossaryStudyState(textbook.id);
@@ -32,14 +31,13 @@ async function renderTextbookGlossary(textbookId) {
   finishRouteLoad(token);
 }
 
-async function renderTextbookGlossaryStudy(textbookId) {
-  const token = beginRouteLoad("Loading study session...");
+async function renderTextbookGlossaryStudy(textbookId, token) {
   const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
   const entries = collectTextbookGlossaryEntries(textbook);
   if (entries.length === 0) {
     history.replaceState(history.state, "", "/textbooks/" + encodeURIComponent(textbookId));
-    await renderTextbook(textbookId);
+    await renderTextbook(textbookId, token);
     return;
   }
   const studyState = await loadGlossaryStudyState(textbook.id);

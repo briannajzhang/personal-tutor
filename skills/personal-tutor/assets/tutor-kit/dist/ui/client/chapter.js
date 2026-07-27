@@ -1,7 +1,6 @@
 export function chapterClientJs() {
     return `
-async function renderChapter(textbookId, chapterId) {
-  const token = beginRouteLoad("Loading chapter...");
+async function renderChapter(textbookId, chapterId, token) {
   const chapter = await fetchJson(\`/api/textbooks/\${encodeURIComponent(textbookId)}/chapters/\${encodeURIComponent(chapterId)}\`);
   if (token !== routeToken) return;
   const glossaryStudyState = await loadGlossaryStudyState(textbookId);
@@ -222,43 +221,53 @@ function renderSection(section, context) {
 }
 
 async function renderRoute() {
-  await unmountAllComponents();
   const route = parseRoute(window.location.pathname);
+  const token = beginRouteLoad(routeLoadingMessage(route));
   try {
+    await unmountAllComponents();
+    if (token !== routeToken) return;
     if (route.kind === "chapter") {
-      await renderChapter(route.textbookId, route.chapterId);
+      await renderChapter(route.textbookId, route.chapterId, token);
       return;
     }
     if (route.kind === "textbookGlossaryStudy") {
-      await renderTextbookGlossaryStudy(route.textbookId);
+      await renderTextbookGlossaryStudy(route.textbookId, token);
       return;
     }
     if (route.kind === "textbookGlossary") {
-      await renderTextbookGlossary(route.textbookId);
+      await renderTextbookGlossary(route.textbookId, token);
       return;
     }
     if (route.kind === "textbook") {
-      await renderTextbook(route.textbookId);
+      await renderTextbook(route.textbookId, token);
       return;
     }
     if (route.kind === "notFound") {
-      routeToken += 1;
-      finishRouteLoad(routeToken);
+      finishRouteLoad(token);
       renderNotFoundPage({
         title: "Page not found",
         message: \`No route matches \${route.path}. Return to your textbook library to keep studying.\`
       });
       return;
     }
-    await renderHome();
+    await renderHome(token);
   } catch (error) {
-    finishRouteLoad();
+    if (token !== routeToken) return;
+    finishRouteLoad(token);
     if (isNotFoundError(error)) {
       renderNotFoundPage(notFoundDetails(route));
       return;
     }
     renderRouteError(error);
   }
+}
+
+function routeLoadingMessage(route) {
+  if (route.kind === "chapter") return "Loading chapter...";
+  if (route.kind === "textbookGlossaryStudy") return "Loading study session...";
+  if (route.kind === "textbookGlossary") return "Loading glossary...";
+  if (route.kind === "textbook") return "Loading textbook...";
+  return "Loading textbooks...";
 }
 
 function parseRoute(pathname) {
