@@ -1,5 +1,12 @@
-**Personal Tutor**
-Turn your coding agent into a tutor that learns how you learn.
+<div align="center">
+
+<img src="assets/personal-tutor-wizard.png" width="160" alt="Personal Tutor wizard mascot" />
+
+# Personal Tutor
+
+**Turn your coding agent into a tutor that learns how you learn.**
+
+</div>
 
 ## Why does this exist?
 
