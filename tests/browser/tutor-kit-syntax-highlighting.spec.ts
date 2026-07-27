@@ -80,7 +80,7 @@ async function startTutorCli(cwd: string): Promise<{ url: string; close: () => P
   return {
     url,
     close: async () => {
-      if (child.exitCode !== null) return;
+      if (child.exitCode !== null || child.signalCode !== null) return;
       child.kill("SIGTERM");
       await once(child, "exit");
     }

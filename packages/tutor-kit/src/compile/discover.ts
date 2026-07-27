@@ -41,10 +41,14 @@ export async function resolveWorkspace(cwd: string): Promise<WorkspacePaths> {
   workspaceLoadPromises.set(root, loadPromise);
   try {
     const workspace = await loadPromise;
-    workspaceCache.set(root, workspace);
+    if (workspaceLoadPromises.get(root) === loadPromise) {
+      workspaceCache.set(root, workspace);
+    }
     return workspace;
   } finally {
-    workspaceLoadPromises.delete(root);
+    if (workspaceLoadPromises.get(root) === loadPromise) {
+      workspaceLoadPromises.delete(root);
+    }
   }
 }
 
@@ -146,10 +150,14 @@ export async function loadTextbooks(cwd: string, options: { textbookId?: string 
   textbookLoadPromises.set(cacheKey, loadPromise);
   try {
     const loaded = await loadPromise;
-    textbookCache.set(cacheKey, loaded);
+    if (textbookLoadPromises.get(cacheKey) === loadPromise) {
+      textbookCache.set(cacheKey, loaded);
+    }
     return loaded;
   } finally {
-    textbookLoadPromises.delete(cacheKey);
+    if (textbookLoadPromises.get(cacheKey) === loadPromise) {
+      textbookLoadPromises.delete(cacheKey);
+    }
   }
 }
 
