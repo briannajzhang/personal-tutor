@@ -1,28 +1,12 @@
 # Personal Tutor
 
-Build a course around what you want to learn — and keep building on it over time.
-
-Personal Tutor is a skill for coding agents that turns your goals and existing knowledge into a structured, interactive course. Chapters, exercises, and progress stay together locally, ready when you return.
-
-## Why Personal Tutor?
+Build a course around what you want to learn, and keep building on it over time.
 
 AI can explain almost anything, but a chat thread is a difficult place to build lasting understanding. Explanations get buried, practice is disconnected, and each new session can feel like starting over.
 
-Personal Tutor gives that learning a place to live.
+The Personal Tutor Skill helps coding agents create structured, interactive courses locally on your computer. The skill also helps your coding agents to learn your educational preferences over time and make better and better content!
 
-## What makes it different
-
-### A course, not a response
-
-Courses are organized into structured chapters with clear explanations, concrete examples, and a progression shaped around your goals.
-
-### Learn by doing
-
-Lessons pair explanations with visuals, interactive simulations, quizzes, and runnable coding exercises with answer checking — not just more text to read.
-
-### Progress that carries forward
-
-Courses and learning history stay on your machine. Review builds on what you have already covered, and future lessons pick up where you left off.
+Lessons pair explanations with visuals, interactive simulations, quizzes, and runnable coding exercises with answer checking, not just more text to read. 
 
 ## See it in action
 
