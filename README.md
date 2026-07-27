@@ -6,6 +6,8 @@
 
 **Turn your coding agent into a tutor that learns how you learn.**
 
+<img src="assets/course-library.png" alt="Personal Tutor course library showing courses on ceramic glazes, concert ticketing, and an Express codebase" />
+
 </div>
 
 You can ask an AI to explain almost anything. But have you ever actually *learned* something hard from a chat window? You ask a question, you get a wall of text, you nod along, you scroll, and three days later you remember approximately none of it. Chat is a great place to get answers. It's a pretty bad place to learn.
@@ -43,10 +45,6 @@ Sturdy building blocks for the common stuff, full creative freedom for the momen
 ## See it in action
 
 Here are three courses made from simple prompts. They all live in the same local library, even though the subjects have almost nothing in common. That's part of the fun of having an "expert in everything" as your tutor.
-
-![A local Personal Tutor library containing courses on ceramic glazes, concert ticketing, and an Express codebase](./assets/course-library.png)
-
-*Keep technical and nontechnical courses side by side, with separate progress for each one.*
 
 ### Learn an unfamiliar codebase
 
