@@ -23,6 +23,19 @@ export function relativeDataPath(cwd: string, absolutePath: string): string {
   return relative(cwd, absolutePath).replaceAll("\\", "/");
 }
 
+export function jsonStatePaths(
+  cwd: string,
+  dataDir: string,
+  directory: string,
+  segments: Array<[unknown, string]>
+): { absolutePath: string; path: string } {
+  const parts = segments.map(([value, label]) => safeSegment(requireString(value, label)));
+  const file = parts.pop();
+  if (!file) throw new Error("A state file segment is required");
+  const absolutePath = join(dataDir, directory, ...parts, `${file}.json`);
+  return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
+}
+
 export function safeSegment(value: string): string {
   const segment = value.replace(/[^a-zA-Z0-9_.-]+/g, "_");
   return segment === "." || segment === ".." ? "_" : segment;

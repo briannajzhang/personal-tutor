@@ -8,13 +8,11 @@ import { component, componentModule, validateTextbook } from "../packages/tutor-
 import { compileWorkspace } from "../packages/tutor-kit/dist/compile/compile.js";
 import { clearWorkspaceCaches } from "../packages/tutor-kit/dist/compile/discover.js";
 import { startDevServer } from "../packages/tutor-kit/dist/server/server.js";
-import { coreBlockDefinitions } from "../packages/tutor-kit/dist/blocks/core/index.js";
 import { createComponentWorkspace } from "./helpers/component-workspace.ts";
 
 test.afterEach(() => clearWorkspaceCaches());
 
 test("component builders preserve generic JSON props and validate module references", () => {
-  assert.equal(coreBlockDefinitions.component.create, component);
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-component-builder-"));
   const sourcePath = join(dir, "entry.ts");
   writeFileSync(sourcePath, "export default {};\n");

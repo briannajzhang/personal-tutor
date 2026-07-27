@@ -301,7 +301,7 @@ export function validateBlock(
     return;
   }
 
-  if (block.kind === "p" || block.kind === "explanation" || block.kind === "blurb") {
+  if (block.kind === "p") {
     validateTextProp(block.props.body, `${path}.props.body`, file, issues);
     return;
   }

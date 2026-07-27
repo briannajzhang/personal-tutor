@@ -13,8 +13,6 @@ export type BlockKind =
   | "codingProblem"
   | "quiz"
   | "glossary"
-  | "explanation"
-  | "blurb"
   | (string & {});
 
 export interface CodeRuntimeConfig {
@@ -274,9 +272,6 @@ export type CodingProblemBlock = BaseBlock<"codingProblem", CodingProblemProps>;
 export type QuizBlock = BaseBlock<"quiz", QuizProps>;
 export type GlossaryBlock = BaseBlock<"glossary", GlossaryProps>;
 
-export type ExplanationBlock = BaseBlock<"explanation", ParagraphProps & { title?: string }>;
-export type BlurbBlock = ExplanationBlock;
-
 export type TutorBlock =
   | ParagraphBlock
   | HeadingBlock
@@ -292,7 +287,6 @@ export type TutorBlock =
   | CodingProblemBlock
   | QuizBlock
   | GlossaryBlock
-  | ExplanationBlock
   | BaseBlock;
 
 export interface Subsection {

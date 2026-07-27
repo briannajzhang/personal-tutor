@@ -91,10 +91,6 @@ export function addBlock(cwd: string, kind: string): WriteResult {
   throw new Error(`Unknown block "${kind}". Available blocks: ${blockKinds.join(", ")}.`);
 }
 
-export function addWidget(cwd: string, kind: string): WriteResult {
-  return addBlock(cwd, kind);
-}
-
 function ensureDir(path: string): void {
   mkdirSync(path, { recursive: true });
 }

@@ -17,7 +17,6 @@ export interface CompileResult {
   sectionCount: number;
   subsectionCount: number;
   blockCount: number;
-  widgetCount: number;
 }
 
 export async function compileWorkspace(cwd: string, options: { textbookId?: string } = {}): Promise<CompileResult> {
@@ -88,8 +87,7 @@ export async function compileWorkspace(cwd: string, options: { textbookId?: stri
     chapterCount: loaded.chapters.length,
     sectionCount,
     subsectionCount,
-    blockCount,
-    widgetCount: blockCount
+    blockCount
   };
 }
 
@@ -105,8 +103,7 @@ function failure(title: string, messages: string[]): CompileResult {
     chapterCount: 0,
     sectionCount: 0,
     subsectionCount: 0,
-    blockCount: 0,
-    widgetCount: 0
+    blockCount: 0
   };
 }
 

@@ -1,11 +1,9 @@
-import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
 import {
   appendEvent,
+  jsonStatePaths,
   readJsonFile,
-  relativeDataPath,
   requireString,
-  safeSegment,
   writeJsonFile
 } from "./shared.js";
 
@@ -82,7 +80,7 @@ export async function saveGlossaryStudyState(cwd: string, body: GlossaryStudySta
     sessionCompleted: typeof body.sessionCompleted === "boolean" ? body.sessionCompleted : previous.sessionCompleted,
     updatedAt: now
   };
-  writeState(paths.absolutePath, next);
+  writeJsonFile(paths.absolutePath, next);
   appendStarEvents(workspace.dataDir, requireString(body.textbookId, "textbookId"), previous.starredTermIds, starredTermIds);
   return { ...next, statePath: paths.path };
 }
@@ -107,7 +105,7 @@ export async function submitGlossaryStudyRating(cwd: string, body: GlossaryStudy
     ratings: { ...previous.ratings, [termId]: nextRating },
     updatedAt: now
   };
-  writeState(paths.absolutePath, next);
+  writeJsonFile(paths.absolutePath, next);
   appendEvent(workspace.dataDir, {
     type: "glossary_card_rated",
     textbookId: requireString(body.textbookId, "textbookId"),
@@ -119,12 +117,7 @@ export async function submitGlossaryStudyRating(cwd: string, body: GlossaryStudy
 }
 
 function glossaryStudyPaths(cwd: string, dataDir: string, request: GlossaryStudyStateRequest | GlossaryStudyRatingRequest): { absolutePath: string; path: string } {
-  const absolutePath = join(
-    dataDir,
-    "glossary-study-state",
-    `${safeSegment(requireString(request.textbookId, "textbookId"))}.json`
-  );
-  return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
+  return jsonStatePaths(cwd, dataDir, "glossary-study-state", [[request.textbookId, "textbookId"]]);
 }
 
 function readState(path: string): GlossaryStudyState {
@@ -140,10 +133,6 @@ function readState(path: string): GlossaryStudyState {
     sessionCompleted: parsed.sessionCompleted === true,
     updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null
   };
-}
-
-function writeState(path: string, state: GlossaryStudyState): void {
-  writeJsonFile(path, state);
 }
 
 function appendStarEvents(dataDir: string, textbookId: string, previous: string[], next: string[]): void {

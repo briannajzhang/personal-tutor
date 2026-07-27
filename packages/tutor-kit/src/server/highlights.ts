@@ -1,12 +1,10 @@
-import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
 import {
   appendEvent,
+  jsonStatePaths,
   readJsonFile,
-  relativeDataPath,
   requireNonNegativeInteger,
   requireString,
-  safeSegment,
   writeJsonFile
 } from "./shared.js";
 
@@ -78,7 +76,7 @@ export async function saveHighlight(cwd: string, body: HighlightRequest): Promis
     ? previous.highlights.map((candidate) => candidate.id === highlight.id ? highlight : candidate)
     : [...previous.highlights, highlight];
   const next = { highlights, updatedAt: now };
-  writeState(paths.absolutePath, next);
+  writeJsonFile(paths.absolutePath, next);
   appendHighlightEvents(workspace.dataDir, previousHighlight, highlight);
   return { ...next, statePath: paths.path, highlight };
 }
@@ -93,7 +91,7 @@ export async function deleteHighlight(cwd: string, body: HighlightRequest): Prom
     highlights: previous.highlights.filter((candidate) => candidate.id !== id),
     updatedAt: new Date().toISOString()
   };
-  writeState(paths.absolutePath, next);
+  writeJsonFile(paths.absolutePath, next);
   if (removed) {
     appendEvent(workspace.dataDir, {
       type: "highlight_deleted",
@@ -159,13 +157,10 @@ function appendHighlightEvents(dataDir: string, previous: Highlight | undefined,
 }
 
 function highlightPaths(cwd: string, dataDir: string, request: Pick<HighlightRequest, "textbookId" | "chapterId">): { absolutePath: string; path: string } {
-  const absolutePath = join(
-    dataDir,
-    "highlights",
-    safeSegment(requireString(request.textbookId, "textbookId")),
-    `${safeSegment(requireString(request.chapterId, "chapterId"))}.json`
-  );
-  return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
+  return jsonStatePaths(cwd, dataDir, "highlights", [
+    [request.textbookId, "textbookId"],
+    [request.chapterId, "chapterId"]
+  ]);
 }
 
 function readState(path: string): HighlightState {
@@ -184,10 +179,6 @@ function highlightFromStored(value: unknown): Highlight | null {
   } catch {
     return null;
   }
-}
-
-function writeState(path: string, state: HighlightState): void {
-  writeJsonFile(path, state);
 }
 
 function highlightColor(value: unknown): HighlightColor {

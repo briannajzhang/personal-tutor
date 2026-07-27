@@ -1,13 +1,11 @@
-import { join } from "node:path";
 import { resolveWorkspace } from "../compile/discover.js";
 import {
   appendEvent,
   isStringRecord,
+  jsonStatePaths,
   readJsonFile,
-  relativeDataPath,
   requireNonNegativeInteger,
   requireString,
-  safeSegment,
   writeJsonFile
 } from "./shared.js";
 
@@ -76,7 +74,7 @@ export async function saveQuizState(cwd: string, body: QuizStateRequest): Promis
     total: null,
     updatedAt: new Date().toISOString()
   };
-  writeState(paths.absolutePath, next);
+  writeJsonFile(paths.absolutePath, next);
   return { ...next, statePath: paths.path };
 }
 
@@ -100,7 +98,7 @@ export async function submitQuizAttempt(cwd: string, body: QuizAttemptRequest): 
     attempts: [...previous.attempts, attempt],
     updatedAt: attempt.submittedAt
   };
-  writeState(paths.absolutePath, next);
+  writeJsonFile(paths.absolutePath, next);
   appendEvent(workspace.dataDir, {
     type: "quiz_checked",
     textbookId: requireString(body.textbookId, "textbookId"),
@@ -115,14 +113,11 @@ export async function submitQuizAttempt(cwd: string, body: QuizAttemptRequest): 
 }
 
 function quizPaths(cwd: string, dataDir: string, request: QuizStateRequest): { absolutePath: string; path: string } {
-  const absolutePath = join(
-    dataDir,
-    "quiz-state",
-    safeSegment(requireString(request.textbookId, "textbookId")),
-    safeSegment(requireString(request.chapterId, "chapterId")),
-    `${safeSegment(requireString(request.quizId, "quizId"))}.json`
-  );
-  return { absolutePath, path: relativeDataPath(cwd, absolutePath) };
+  return jsonStatePaths(cwd, dataDir, "quiz-state", [
+    [request.textbookId, "textbookId"],
+    [request.chapterId, "chapterId"],
+    [request.quizId, "quizId"]
+  ]);
 }
 
 function readState(path: string): QuizState {
@@ -137,10 +132,6 @@ function readState(path: string): QuizState {
     attempts: Array.isArray(parsed.attempts) ? parsed.attempts as QuizAttempt[] : [],
     updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null
   };
-}
-
-function writeState(path: string, state: QuizState): void {
-  writeJsonFile(path, state);
 }
 
 function responseList(value: unknown): QuizAttempt["responses"] {
