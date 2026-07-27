@@ -48,7 +48,7 @@ Sturdy building blocks for the common stuff, full creative freedom for the momen
 
 ## See it in action
 
-Here are three courses made from simple prompts. They all live in the same local library, even though the subjects have almost nothing in common. That's part of the fun of having an "expert in everything" as your tutor.
+Here are four courses made from simple prompts. They all live in the same local library, even though the subjects have almost nothing in common. That's part of the fun of having an "expert in everything" as your tutor.
 
 ### Learn an unfamiliar codebase
 
@@ -73,6 +73,14 @@ Here are three courses made from simple prompts. They all live in the same local
 ![A visual ceramic glaze lesson with examples of common defects and an interactive matching exercise](./assets/ceramic-defects.png)
 
 *Compare glaze defects, spot the visual clues, and check your answer inside the lesson.*
+
+### Build cooking intuition
+
+> **Prompt:** Teach me how to cook everyday meals.
+
+![A cooking lesson showing four stages of browning chicken, cooking vegetables, and building a skillet meal](./assets/cooking-chicken.png)
+
+*Learn to read the pan by watching browning develop, recognizing flavorful fond, and seeing when steam and liquid change the cooking process.*
 
 ## Quick start
 
