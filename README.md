@@ -2,7 +2,7 @@
 
 <img src="assets/personal-tutor-wizard.png" width="160" alt="Personal Tutor wizard mascot" />
 
-# Personal Tutor
+# The Personal Tutor Skill
 
 **Turn your coding agent into a tutor that learns how you learn.**
 
