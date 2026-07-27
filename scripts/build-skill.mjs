@@ -73,6 +73,7 @@ Options:
 function writeBundle(destination) {
   const packageJson = join(sourcePackage, "package.json");
   const packageLock = join(sourcePackage, "package-lock.json");
+  const assets = join(sourcePackage, "assets");
   const dist = join(sourcePackage, "dist");
 
   if (!existsSync(packageLock)) {
@@ -85,6 +86,7 @@ function writeBundle(destination) {
   mkdirSync(destination, { recursive: true });
   cpSync(packageJson, join(destination, "package.json"));
   cpSync(packageLock, join(destination, "package-lock.json"));
+  cpSync(assets, join(destination, "assets"), { recursive: true });
   cpSync(dist, join(destination, "dist"), { recursive: true });
   writeFileSync(join(destination, ".gitkeep"), "");
 }

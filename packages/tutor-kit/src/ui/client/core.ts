@@ -51,8 +51,11 @@ async function renderHome(token) {
       : "";
   document.querySelector("#main").innerHTML = \`
     <section>
-      <div class="page-head">
-        <h1>\${escapeHtml(document.title)}</h1>
+      <div class="page-head page-head-library">
+        <div class="library-brand">
+          <img class="library-brand-mark" src="/__tutor-assets/brand/wizard-icon.png" alt="" width="48" height="48" />
+          <h1>\${escapeHtml(document.title)}</h1>
+        </div>
         \${meta ? \`<div class="meta">\${escapeHtml(meta)}</div>\` : ""}
       </div>
       \${textbooks.length === 0 ? renderEmptyTextbooks() : renderTextbookRows()}

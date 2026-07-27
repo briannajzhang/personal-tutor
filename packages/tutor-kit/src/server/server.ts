@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { mkdirSync, createReadStream, existsSync, realpathSync, watch, type FSWatcher } from "node:fs";
 import { relative, resolve } from "node:path";
 import { html } from "../ui/app.js";
+import { wizardIconPath } from "../ui/brand-assets.js";
 import { katexCssPath, katexFontPath, katexJsPath } from "../ui/katex-assets.js";
 import { mermaidAssetPath, mermaidJsPath } from "../ui/mermaid-assets.js";
 import { monacoAssetPath } from "../ui/monaco-assets.js";
@@ -82,6 +83,11 @@ async function handleRequest(
     return;
   }
 
+  if (request.method === "GET" && url.pathname === "/__tutor-assets/brand/wizard-icon.png") {
+    sendFile(response, wizardIconPath());
+    return;
+  }
+
   if (request.method === "GET" && url.pathname === "/__tutor-assets/katex/katex.min.js") {
     sendFile(response, katexJsPath());
     return;
@@ -127,9 +133,7 @@ async function handleRequest(
   }
 
   if (request.method === "GET" && url.pathname === "/favicon.ico") {
-    response.statusCode = 204;
-    response.setHeader("connection", "close");
-    response.end();
+    sendFile(response, wizardIconPath());
     return;
   }
 

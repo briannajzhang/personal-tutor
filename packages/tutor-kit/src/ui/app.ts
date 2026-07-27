@@ -8,6 +8,7 @@ export function html(title: string): string {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(title)}</title>
+    <link rel="icon" type="image/png" href="/favicon.ico" />
     <style>${css()}</style>
     <link rel="stylesheet" href="/__tutor-assets/katex/katex.min.css" />
   </head>

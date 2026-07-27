@@ -128,6 +128,21 @@ main {
   gap: 24px;
   margin-bottom: 34px;
 }
+.page-head-library {
+  align-items: center;
+}
+.library-brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.library-brand-mark {
+  display: block;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
 h1 {
   margin: 0;
   color: var(--ink);

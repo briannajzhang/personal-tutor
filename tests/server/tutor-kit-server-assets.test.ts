@@ -34,7 +34,19 @@ test("dev server exposes workspace data and protects asset paths", async () => {
 
     const page = await fetch(`${server.url}/textbooks/getting-started/chapters/welcome`);
     assert.equal(page.status, 200);
-    assert.match(await page.text(), /<main id="main"><\/main>/);
+    const pageHtml = await page.text();
+    assert.match(pageHtml, /<main id="main"><\/main>/);
+    assert.match(pageHtml, /<link rel="icon" type="image\/png" href="\/favicon\.ico" \/>/);
+
+    const brandIcon = await fetch(`${server.url}/__tutor-assets/brand/wizard-icon.png`);
+    assert.equal(brandIcon.status, 200);
+    assert.equal(brandIcon.headers.get("content-type"), "image/png");
+    assert.ok((await brandIcon.arrayBuffer()).byteLength > 0);
+
+    const favicon = await fetch(`${server.url}/favicon.ico`);
+    assert.equal(favicon.status, 200);
+    assert.equal(favicon.headers.get("content-type"), "image/png");
+    assert.ok((await favicon.arrayBuffer()).byteLength > 0);
 
     const image = await fetch(`${server.url}/__tutor-assets/textbooks/getting-started/assets/tiny.png`);
     assert.equal(image.status, 200);
