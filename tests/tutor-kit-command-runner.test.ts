@@ -19,6 +19,10 @@ test("shared coding runner preserves output limits and file replacement behavior
   assert.equal(result.truncated, true);
   assert.equal(result.timedOut, false);
 
+  const spawnFailure = await runShell("echo unreachable", join(dir, "missing"), "javascript", {});
+  assert.equal(spawnFailure.exitCode, null);
+  assert.match(spawnFailure.stderr, /ENOENT/);
+
   writeProblemFiles(dir, [{
     path: "src/main.js",
     content: "starter",

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadTextbooks, resolveWorkspace } from "../compile/discover.js";
+import { collectChapterBlocks } from "../core/traversal.js";
 import type { LoadedChapter, QuizBlock, TutorBlock } from "../core/types.js";
 import { loadReadingProgress, summarizeReadingProgress, type ReadingProgressSummary } from "../server/reading-progress.js";
 
@@ -133,7 +134,7 @@ function readEvents(path: string): { events: EventRecord[]; invalidCount: number
 function loadQuestionTags(chapters: LoadedChapter[]): Map<string, string[]> {
   const tags = new Map<string, string[]>();
   for (const candidate of chapters) {
-    for (const block of collectBlocks(candidate.chapter.sections)) {
+    for (const block of collectChapterBlocks(candidate.chapter)) {
       if (!isQuizBlock(block)) continue;
       for (const question of block.props.questions) {
         tags.set(questionKey(candidate.textbookId, candidate.chapter.id, block.id, question.id), question.tags ?? []);
@@ -247,7 +248,11 @@ function countOpenHighlights(events: EventRecord[]): number {
       states.set(highlightId, text(event.status) ?? "open");
     }
   }
-  return [...states.values()].filter((status) => status !== "resolved").length;
+  let count = 0;
+  for (const status of states.values()) {
+    if (status !== "resolved") count += 1;
+  }
+  return count;
 }
 
 function chooseNextMove(
@@ -258,22 +263,19 @@ function chooseNextMove(
 ): string {
   if (eventCount === 0) return "Start with the next planned lesson or a short diagnostic.";
   if (weakTags.length > 0) return `Review ${weakTags.slice(0, 3).map(({ tag }) => tag).join(", ")} with a new example and a short transfer check.`;
-  const failed = coding.filter((item) => !item.passed);
-  if (failed.length > 0) return `Repair or scaffold ${failed[0].chapterId}/${failed[0].blockId} before adding new material.`;
+  const failed = coding.find((item) => !item.passed);
+  if (failed) return `Repair or scaffold ${failed.chapterId}/${failed.blockId} before adding new material.`;
   if (glossaryAgain.length > 0) return `Retrieve ${glossaryAgain.slice(0, 3).map(({ termId }) => termId).join(", ")} before the next lesson.`;
   return "Continue to the next planned outcome and include one cumulative retrieval check.";
 }
 
 function latestTimestamp(events: EventRecord[]): string | null {
-  const timestamps = events.map((event) => text(event.createdAt)).filter((value): value is string => value !== null);
-  return timestamps.sort().at(-1) ?? null;
-}
-
-function collectBlocks(sections: Array<{ blocks: TutorBlock[]; subsections: Array<{ blocks: TutorBlock[] }> }>): TutorBlock[] {
-  return sections.flatMap((section) => [
-    ...section.blocks,
-    ...section.subsections.flatMap((subsection) => subsection.blocks)
-  ]);
+  let latest: string | null = null;
+  for (const event of events) {
+    const timestamp = text(event.createdAt);
+    if (timestamp && (!latest || timestamp > latest)) latest = timestamp;
+  }
+  return latest;
 }
 
 function isQuizBlock(block: TutorBlock): block is QuizBlock {
