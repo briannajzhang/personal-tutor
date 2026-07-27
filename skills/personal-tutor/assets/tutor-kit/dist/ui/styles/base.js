@@ -131,7 +131,7 @@ main {
 h1 {
   margin: 0;
   color: var(--ink);
-  font-size: 35px;
+  font-size: 30px;
   font-weight: 560;
   letter-spacing: 0;
   line-height: 1.16;
@@ -448,6 +448,9 @@ h1 {
 .chapter-layout > .page-head {
   grid-area: head;
 }
+.chapter-layout > .page-head h1 {
+  font-size: 35px;
+}
 @media (min-width: 861px) {
   .chapter-layout > .crumbs {
     margin-bottom: 21px;
@@ -476,6 +479,7 @@ h1 {
 @media (min-width: 861px) {
   .chapter-index {
     max-height: calc(100vh - 96px);
+    max-height: calc(100dvh - 96px);
     overflow-y: auto;
     overscroll-behavior-y: contain;
   }

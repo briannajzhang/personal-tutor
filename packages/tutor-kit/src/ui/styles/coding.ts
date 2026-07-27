@@ -424,6 +424,9 @@ body.route-loading {
       "sidebar"
       "content";
   }
+  .chapter-layout > .page-head h1 {
+    font-size: 28px;
+  }
   .chapter-index {
     position: static;
     margin-bottom: 36px;

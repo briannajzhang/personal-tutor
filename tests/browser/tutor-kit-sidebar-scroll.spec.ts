@@ -61,3 +61,15 @@ test("scrolling the desktop sidebar does not scroll the lesson page", async ({ p
   await page.mouse.wheel(0, 10_000);
   expect(await page.evaluate(() => window.scrollY)).toBe(pageScrollBefore);
 });
+
+test("the larger chapter title does not change titles on other pages", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 600 });
+  await page.goto(server.url);
+  await expect(page.locator("h1")).toHaveCSS("font-size", "30px");
+
+  await page.goto(`${server.url}/textbooks/getting-started/chapters/welcome`);
+  await expect(page.locator("h1")).toHaveCSS("font-size", "35px");
+
+  await page.setViewportSize({ width: 390, height: 600 });
+  await expect(page.locator("h1")).toHaveCSS("font-size", "28px");
+});
