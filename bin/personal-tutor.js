@@ -25,11 +25,17 @@ function main(rawArgs) {
   const args = [...rawArgs];
   const command = args[0] && !args[0].startsWith("-") ? args.shift() : "install";
 
-  if (command !== "install") {
-    fail(`Unknown command: ${command}`);
+  if (command === "install") {
+    installSkill(parseInstallArgs(args));
+    return;
   }
 
-  installSkill(parseInstallArgs(args));
+  if (command === "dev") {
+    runTutorKitDev(parseDevArgs(args));
+    return;
+  }
+
+  fail(`Unknown command: ${command}`);
 }
 
 function parseInstallArgs(args) {
@@ -90,6 +96,59 @@ function parseInstallArgs(args) {
     }
 
     fail(`Unknown option: ${arg}`);
+  }
+
+  return options;
+}
+
+function parseDevArgs(args) {
+  const options = {
+    agent: "codex",
+    skillDir: undefined,
+    help: false,
+    tutorArgs: []
+  };
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === "--help" || arg === "-h") {
+      options.help = true;
+      continue;
+    }
+
+    if (arg === "--agent") {
+      const value = args[++index];
+      if (!value) fail("--agent requires codex or claude-code");
+      if (!["codex", "claude-code"].includes(value)) {
+        fail("--agent must be codex or claude-code for dev");
+      }
+      options.agent = value;
+      continue;
+    }
+
+    if (arg === "--skill-dir") {
+      const value = args[++index];
+      if (!value) fail("--skill-dir requires a path");
+      options.skillDir = resolveUserPath(value);
+      continue;
+    }
+
+    if (arg === "--cwd") {
+      const value = args[++index];
+      if (!value) fail("--cwd requires a path");
+      options.tutorArgs.push("--cwd", resolveUserPath(value));
+      continue;
+    }
+
+    if (arg === "--port") {
+      const value = args[++index];
+      if (!value) fail("--port requires a number");
+      options.tutorArgs.push("--port", value);
+      continue;
+    }
+
+    fail(`Unknown option for dev: ${arg}`);
   }
 
   return options;
@@ -160,6 +219,25 @@ function installSkill(options) {
   if (agents.includes("claude-code")) {
     console.log("In Claude Code, run /personal-tutor to start a lesson.");
   }
+}
+
+function runTutorKitDev(options) {
+  const skillDir = options.skillDir ?? join(defaultSkillsDir(options.agent), skillName);
+  const wrapper = join(skillDir, "scripts", "tutor-kit.mjs");
+  if (!existsSync(wrapper)) {
+    fail([
+      `Personal Tutor skill not found for ${agentLabel(options.agent)} at ${skillDir}`,
+      "Install it first, or pass --skill-dir <path>."
+    ].join("\n"));
+  }
+
+  const tutorArgs = options.help ? ["--help"] : ["dev", ...options.tutorArgs];
+  const result = spawnSync(process.execPath, [wrapper, ...tutorArgs], { encoding: "utf8" });
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) fail(result.error.message);
+  if (typeof result.status === "number") process.exit(result.status);
+  if (result.signal) fail(`Tutor Kit CLI terminated by signal ${result.signal}`);
 }
 
 function installTutorKitDependencies(skillDir) {
@@ -282,18 +360,27 @@ function fail(message) {
 }
 
 function printHelp() {
-  console.log(`Personal Tutor skill installer
+  console.log(`Personal Tutor
 
 Usage:
   personal-tutor [install] [options]
+  personal-tutor dev [options]
 
-Options:
+Install options:
   --agent <name>       Install for codex, claude-code, or all. Default: codex
   --skills-dir <path>  Parent skills directory for one agent
   --skill-dir <path>   Exact destination directory for the personal-tutor skill
   --force              Replace an existing personal-tutor skill
   --skip-deps          Copy the skill without installing bundled Tutor Kit dependencies
   --dry-run            Print what would happen without copying files
+
+Dev options:
+  --agent <name>       Open the course library for codex or claude-code. Default: codex
+  --skill-dir <path>   Exact personal-tutor skill directory to use
+  --cwd <path>         Tutor Kit workspace or library path
+  --port <number>      Local Tutor Kit server port
+
+Global options:
   -h, --help           Show this help
   -v, --version        Show the package version
 
@@ -304,5 +391,7 @@ Examples:
   npx personal-tutor@latest --agent claude-code
   npx personal-tutor@latest --agent all
   npx personal-tutor@latest --skills-dir ~/.codex/skills
+  npx personal-tutor@latest dev
+  npx personal-tutor@latest dev --agent claude-code
 `);
 }

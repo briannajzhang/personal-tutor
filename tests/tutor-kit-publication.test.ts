@@ -19,6 +19,8 @@ test("begin initializes a new central library before creating its work area", as
   assert.equal(existsSync(join(dir, "tutor.config.ts")), true);
   assert.equal(existsSync(join(dir, "node_modules", "tutor-kit")), true);
   assert.equal(existsSync(join(dir, "tutor-data", "events.jsonl")), true);
+  assert.equal(existsSync(join(dir, "memory.md")), true);
+  assert.equal(existsSync(join(begun.workDir, "memory.md")), false);
   assert.equal(existsSync(join(begun.workDir, "textbooks", "data-modeling", "textbook.ts")), true);
 });
 

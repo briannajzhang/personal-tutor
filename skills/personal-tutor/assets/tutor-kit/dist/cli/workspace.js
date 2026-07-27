@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { configTemplate, packageJsonTemplate, registryTemplate, tsconfigTemplate, welcomeTextbookTemplate, welcomeChapterTemplate, welcomeProblemMainTemplate, welcomeProblemSolutionTemplate, welcomeProblemTestsTemplate } from "../templates/workspace.js";
+import { configTemplate, learnerMemoryTemplate, packageJsonTemplate, registryTemplate, tsconfigTemplate, welcomeTextbookTemplate, welcomeChapterTemplate, welcomeProblemMainTemplate, welcomeProblemSolutionTemplate, welcomeProblemTestsTemplate } from "../templates/workspace.js";
 import { coreBlocksTemplate, chapterTemplate, courseTemplate, textbookTemplate } from "../templates/blocks.js";
 export const blockKinds = ["p", "heading", "list", "codeBlock", "mathBlock", "diagram", "chart", "image", "component", "callout", "transformation", "glossary", "quiz", "codingProblem"];
 export function initWorkspace(cwd, options = {}) {
@@ -27,6 +27,9 @@ export function initWorkspace(cwd, options = {}) {
     writeIfMissing(join(cwd, "tutor", "registry.ts"), registryTemplate(), result);
     writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);
     writeIfMissing(join(cwd, "tutor-data", "events.jsonl"), "", result);
+    if (options.learnerMemory !== false) {
+        writeIfMissing(join(cwd, "memory.md"), learnerMemoryTemplate(), result);
+    }
     return result;
 }
 export function addTextbook(cwd, id, title) {

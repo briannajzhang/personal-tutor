@@ -25,6 +25,16 @@ test("skill package has a valid entry point and runnable bundled CLI", () => {
   assert.match(help, /verify coding-problems/);
 });
 
+test("personal tutor reads and updates learner memory conservatively", () => {
+  const skill = readFileSync(join(skillDir, "SKILL.md"), "utf8");
+
+  assert.match(skill, /read `<workspace>\/memory\.md` before asking an intake question/);
+  assert.match(skill, /The current request takes priority/);
+  assert.match(skill, /asked to remember or forget something/);
+  assert.match(skill, /If nothing durable changed, do not edit it/);
+  assert.match(skill, /Keep course details in `course\.md` and runtime history in `tutor-data`/);
+});
+
 test("skill wrapper uses one central learner library by default", () => {
   const homeDir = mkdtempSync(join(tmpdir(), "personal-tutor-home-"));
   const wrapper = join(skillDir, "scripts", "tutor-kit.mjs");
