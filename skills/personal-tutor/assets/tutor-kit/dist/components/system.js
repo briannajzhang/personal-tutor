@@ -1,12 +1,15 @@
 import { createHash } from "node:crypto";
 import { existsSync, realpathSync, statSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import { build, createServer as createViteServer, loadConfigFromFile, mergeConfig, normalizePath } from "vite";
 import { collectChapterBlocks } from "../core/traversal.js";
 const publicPrefix = "/__tutor-components/";
 const virtualPrefix = "\0tutor-component:";
 const syntaxRuntimePath = "/__tutor-assets/shiki/runtime.js";
 const syntaxRuntimeVirtualId = "\0tutor-syntax-highlighting-runtime";
+const shikiBundleFullId = "shiki/bundle/full";
+const shikiBundleFullPath = normalizePath(fileURLToPath(import.meta.resolve(shikiBundleFullId)));
 const reservedFrontendConfigKeys = ["root", "base", "appType", "server", "build"];
 export class ComponentRegistry {
     #records = new Map();
@@ -120,13 +123,18 @@ function tutorSyntaxHighlightingPlugin() {
     return {
         name: "tutor-kit-syntax-highlighting",
         enforce: "pre",
-        resolveId(id) {
-            return id === syntaxRuntimePath ? syntaxRuntimeVirtualId : null;
+        resolveId(id, importer) {
+            if (id === syntaxRuntimePath)
+                return syntaxRuntimeVirtualId;
+            if (id === shikiBundleFullId && (importer === syntaxRuntimeVirtualId ||
+                importer?.startsWith(`${syntaxRuntimeVirtualId}?`)))
+                return shikiBundleFullPath;
+            return null;
         },
         load(id) {
             if (id !== syntaxRuntimeVirtualId)
                 return null;
-            return `import { bundledLanguages, createHighlighter } from "shiki/bundle/full";
+            return `import { bundledLanguages, createHighlighter } from ${JSON.stringify(shikiBundleFullId)};
 
 const theme = "github-light";
 const highlighterPromise = createHighlighter({ themes: [theme], langs: [] });
