@@ -54,6 +54,8 @@ If the user asks for a complete textbook or large batch, still publish increment
 
 Use `brief` when workspace state may clarify whether a request continues existing work, targets focused material, depends on existing sources, or already has a relevant course. For an unrelated new broad course, do not let `brief`, existing workspace state, or generic defaults silently determine the learner's intent.
 
+Read the workspace-level `memory.md` before resolving intake. Use relevant saved preferences for choices such as pace and practice. The current request and the current course state take priority. Do not let saved context from another subject decide the learner's current goal, intended use, or course direction. Copy only context that is relevant to this course into `course.md`.
+
 Ask at most one intake question, and only when its answer would materially change the course or initial publication. Infer the remaining profile from the request and record it briefly in `course.md`.
 
 If sources are involved, inspect existing source artifacts before intake and ask only about unresolved choices that affect generation.
@@ -85,7 +87,7 @@ For focused quizzes/practice, ask only what is missing:
 
 ## Learner Defaults
 
-After any needed intake, infer any remaining profile fields instead of asking for every preference.
+After any needed intake, apply relevant saved preferences before using the defaults below. Infer any remaining profile fields instead of asking for every preference.
 
 Minimum profile fields:
 

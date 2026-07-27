@@ -3,6 +3,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   configTemplate,
+  learnerMemoryTemplate,
   packageJsonTemplate,
   registryTemplate,
   tsconfigTemplate,
@@ -27,6 +28,7 @@ export interface WriteResult {
 export interface InitWorkspaceOptions {
   packageSpec?: string;
   starter?: boolean;
+  learnerMemory?: boolean;
 }
 
 export const blockKinds = ["p", "heading", "list", "codeBlock", "mathBlock", "diagram", "chart", "image", "component", "callout", "transformation", "glossary", "quiz", "codingProblem"] as const;
@@ -55,6 +57,9 @@ export function initWorkspace(cwd: string, options: InitWorkspaceOptions = {}): 
   writeIfMissing(join(cwd, "tutor", "registry.ts"), registryTemplate(), result);
   writeIfMissing(join(cwd, "tutor", "blocks", "core.tsx"), coreBlocksTemplate(), result);
   writeIfMissing(join(cwd, "tutor-data", "events.jsonl"), "", result);
+  if (options.learnerMemory !== false) {
+    writeIfMissing(join(cwd, "memory.md"), learnerMemoryTemplate(), result);
+  }
 
   return result;
 }

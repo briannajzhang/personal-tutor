@@ -10,6 +10,7 @@ interface BriefOptions {
 export interface WorkspaceBrief {
   workspace: string;
   title: string;
+  memoryFile: string | null;
   textbooks: Array<{
     id: string;
     title: string;
@@ -35,9 +36,13 @@ const authoringFileNames = [
 export async function createWorkspaceBrief(cwd: string, options: BriefOptions = {}): Promise<WorkspaceBrief> {
   const workspace = await resolveWorkspace(cwd);
   const loaded = await loadTextbooks(cwd, options);
+  const memoryPath = join(workspace.cwd, "memory.md");
   return {
     workspace: workspace.cwd,
     title: workspace.title,
+    memoryFile: existsSync(memoryPath) && statSync(memoryPath).isFile()
+      ? relative(workspace.cwd, memoryPath).replaceAll("\\", "/")
+      : null,
     textbooks: loaded.textbooks.map(({ file, textbook }) => {
       const root = dirname(file);
       return {
@@ -64,7 +69,8 @@ export function formatWorkspaceBrief(brief: WorkspaceBrief): string {
   const lines = [
     "Tutor brief",
     `workspace: ${brief.workspace}`,
-    `title: ${brief.title}`
+    `title: ${brief.title}`,
+    `learner memory: ${brief.memoryFile ?? "missing"}`
   ];
   if (brief.textbooks.length === 0) lines.push("textbooks: none");
   for (const textbook of brief.textbooks) {

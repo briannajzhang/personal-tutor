@@ -1,7 +1,13 @@
 import { expect, test } from "@playwright/test";
-import { resolve } from "node:path";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { initWorkspace } from "../../packages/tutor-kit/dist/cli/workspace.js";
 import { clearWorkspaceCaches } from "../../packages/tutor-kit/dist/compile/discover.js";
 import { startDevServer } from "../../packages/tutor-kit/dist/server/server.js";
+import { linkTutorKit } from "../helpers/tutor-kit.ts";
 
 let server: Awaited<ReturnType<typeof startDevServer>>;
 
@@ -13,6 +19,73 @@ test.afterAll(async () => {
   await server?.close();
   clearWorkspaceCaches();
 });
+
+test("syntax highlighting loads when the learner workspace is outside the repository", async ({ page }) => {
+  test.setTimeout(60_000);
+  const workspace = mkdtempSync(join(tmpdir(), "tutor-kit-syntax-workspace-"));
+  initWorkspace(workspace, { starter: true });
+  linkTutorKit(workspace);
+
+  const isolatedServer = await startTutorCli(workspace);
+  try {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await page.goto(`${isolatedServer.url}/textbooks/getting-started/chapters/welcome`);
+      await expect(page.getByRole("heading", { name: "Chapter 1: Welcome" })).toBeVisible();
+      await expect(page.locator('.code-block[data-language="ts"][data-syntax-highlighted="true"]')).toBeVisible({
+        timeout: 20_000
+      });
+    }
+
+    const response = await page.request.get(`${isolatedServer.url}/api/textbooks/getting-started`);
+    expect(response.ok()).toBe(true);
+  } finally {
+    await isolatedServer.close();
+  }
+});
+
+async function startTutorCli(cwd: string): Promise<{ url: string; close: () => Promise<void> }> {
+  const child = spawn(process.execPath, [
+    resolve("packages/tutor-kit/dist/cli/index.js"),
+    "--cwd",
+    cwd,
+    "dev",
+    "--port",
+    "0"
+  ], {
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  let output = "";
+  const url = await new Promise<string>((resolveUrl, reject) => {
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      child.kill("SIGTERM");
+    }, 30_000);
+    const inspectOutput = (chunk: Buffer) => {
+      output += chunk.toString();
+      const match = output.match(/Tutor UI running at (http:\/\/localhost:\d+)/);
+      if (!match || timedOut) return;
+      clearTimeout(timeout);
+      resolveUrl(match[1]);
+    };
+    child.stdout?.on("data", inspectOutput);
+    child.stderr?.on("data", inspectOutput);
+    child.once("exit", (code) => {
+      clearTimeout(timeout);
+      reject(new Error(timedOut
+        ? `Timed out starting isolated Tutor CLI:\n${output}`
+        : `Isolated Tutor CLI exited with code ${code}:\n${output}`));
+    });
+  });
+  return {
+    url,
+    close: async () => {
+      if (child.exitCode !== null || child.signalCode !== null) return;
+      child.kill("SIGTERM");
+      await once(child, "exit");
+    }
+  };
+}
 
 test("RealWorld code blocks highlight supported languages and leave plaintext alone", async ({ page }) => {
   await page.goto(`${server.url}/textbooks/express-prisma-realworld-articles/chapters/publish-new-article`);

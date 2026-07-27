@@ -9,6 +9,18 @@ import { linkTutorKit } from "./helpers/tutor-kit.ts";
 
 test.afterEach(() => clearWorkspaceCaches());
 
+test("workspace init creates learner memory without overwriting it", () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-runtime-"));
+  initWorkspace(dir);
+  const memoryPath = join(dir, "memory.md");
+
+  assert.match(readFileSync(memoryPath, "utf8"), /# Learner memory/);
+  writeFileSync(memoryPath, "# Learner memory\n\n- Prefer worked examples.\n");
+  initWorkspace(dir);
+
+  assert.equal(readFileSync(memoryPath, "utf8"), "# Learner memory\n\n- Prefer worked examples.\n");
+});
+
 test("textbook loading can be refreshed after source edits", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-runtime-"));
   initWorkspace(dir, { starter: true });
@@ -16,10 +28,53 @@ test("textbook loading can be refreshed after source edits", async () => {
   const textbookPath = join(dir, "textbooks", "getting-started", "textbook.ts");
 
   assert.equal((await loadTextbooks(dir)).textbooks[0]?.textbook.title, "Getting Started");
+  assert.equal((await loadTextbooks(dir, { textbookId: "getting-started" })).textbooks[0]?.textbook.title, "Getting Started");
   writeFileSync(textbookPath, readFileSync(textbookPath, "utf8").replace("Getting Started", "Changed Title"));
   invalidateWorkspaceCaches(dir);
 
   assert.equal((await loadTextbooks(dir)).textbooks[0]?.textbook.title, "Changed Title");
+  assert.equal((await loadTextbooks(dir, { textbookId: "getting-started" })).textbooks[0]?.textbook.title, "Changed Title");
+});
+
+test("an invalidated load cannot restore stale textbook data", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-runtime-"));
+  initWorkspace(dir, { starter: true });
+  linkTutorKit(dir);
+  const textbookPath = join(dir, "textbooks", "getting-started", "textbook.ts");
+  const source = readFileSync(textbookPath, "utf8");
+  const hookKey = "__tutorKitCacheRace";
+  let markLoadStarted!: () => void;
+  let releaseLoad!: () => void;
+  const loadStarted = new Promise<void>((resolve) => {
+    markLoadStarted = resolve;
+  });
+  const loadRelease = new Promise<void>((resolve) => {
+    releaseLoad = resolve;
+  });
+  (globalThis as any)[hookKey] = { started: markLoadStarted, release: loadRelease };
+
+  writeFileSync(textbookPath, source.replace(
+    "\n\nexport default",
+    `\n\nconst cacheRace = (globalThis as any)[${JSON.stringify(hookKey)}];\ncacheRace.started();\nawait cacheRace.release;\n\nexport default`
+  ));
+
+  const options = { textbookId: "getting-started" };
+  const staleLoad = loadTextbooks(dir, options);
+  try {
+    await loadStarted;
+    writeFileSync(textbookPath, source.replace("Getting Started", "Changed Title"));
+    invalidateWorkspaceCaches(dir);
+
+    const freshLoad = await loadTextbooks(dir, options);
+    assert.equal(freshLoad.textbooks[0]?.textbook.title, "Changed Title");
+
+    releaseLoad();
+    assert.equal((await staleLoad).textbooks[0]?.textbook.title, "Getting Started");
+    assert.equal((await loadTextbooks(dir, options)).textbooks[0]?.textbook.title, "Changed Title");
+  } finally {
+    releaseLoad();
+    delete (globalThis as any)[hookKey];
+  }
 });
 
 test("addTextbook preserves course notes and runtime history", () => {
