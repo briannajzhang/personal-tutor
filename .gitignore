@@ -3,7 +3,11 @@ packages/*/dist/
 *.tsbuildinfo
 .DS_Store
 .idea/
+.env
+.env.*
+!.env.example
+.npmrc
 test-results/
 playwright-report/
-/examples/tutor-data/
-/examples/textbooks/*/compile-result.md
+**/tutor-data/
+**/compile-result.md
