@@ -1,20 +1,48 @@
 # Personal Tutor
 
-Build a course around what you want to learn, and keep building on it over time.
+Turn your coding agent into a tutor that learns how you learn.
 
-AI can explain almost anything, but a chat thread is a difficult place to build lasting understanding. Explanations get buried, practice is disconnected, and each new session can feel like starting over.
+## Why does this exist?
 
-The Personal Tutor Skill helps coding agents create structured, interactive courses locally on your computer. The skill also helps your coding agents to learn your educational preferences over time and make better and better content!
+You can ask an AI to explain almost anything, and honestly, that's still a little magical. But have you ever actually *learned* something hard from a chat window? You ask a question, you get a wall of text, you nod along, you scroll, and three days later you remember approximately none of it. Chat is a great place to get answers. It's a pretty bad place to learn.
 
-Lessons pair explanations with visuals, interactive simulations, quizzes, and runnable coding exercises with answer checking, not just more text to read. 
+That's because learning isn't reading — it's doing. It's answering a question *before* you see the explanation. It's changing a number in a simulation and watching the system react. It's writing code, running it, and finding out you were wrong in an interesting way. In a chat, all of those moments flatten into more text in a very long scroll.
+
+Personal Tutor gives your coding agent an actual teaching toolkit instead. It builds real courses, locally, out of things like:
+
+- Clear lessons and worked examples
+- Images, diagrams, charts, and visual explanations
+- Interactive simulations and small experiments
+- Multiple choice and matching quizzes with feedback
+- Runnable coding exercises with answer checking
+- Glossaries and flashcards for later review
+- Fully custom interfaces when a topic needs something weird (more on this below)
+
+## A tutor that remembers you
+
+Here's the thing about a good human tutor: half their value isn't what they know, it's what they know *about you*. They remember that you already get recursion but freeze up on off-by-one errors. They remember you like diagrams. They don't re-explain chapter one every Tuesday.
+
+Your coding agent, by default, has the memory of a goldfish. Every new session, you're a stranger again.
+
+Personal Tutor fixes that by keeping your courses, progress, quiz results, coding attempts, and study history together in `~/.personal-tutor`. When your agent writes the next lesson, it reads that history first — what you've finished, where you struggled, how you like things explained. The more you use it, the better it gets at teaching *you specifically*, which is kind of the whole point of the word "personal."
+
+## What's up with the fancy UI?
+
+I'm glad you asked! This is my favorite part, and it's a bit of a have-your-cake-and-eat-it-too situation.
+
+Coding agents can build genuinely wonderful custom interfaces — that flexibility is one of the coolest things about them. But asking an agent to hand-write a quiz component, a progress tracker, and a chart renderer from scratch for every single lesson is slow, expensive, and burns a pile of tokens reinventing the same wheels. Nobody needs their tutor to lovingly craft a bespoke multiple-choice button for the 40th time.
+
+So Personal Tutor ships with a kit of polished, pre-built teaching components as part of the skill. Quizzes, flashcards, diagrams, charts, glossaries, coding exercises — the agent invokes them procedurally with a few lines of code, which is fast, cheap, and token-efficient. And when a topic genuinely calls for something unusual (a little traffic simulator, a kiln temperature explorer, whatever), the agent can still drop down and write raw TypeScript, JSX, CSS, Canvas, SVG, or WebGL.
+
+Sturdy building blocks for the common stuff, full creative freedom for the moments that make an idea click. Best of both worlds.
 
 ## See it in action
 
-Here are three courses generated from simple prompts.
+Here are three courses made from simple prompts. They all live in the same local library, even though the subjects have almost nothing in common — which is sort of the fun of having an "expert in everything" as your tutor.
 
 ![A local Personal Tutor library containing courses on ceramic glazes, concert ticketing, and an Express codebase](./assets/course-library.png)
 
-*Technical and nontechnical courses live side by side in one local library, with progress saved for each.*
+*Keep technical and nontechnical courses side by side, with separate progress for each one.*
 
 ### Learn an unfamiliar codebase
 
@@ -22,7 +50,7 @@ Here are three courses generated from simple prompts.
 
 ![A sequence diagram tracing an article publishing request through Express, authentication middleware, Prisma, and PostgreSQL](./assets/codebase-request-flow.png)
 
-*Follow a real request through the codebase, connecting routes, middleware, application logic, and database calls.*
+*Follow a real request through the codebase and see how the routes, middleware, application logic, and database calls fit together.*
 
 ### Explore system design through simulation
 
@@ -30,7 +58,7 @@ Here are three courses generated from simple prompts.
 
 ![An interactive simulation for exploring traffic and inventory pressure during a major concert ticket sale](./assets/concert-pressure-lab.png)
 
-*Adjust arrival rate, admission rate, and checkout time to see how design decisions affect queue growth and active seat holds.*
+*Change the arrival rate, admission rate, and checkout time. Then watch what happens to the queue and active seat holds.*
 
 ### Practice with visual examples
 
@@ -38,7 +66,7 @@ Here are three courses generated from simple prompts.
 
 ![A visual ceramic glaze lesson with examples of common defects and an interactive matching exercise](./assets/ceramic-defects.png)
 
-*Compare glaze defects, identify the visual clues behind them, and check your reasoning inside the lesson.*
+*Compare glaze defects, spot the visual clues, and check your answer inside the lesson.*
 
 ## Quick start
 
@@ -46,33 +74,33 @@ Personal Tutor requires Node.js 20.19 or newer.
 
 ### 1. Install
 
-Install for Codex, the default:
+For Codex:
 
 ```bash
 npx personal-tutor@latest
 ```
 
-Install for Claude Code:
+For Claude Code:
 
 ```bash
 npx personal-tutor@latest --agent claude-code
 ```
 
-Install for both:
+For both:
 
 ```bash
 npx personal-tutor@latest --agent all
 ```
 
-Run `npx personal-tutor@latest --help` for other install options.
+You can run `npx personal-tutor@latest --help` to see the other install options.
 
 ### 2. Ask your coding agent to build a course
 
-Invoke the skill with `$personal-tutor` in Codex or `/personal-tutor` in Claude Code, then describe what you want to learn:
+Use `$personal-tutor` in Codex or `/personal-tutor` in Claude Code. Then describe what you want to learn and what you already know:
 
 > Teach me 1D dynamic programming for technical interviews. I understand recursion, but I struggle to recognize when to use DP.
 
-Personal Tutor may ask a few questions about your goals and current knowledge before creating the first chapter.
+Personal Tutor may ask a few questions before it creates the first chapter — the same way a good tutor wouldn't start lecturing before asking what you already know.
 
 ### 3. Open the course
 
@@ -82,18 +110,18 @@ npx personal-tutor@latest dev
 
 Claude Code users can run `npx personal-tutor@latest dev --agent claude-code`.
 
-Courses and learning history are stored in `~/.personal-tutor`.
+Your courses and learning history stay in `~/.personal-tutor`.
 
 > [!WARNING]
-> Tutor Kit can run course code and browser components, so use it only with courses and workspaces you trust.
+> Personal Tutor can run course code and browser components. Only open courses and workspaces you trust.
 
 ### 4. Continue later
 
-Return to your coding agent and ask:
+Come back whenever you want — tomorrow, next month, whenever the motivation strikes — and just ask:
 
 > Continue my dynamic programming course.
 
-Personal Tutor will use your existing course and saved progress instead of starting over.
+Personal Tutor picks up the existing course, checks your saved progress, and figures out what should come next. No "as I mentioned in our previous conversation" required.
 
 ## Development
 
