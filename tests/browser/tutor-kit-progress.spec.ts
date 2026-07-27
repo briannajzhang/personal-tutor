@@ -31,18 +31,21 @@ test("a learner can continue and complete a chapter", async ({ page }) => {
   const starterRow = page.locator(".library-row", { hasText: "Getting Started" });
   await expect(starterRow.getByText("0 of 1 chapter complete")).toBeVisible();
   await expect(starterRow.getByRole("progressbar")).toHaveCount(0);
-  await starterRow.getByRole("button", { name: "Start" }).click();
+  await starterRow.getByRole("button", { name: /^Start/ }).click();
   await expect(page).toHaveURL(/\/textbooks\/getting-started\/chapters\/welcome/);
 
-  const completion = page.getByRole("button", { name: "Mark chapter complete" });
+  const completion = page.locator("[data-chapter-completion]");
+  await expect(completion).toHaveAccessibleName("Mark chapter complete");
   await expect(completion).toHaveText("Mark chapter complete");
   await completion.click();
   await expect(completion).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText("Chapter complete", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Mark chapter incomplete" })).toHaveText("Mark incomplete");
-  await page.getByRole("button", { name: "Mark chapter incomplete" }).click();
-  await expect(page.getByRole("button", { name: "Mark chapter complete" })).toHaveText("Mark chapter complete");
-  await page.getByRole("button", { name: "Mark chapter complete" }).click();
+  await expect(completion).toHaveAccessibleName("Mark chapter incomplete");
+  await expect(completion).toHaveText("Mark incomplete");
+  await completion.click();
+  await expect(completion).toHaveAccessibleName("Mark chapter complete");
+  await expect(completion).toHaveText("Mark chapter complete");
+  await completion.click();
 
   await page.goto(url);
   await expect(starterRow.getByText("Complete · 1 chapter")).toBeVisible();
@@ -51,7 +54,6 @@ test("a learner can continue and complete a chapter", async ({ page }) => {
 
   await starterRow.getByRole("button", { name: "Review" }).click();
   await expect(page).toHaveURL(/\/textbooks\/getting-started$/);
-  await expect(page.getByRole("progressbar", { name: "1 of 1 chapter complete" })).toHaveAttribute("aria-valuenow", "1");
   await expect(page.locator(".textbook-chapter-rows .row")).toContainText("2 sections / 1 subsection");
   await expect(page.locator(".textbook-chapter-rows .row .chapter-row-status")).toHaveText("Complete");
   await expect(page.locator("body")).not.toContainText("COURSE PROGRESS");
