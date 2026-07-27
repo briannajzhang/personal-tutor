@@ -76,7 +76,7 @@ Here are three courses made from simple prompts. They all live in the same local
 
 ## Quick start
 
-Personal Tutor requires Node.js 20.19 or newer.
+Personal Tutor requires Node.js 20.19.x, or Node.js 22.12.0 or newer. Node.js 21.x is not supported because Tutor Kit's Vite/Rolldown runtime dependencies do not support it.
 
 ### 1. Install
 

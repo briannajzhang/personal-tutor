@@ -8,6 +8,14 @@ import { fileURLToPath } from "node:url";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const skillDir = dirname(scriptDir);
 const cliPath = join(skillDir, "assets", "tutor-kit", "dist", "cli", "index.js");
+const supportedNodeRange = "^20.19.0 || >=22.12.0";
+
+if (!isSupportedNode(process.versions.node)) {
+  console.error(`Tutor Kit requires Node ${supportedNodeRange}.`);
+  console.error(`Current Node: ${process.version}`);
+  console.error("Install a supported Node version, then rerun the command.");
+  process.exit(1);
+}
 
 if (!existsSync(cliPath)) {
   console.error(`Tutor Kit CLI not found at ${cliPath}`);
@@ -44,4 +52,12 @@ function defaultLibraryDir() {
   if (!configured || configured === "~") return configured ? homedir() : join(homedir(), ".personal-tutor");
   if (configured.startsWith("~/")) return join(homedir(), configured.slice(2));
   return resolve(configured);
+}
+
+function isSupportedNode(version) {
+  const [major = 0, minor = 0, patch = 0] = version.split(".").map((part) => Number.parseInt(part, 10));
+  if (major === 20) {
+    return minor > 19 || (minor === 19 && patch >= 0);
+  }
+  return major > 22 || (major === 22 && minor >= 12);
 }

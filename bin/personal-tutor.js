@@ -6,6 +6,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const skillName = "personal-tutor";
+const supportedNodeRange = "^20.19.0 || >=22.12.0";
 const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const sourceSkillDir = join(packageRoot, "skills", skillName);
 
@@ -26,11 +27,13 @@ function main(rawArgs) {
   const command = args[0] && !args[0].startsWith("-") ? args.shift() : "install";
 
   if (command === "install") {
+    assertSupportedNode();
     installSkill(parseInstallArgs(args));
     return;
   }
 
   if (command === "dev") {
+    assertSupportedNode();
     runTutorKitDev(parseDevArgs(args));
     return;
   }
@@ -349,6 +352,23 @@ function packageVersion() {
   return packageJson.version;
 }
 
+function assertSupportedNode() {
+  if (isSupportedNode(process.versions.node)) return;
+  fail([
+    `personal-tutor requires Node ${supportedNodeRange}.`,
+    `Current Node: ${process.version}`,
+    "Install a supported Node version, then rerun the command."
+  ].join("\n"));
+}
+
+function isSupportedNode(version) {
+  const [major = 0, minor = 0, patch = 0] = version.split(".").map((part) => Number.parseInt(part, 10));
+  if (major === 20) {
+    return minor > 19 || (minor === 19 && patch >= 0);
+  }
+  return major > 22 || (major === 22 && minor >= 12);
+}
+
 function shellQuote(value) {
   if (/^[A-Za-z0-9_./:=@+-]+$/.test(value)) return value;
   return `'${value.replaceAll("'", "'\\''")}'`;
@@ -365,6 +385,9 @@ function printHelp() {
 Usage:
   personal-tutor [install] [options]
   personal-tutor dev [options]
+
+Requirements:
+  Node.js ${supportedNodeRange}
 
 Install options:
   --agent <name>       Install for codex, claude-code, or all. Default: codex
