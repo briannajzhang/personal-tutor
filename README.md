@@ -1,5 +1,4 @@
-# Personal Tutor
-
+**Personal Tutor**
 Turn your coding agent into a tutor that learns how you learn.
 
 ## Why does this exist?
