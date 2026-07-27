@@ -5,6 +5,7 @@ interface BriefOptions {
 export interface WorkspaceBrief {
     workspace: string;
     title: string;
+    memoryFile: string | null;
     textbooks: Array<{
         id: string;
         title: string;

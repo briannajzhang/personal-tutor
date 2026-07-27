@@ -13,7 +13,7 @@ export async function beginTextbook(cwd, textbookId, title) {
     const workDir = join(workspace.cwd, "tutor-work", textbookId);
     if (existsSync(workDir))
         return { workDir, resumed: true };
-    initWorkspace(workDir);
+    initWorkspace(workDir, { learnerMemory: false });
     const sharedTutorDir = join(workspace.cwd, "tutor");
     if (existsSync(sharedTutorDir)) {
         cpSync(sharedTutorDir, join(workDir, "tutor"), { recursive: true, force: true });

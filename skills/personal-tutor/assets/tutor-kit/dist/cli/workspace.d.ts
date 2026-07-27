@@ -5,6 +5,7 @@ export interface WriteResult {
 export interface InitWorkspaceOptions {
     packageSpec?: string;
     starter?: boolean;
+    learnerMemory?: boolean;
 }
 export declare const blockKinds: readonly ["p", "heading", "list", "codeBlock", "mathBlock", "diagram", "chart", "image", "component", "callout", "transformation", "glossary", "quiz", "codingProblem"];
 export declare function initWorkspace(cwd: string, options?: InitWorkspaceOptions): WriteResult;

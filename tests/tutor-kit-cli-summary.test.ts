@@ -81,9 +81,11 @@ test("brief reports compact source, chapter, authoring, and progress state", asy
 
   const brief = await createWorkspaceBrief(dir);
   const sql = brief.textbooks.find((textbook) => textbook.id === "sql");
+  assert.equal(brief.memoryFile, "memory.md");
   assert.deepEqual(sql?.authoringFiles, ["textbooks/sql/course.md"]);
   assert.equal(brief.textbooks.find((textbook) => textbook.id === "getting-started")?.chapters.length, 1);
   assert.match(formatWorkspaceBrief(brief), /textbook sql: SQL Foundations/);
+  assert.match(formatWorkspaceBrief(brief), /learner memory: memory\.md/);
   assert.match(formatWorkspaceBrief(brief), /suggested next move:/);
 });
 

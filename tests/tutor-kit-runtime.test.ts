@@ -9,6 +9,18 @@ import { linkTutorKit } from "./helpers/tutor-kit.ts";
 
 test.afterEach(() => clearWorkspaceCaches());
 
+test("workspace init creates learner memory without overwriting it", () => {
+  const dir = mkdtempSync(join(tmpdir(), "tutor-kit-runtime-"));
+  initWorkspace(dir);
+  const memoryPath = join(dir, "memory.md");
+
+  assert.match(readFileSync(memoryPath, "utf8"), /# Learner memory/);
+  writeFileSync(memoryPath, "# Learner memory\n\n- Prefer worked examples.\n");
+  initWorkspace(dir);
+
+  assert.equal(readFileSync(memoryPath, "utf8"), "# Learner memory\n\n- Prefer worked examples.\n");
+});
+
 test("textbook loading can be refreshed after source edits", async () => {
   const dir = mkdtempSync(join(tmpdir(), "tutor-kit-runtime-"));
   initWorkspace(dir, { starter: true });

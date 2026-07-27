@@ -59,6 +59,18 @@ const config: TutorConfig = {
 export default config;
 `;
 }
+export function learnerMemoryTemplate() {
+    return `# Learner memory
+
+Use this file for durable learner context and teaching preferences that apply across courses. The learner's current request and the current course's \`course.md\` take priority.
+
+## Stable context
+
+## Teaching preferences
+
+## Constraints
+`;
+}
 export function welcomeTextbookTemplate() {
     return `import { textbook } from "tutor-kit";
 import welcome from "./chapters/welcome.chapter.js";
