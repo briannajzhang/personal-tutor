@@ -110,44 +110,32 @@ async function hydrateQuiz(element, block, chapter) {
   } catch {
     // Quiz persistence is a convenience; the quiz remains usable without it.
   }
-  element.querySelectorAll("input[type=radio]").forEach((input) => {
-    input.addEventListener("change", () => {
-      const questionId = input.closest("[data-quiz-question]")?.dataset.quizQuestion;
-      if (!questionId) return;
-      state.selectedAnswers[questionId] = input.value;
-      void saveQuizSelections(state);
-    });
+  element.addEventListener("change", (event) => handleQuizChange(state, event.target));
+  element.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (target?.closest("[data-quiz-check]")) void checkQuizAnswers(state);
+    else if (target?.closest("[data-quiz-reset]")) resetQuiz(state);
   });
-  bindMatchingBoards(element, state);
-  const checkButton = element.querySelector("[data-quiz-check]");
-  const resetButton = element.querySelector("[data-quiz-reset]");
-  if (checkButton) {
-    checkButton.addEventListener("click", () => checkQuizAnswers(state));
-  }
-  if (resetButton) {
-    resetButton.addEventListener("click", () => resetQuiz(state));
-  }
 }
 
-function bindMatchingBoards(element, state) {
-  element.querySelectorAll('[data-quiz-kind="matching"]').forEach((questionElement) => {
-    questionElement.querySelectorAll("[data-quiz-match-select]").forEach((select) => {
-      select.addEventListener("change", () => {
-        if (state.submitted) return;
-        const questionId = questionElement.dataset.quizQuestion;
-        if (!questionId) return;
-        normalizeMatchingSelections(questionElement);
-        const selected = matchingSelection(questionElement);
-        updateMatchingSelectOptions(questionElement);
-        if (Object.keys(selected).length > 0) {
-          state.selectedAnswers[questionId] = selected;
-        } else {
-          delete state.selectedAnswers[questionId];
-        }
-        void saveQuizSelections(state);
-      });
-    });
-  });
+function handleQuizChange(state, control) {
+  if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement)) return;
+  const question = control.closest("[data-quiz-question]");
+  const questionId = question?.dataset.quizQuestion;
+  if (!questionId) return;
+  if (control.matches("[data-quiz-match-select]")) {
+    if (state.submitted) return;
+    normalizeMatchingSelections(question);
+    const selected = matchingSelection(question);
+    updateMatchingSelectOptions(question);
+    if (Object.keys(selected).length > 0) state.selectedAnswers[questionId] = selected;
+    else delete state.selectedAnswers[questionId];
+  } else if (control.matches("input[type=radio]")) {
+    state.selectedAnswers[questionId] = control.value;
+  } else {
+    return;
+  }
+  void saveQuizSelections(state);
 }
 
 async function checkQuizAnswers(state) {
@@ -232,7 +220,7 @@ function checkMatchingQuestion(questionElement, question, state, responses) {
   } else {
     delete state.selectedAnswers[question.id];
   }
-  applyMatchingFeedback(questionElement, question, selected);
+  applyMatchingFeedback(questionElement, selected);
   return isCorrect;
 }
 
@@ -294,7 +282,7 @@ function matchingQuestionCorrect(question, selected) {
   return question.pairs.every((pair) => selected[pair.id] === pair.id);
 }
 
-function applyMatchingFeedback(questionElement, question, selectedAnswer) {
+function applyMatchingFeedback(questionElement, selectedAnswer) {
   const selected = renderMatchingAssignments(questionElement, selectedAnswer);
   questionElement.querySelectorAll("[data-quiz-match-pair]").forEach((row) => {
     const pairId = row.dataset.quizMatchPair;
@@ -386,7 +374,7 @@ function checkQuizAnswersLocally(state, persistedScore, persistedTotal) {
     const questionElement = element.querySelector(\`[data-quiz-question="\${cssEscape(question.id)}"]\`);
     if (!questionElement) continue;
     if (isMatchingQuestion(question)) {
-      applyMatchingFeedback(questionElement, question, state.selectedAnswers[question.id]);
+      applyMatchingFeedback(questionElement, state.selectedAnswers[question.id]);
     } else {
       applyChoiceFeedback(questionElement, question, state.selectedAnswers[question.id]);
     }

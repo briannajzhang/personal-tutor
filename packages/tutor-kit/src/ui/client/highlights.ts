@@ -12,17 +12,45 @@ async function loadChapterHighlights(textbookId, chapterId) {
   }
 }
 
-function bindHighlighter(chapter) {
-  highlightSelectionController?.abort();
-  highlightSelectionController = new AbortController();
-  refreshHighlightModeAffordances();
+function bindHighlightEvents() {
   document.addEventListener("mouseup", () => {
-    window.setTimeout(() => handleHighlightSelection(chapter), 0);
-  }, { signal: highlightSelectionController.signal });
+    if (activeChapter) window.setTimeout(() => handleHighlightSelection(activeChapter), 0);
+  });
   document.addEventListener("keyup", (event) => {
-    if (event.key === "Escape") return;
-    void handleHighlightSelection(chapter);
-  }, { signal: highlightSelectionController.signal });
+    if (event.key !== "Escape" && activeChapter) void handleHighlightSelection(activeChapter);
+  });
+  document.addEventListener("change", (event) => {
+    if (event.target instanceof HTMLInputElement && event.target.matches("[data-highlight-mode-toggle]")) {
+      setHighlightModeEnabled(event.target.checked);
+    }
+  });
+  document.addEventListener("click", handleHighlightListClick);
+  document.addEventListener("keydown", (event) => {
+    const remove = event.target instanceof Element ? event.target.closest("[data-highlight-list-remove]") : null;
+    if (!remove || (event.key !== "Enter" && event.key !== " ") || !activeChapter) return;
+    event.preventDefault();
+    event.stopPropagation();
+    void removeHighlight(activeChapter, remove.dataset.highlightListRemove);
+  });
+}
+
+function handleHighlightListClick(event) {
+  const target = event.target instanceof Element ? event.target : null;
+  const remove = target?.closest("[data-highlight-list-remove]");
+  if (remove && activeChapter) {
+    event.preventDefault();
+    event.stopPropagation();
+    void removeHighlight(activeChapter, remove.dataset.highlightListRemove);
+    return;
+  }
+  const item = target?.closest("[data-highlight-list-item]");
+  const highlightId = item?.dataset.highlightListItem;
+  if (!highlightId) return;
+  const mark = document.querySelector(\`[data-text-highlight="\${cssEscape(highlightId)}"]\`);
+  if (mark) {
+    mark.scrollIntoView({ block: "center", behavior: "smooth" });
+    focusRenderedHighlight(mark);
+  }
 }
 
 function setHighlightModeEnabled(enabled) {
@@ -132,7 +160,7 @@ async function applyHighlightModeSelections(chapter, selections) {
     await applyHighlightModeSelection(chapter, selection);
   }
   window.getSelection()?.removeAllRanges();
-  refreshChapterHighlightUi(chapter);
+  refreshChapterHighlightUi();
 }
 
 async function applyHighlightModeSelection(chapter, selection) {
@@ -253,7 +281,7 @@ async function saveHighlight(highlight) {
 async function removeHighlight(chapter, highlightId) {
   if (!highlightId) return;
   await deleteHighlightOnServer(chapter, highlightId);
-  refreshChapterHighlightUi(chapter);
+  refreshChapterHighlightUi();
 }
 
 async function deleteHighlightOnServer(chapter, highlightId) {
@@ -270,9 +298,9 @@ async function deleteHighlightOnServer(chapter, highlightId) {
   return response;
 }
 
-function refreshChapterHighlightUi(chapter) {
-  applyChapterHighlights(chapter);
-  renderChapterHighlightsList(chapter);
+function refreshChapterHighlightUi() {
+  applyChapterHighlights();
+  renderChapterHighlightsList();
 }
 
 function clearRenderedHighlights() {
@@ -283,7 +311,7 @@ function clearRenderedHighlights() {
   });
 }
 
-function applyChapterHighlights(chapter) {
+function applyChapterHighlights() {
   clearRenderedHighlights();
   const nextHighlights = [];
   for (const highlight of activeChapterHighlights) {
@@ -402,7 +430,7 @@ function textOffset(root, container, offset) {
   return range.toString().length;
 }
 
-function renderChapterHighlightsList(chapter) {
+function renderChapterHighlightsList() {
   const container = document.querySelector("[data-highlight-list]");
   if (!container) return;
   if (activeChapterHighlights.length === 0) {
@@ -412,7 +440,6 @@ function renderChapterHighlightsList(chapter) {
       \${renderHighlightModeToggle()}
       <div class="chapter-highlight-empty">No highlights yet.</div>
     \`;
-    bindHighlightModeToggle();
     return;
   }
   container.hidden = false;
@@ -431,30 +458,6 @@ function renderChapterHighlightsList(chapter) {
       \`).join("")}
     </div>
   \`;
-  bindHighlightModeToggle();
-  container.querySelectorAll("[data-highlight-list-item]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const highlightId = button.dataset.highlightListItem;
-      const mark = document.querySelector(\`[data-text-highlight="\${cssEscape(highlightId)}"]\`);
-      if (mark) {
-        mark.scrollIntoView({ block: "center", behavior: "smooth" });
-        focusRenderedHighlight(mark);
-      }
-    });
-  });
-  container.querySelectorAll("[data-highlight-list-remove]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      void removeHighlight(chapter, button.dataset.highlightListRemove);
-    });
-    button.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      event.stopPropagation();
-      void removeHighlight(chapter, button.dataset.highlightListRemove);
-    });
-  });
 }
 
 function renderHighlightModeToggle() {
@@ -469,14 +472,6 @@ function renderHighlightModeToggle() {
       </div>
     </div>
   \`;
-}
-
-function bindHighlightModeToggle() {
-  const input = document.querySelector("[data-highlight-mode-toggle]");
-  if (!(input instanceof HTMLInputElement)) return;
-  input.addEventListener("change", () => {
-    setHighlightModeEnabled(input.checked === true);
-  });
 }
 
 function focusRenderedHighlight(mark) {

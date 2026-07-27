@@ -90,28 +90,16 @@ async function hydrateCodingProblem(element, block, chapter) {
     // Drafts are a convenience; the problem should still run without them.
   }
 
-  element.querySelectorAll("[data-coding-file]").forEach((button) => {
-    button.addEventListener("click", () => setCodingFile(state, button.dataset.codingFile));
+  element.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const file = target?.closest("[data-coding-file]");
+    const action = target?.closest("[data-coding-action]");
+    if (file) setCodingFile(state, file.dataset.codingFile);
+    else if (action) void runCodingAction(state, action.dataset.codingAction);
+    else if (target?.closest("[data-coding-review]")) void copyReviewPrompt(state);
+    else if (target?.closest("[data-coding-toggle-files]")) toggleCodingFiles(state);
+    else if (target?.closest("[data-coding-refresh-feedback]")) void refreshCodingFeedback(state);
   });
-
-  element.querySelectorAll("[data-coding-action]").forEach((button) => {
-    button.addEventListener("click", () => runCodingAction(state, button.dataset.codingAction));
-  });
-
-  const reviewButton = element.querySelector("[data-coding-review]");
-  if (reviewButton) {
-    reviewButton.addEventListener("click", () => copyReviewPrompt(state));
-  }
-
-  const toggleButton = element.querySelector("[data-coding-toggle-files]");
-  if (toggleButton) {
-    toggleButton.addEventListener("click", () => toggleCodingFiles(state));
-  }
-
-  const refreshButton = element.querySelector("[data-coding-refresh-feedback]");
-  if (refreshButton) {
-    refreshButton.addEventListener("click", () => refreshCodingFeedback(state));
-  }
 
   await refreshCodingFeedback(state);
   await mountCodingEditor(state);

@@ -2,10 +2,10 @@ export function coreClientJs(): string {
   return `
 let textbooks = [];
 const glossaryStudyStates = new Map();
+let activeGlossaryContext = null;
 let activeChapter = null;
 let activeChapterHighlights = [];
 let highlightModeEnabled = false;
-let highlightSelectionController = null;
 const codingStates = new Map();
 const quizStates = new Map();
 let monacoReady = null;
@@ -15,6 +15,9 @@ let routeToken = 0;
 async function load() {
   window.addEventListener("popstate", () => { void renderRoute(); });
   window.addEventListener("resize", handleViewportResize);
+  bindGlossaryEvents();
+  bindHighlightEvents();
+  document.addEventListener("click", handleNavigationClick);
   await renderRoute();
 }
 
@@ -61,20 +64,6 @@ async function renderHome(token) {
       \${textbooks.length === 0 ? renderEmptyTextbooks() : renderTextbookRows()}
     </section>
   \`;
-  document.querySelectorAll("[data-textbook]").forEach((button) => {
-    button.addEventListener("click", () => navigateTextbook(button.dataset.textbook));
-  });
-  document.querySelectorAll("[data-continue-textbook]").forEach((button) => {
-    button.addEventListener("click", () => navigateChapter(
-      button.dataset.continueTextbook,
-      button.dataset.continueChapter,
-      true,
-      button.dataset.continueHeading
-    ));
-  });
-  document.querySelectorAll("[data-review-textbook]").forEach((button) => {
-    button.addEventListener("click", () => navigateTextbook(button.dataset.reviewTextbook));
-  });
   finishRouteLoad(token);
 }
 
@@ -149,7 +138,8 @@ async function renderTextbook(textbookId, token) {
   const textbook = await loadTextbook(textbookId);
   if (token !== routeToken) return;
   const glossaryEntries = collectTextbookGlossaryEntries(textbook);
-  const nextChapterId = firstIncompleteChapterId(textbook);
+  const completedChapterIds = new Set(textbook.readingProgress.completedChapterIds);
+  const nextChapterId = textbook.chapters.find((chapter) => !completedChapterIds.has(chapter.id))?.id ?? "";
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -159,16 +149,16 @@ async function renderTextbook(textbookId, token) {
       <div class="page-head">
         <h1>\${escapeHtml(textbook.title)}</h1>
       </div>
-      \${renderTextbookTabs("chapters", textbook.chapters.length, glossaryEntries.length)}
+      \${renderTextbookTabs("chapters", textbook.chapters.length, glossaryEntries.length, textbook.id)}
       \${renderChapterProgressBlock(textbook)}
       <div class="rows textbook-chapter-rows">
         \${textbook.chapters.map((chapter) => {
           const sectionCount = chapter.sections.length;
           const subsectionCount = chapter.sections.reduce((sum, section) => sum + section.subsections.length, 0);
-          const completed = textbook.readingProgress.completedChapterIds.includes(chapter.id);
+          const completed = completedChapterIds.has(chapter.id);
           const nextUp = !completed && chapter.id === nextChapterId;
           return \`
-            <button class="row" data-chapter="\${escapeAttr(chapter.id)}">
+            <button class="row" data-chapter="\${escapeAttr(chapter.id)}" data-chapter-textbook="\${escapeAttr(textbook.id)}">
               <span>
                 <span class="row-title">\${escapeHtml(chapter.title)}</span>
                 \${chapter.description ? \`<span class="row-description">\${escapeHtml(chapter.description)}</span>\` : ""}
@@ -183,11 +173,6 @@ async function renderTextbook(textbookId, token) {
       </div>
     </section>
   \`;
-  document.querySelectorAll("[data-chapter]").forEach((button) => {
-    button.addEventListener("click", () => navigateChapter(textbook.id, button.dataset.chapter));
-  });
-  bindTextbookTabs(textbook.id);
-  bindCrumbs();
   finishRouteLoad(token);
 }
 
@@ -227,10 +212,6 @@ function renderProgressBar(progress, label, className = "") {
       <span class="course-progress-rail"><span style="width: \${progress.percent}%"></span></span>
     </span>
   \`;
-}
-
-function firstIncompleteChapterId(textbook) {
-  return textbook.chapters.find((chapter) => !textbook.readingProgress.completedChapterIds.includes(chapter.id))?.id ?? "";
 }
 
 function renderChapterRowStatus(completed, nextUp = false) {

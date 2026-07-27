@@ -11,6 +11,7 @@ async function renderTextbookGlossary(textbookId, token) {
   }
   const studyState = await loadGlossaryStudyState(textbook.id);
   if (token !== routeToken) return;
+  setGlossaryContext(textbook.id, entries);
   document.querySelector("#main").innerHTML = \`
     <section>
       \${renderCrumbs([
@@ -21,13 +22,10 @@ async function renderTextbookGlossary(textbookId, token) {
       <div class="page-head">
         <h1>\${escapeHtml(textbook.title)}</h1>
       </div>
-      \${renderTextbookTabs("glossary", textbook.chapters.length, entries.length)}
-      \${renderTextbookGlossaryView(textbook.id, entries, studyState)}
+      \${renderTextbookTabs("glossary", textbook.chapters.length, entries.length, textbook.id)}
+      \${renderTextbookGlossaryView(entries, studyState)}
     </section>
   \`;
-  bindCrumbs();
-  bindTextbookTabs(textbook.id);
-  bindTextbookGlossaryControls(textbook.id, entries);
   finishRouteLoad(token);
 }
 
@@ -42,6 +40,7 @@ async function renderTextbookGlossaryStudy(textbookId, token) {
   }
   const studyState = await loadGlossaryStudyState(textbook.id);
   if (token !== routeToken) return;
+  setGlossaryContext(textbook.id, entries);
   const requestedSet = new URLSearchParams(window.location.search).get("set") === "starred" ? "starred" : "all";
   const studySet = requestedSet === "starred" && studyState.starredTermIds.length === 0 ? "all" : requestedSet;
   if (!studyState.session || studyState.session.studySet !== studySet) {
@@ -62,22 +61,20 @@ async function renderTextbookGlossaryStudy(textbookId, token) {
         <h1>Flashcards</h1>
         <div class="meta" data-glossary-study-top-progress>\${renderGlossaryStudyProgressLabel(entries, studyState)}</div>
       </div>
-      \${renderGlossaryStudyPage(textbook.id, entries, studyState)}
+      \${renderGlossaryStudyPage(entries, studyState)}
     </section>
   \`;
-  bindCrumbs();
-  bindGlossaryStudyPageControls(textbook.id, entries);
   finishRouteLoad(token);
 }
 
-function renderTextbookTabs(activeTab, chapterCount, glossaryCount) {
+function renderTextbookTabs(activeTab, chapterCount, glossaryCount, textbookId) {
   return \`
     <nav class="textbook-tabs" aria-label="Textbook views">
-      <button class="textbook-tab \${activeTab === "chapters" ? "active" : ""}" type="button" data-textbook-tab="chapters">
+      <button class="textbook-tab \${activeTab === "chapters" ? "active" : ""}" type="button" data-textbook-tab="chapters" data-tab-textbook="\${escapeAttr(textbookId)}">
         Chapters · \${chapterCount}
       </button>
       \${glossaryCount > 0 ? \`
-      <button class="textbook-tab \${activeTab === "glossary" ? "active" : ""}" type="button" data-textbook-tab="glossary">
+      <button class="textbook-tab \${activeTab === "glossary" ? "active" : ""}" type="button" data-textbook-tab="glossary" data-tab-textbook="\${escapeAttr(textbookId)}">
         Glossary · \${glossaryCount}
       </button>
       \` : ""}
@@ -85,22 +82,7 @@ function renderTextbookTabs(activeTab, chapterCount, glossaryCount) {
   \`;
 }
 
-function bindTextbookTabs(textbookId) {
-  document.querySelectorAll("[data-textbook-tab]").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (button.dataset.textbookTab === "glossary") {
-        navigateTextbookGlossary(textbookId);
-        return;
-      }
-      navigateTextbook(textbookId);
-    });
-  });
-}
-
-function renderTextbookGlossaryView(textbookId, entries, studyState) {
-  if (entries.length === 0) {
-    return renderTextbookGlossaryEmpty();
-  }
+function renderTextbookGlossaryView(entries, studyState) {
   return \`
     <div data-glossary-view>
       \${renderGlossaryBrowseView(entries, studyState)}
@@ -122,18 +104,6 @@ function renderGlossaryStudyLauncher(studyState, glossaryCount = 0) {
           <span>Study starred terms</span>
           <span class="glossary-study-menu-count">\${starredCount}</span>
         </button>
-      </div>
-    </div>
-  \`;
-}
-
-function renderTextbookGlossaryEmpty() {
-  return \`
-    <div class="glossary-empty">
-      <div>
-        <div class="empty-kicker">No glossary terms</div>
-        <h2 class="empty-title">This textbook does not have glossary terms yet</h2>
-        <p class="empty-copy">Glossary terms are collected from chapter glossary blocks when they exist.</p>
       </div>
     </div>
   \`;
@@ -207,7 +177,7 @@ function renderGlossaryStarButton(entry, studyState) {
   \`;
 }
 
-function renderGlossaryStudyPage(textbookId, entries, studyState) {
+function renderGlossaryStudyPage(entries, studyState) {
   return \`
     <div class="glossary-study-page" data-glossary-study-page>
       <div class="glossary-study-layout">
@@ -216,17 +186,17 @@ function renderGlossaryStudyPage(textbookId, entries, studyState) {
         </aside>
         <details class="glossary-study-options mobile" data-glossary-study-options>
           <summary class="glossary-study-options-title">Options</summary>
-          \${renderGlossaryStudyOptions(entries, studyState, { includeTitle: false })}
+          \${renderGlossaryStudyOptions(entries, studyState)}
         </details>
         <div class="glossary-study-main" data-glossary-study-view>
-          \${renderGlossaryStudySession(textbookId, entries, studyState)}
+          \${renderGlossaryStudySession(entries, studyState)}
         </div>
       </div>
     </div>
   \`;
 }
 
-function renderGlossaryStudyOptions(entries, studyState, options = {}) {
+function renderGlossaryStudyOptions(entries, studyState) {
   const session = ensureGlossaryStudySession(entries, studyState);
   normalizeGlossarySessionOptions(session);
   const starredCount = entries.filter((entry) => isGlossaryTermStarred(studyState, entry.id)).length;
@@ -298,10 +268,11 @@ function glossaryStudyProgressCardIds(entries, studyState) {
   return session.cardIds.filter((termId) => entryIds.has(termId) && (starredIds.has(termId) || termId === currentCardId));
 }
 
-function renderGlossaryStudySession(textbookId, entries, studyState) {
+function renderGlossaryStudySession(entries, studyState) {
   const session = ensureGlossaryStudySession(entries, studyState);
   normalizeGlossarySessionRatings(session);
-  const cards = session.cardIds.map((termId) => entries.find((entry) => entry.id === termId)).filter(Boolean);
+  const entriesById = new Map(entries.map((entry) => [entry.id, entry]));
+  const cards = session.cardIds.map((termId) => entriesById.get(termId)).filter(Boolean);
   if (cards.length === 0) {
     return \`
       <div class="glossary-study-stage">
@@ -319,7 +290,7 @@ function renderGlossaryStudySession(textbookId, entries, studyState) {
     \`;
   }
   if (session.completed) {
-    return renderGlossaryStudyFinish(textbookId, entries, studyState);
+    return renderGlossaryStudyFinish(studyState);
   }
   if (session.index >= cards.length) {
     session.index = Math.max(cards.length - 1, 0);
@@ -401,7 +372,7 @@ function renderGlossaryCardContent(entry, session) {
   \`;
 }
 
-function renderGlossaryStudyFinish(textbookId, entries, studyState) {
+function renderGlossaryStudyFinish(studyState) {
   const session = studyState.session;
   normalizeGlossarySessionOptions(session);
   normalizeGlossarySessionRatings(session);
@@ -461,154 +432,144 @@ function renderGlossaryStudyFinishSpacer() {
   \`;
 }
 
-function bindTextbookGlossaryControls(textbookId, entries) {
-  bindGlossaryStudyLauncher(textbookId);
-  bindGlossaryDynamicControls(textbookId, entries);
+function setGlossaryContext(textbookId, entries) {
+  activeGlossaryContext = { textbookId, entries };
 }
 
-function bindGlossaryDynamicControls(textbookId, entries) {
-  bindTextbookGlossarySearch(textbookId, entries);
-  bindGlossaryStarControls(textbookId, entries);
-  bindGlossarySourceLinks();
+function bindGlossaryEvents() {
+  document.addEventListener("click", handleGlossaryClick);
+  document.addEventListener("change", handleGlossaryChange);
+  document.addEventListener("input", handleGlossarySearch);
 }
 
-function bindTextbookGlossarySearch(textbookId, entries) {
-  const input = document.querySelector("[data-glossary-search]");
-  const results = document.querySelector("[data-glossary-results]");
-  if (!input || !results) return;
-  input.addEventListener("input", () => {
-    const studyState = getGlossaryStudyState(textbookId);
-    const query = normalizeGlossarySearch(input.value);
-    const filtered = query
-      ? entries.filter((entry) => entry.searchText.includes(query))
-      : entries;
-    results.innerHTML = renderTextbookGlossaryResults(filtered, studyState);
-    bindGlossarySourceLinks();
-    bindGlossaryStarControls(textbookId, entries);
-  });
+function handleGlossaryClick(event) {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target || !activeGlossaryContext) return;
+  const { textbookId, entries } = activeGlossaryContext;
+  const menuToggle = target.closest("[data-glossary-study-menu-toggle]");
+  if (menuToggle) {
+    const menu = document.querySelector("[data-glossary-study-menu]");
+    const expanded = menuToggle.getAttribute("aria-expanded") === "true";
+    menuToggle.setAttribute("aria-expanded", String(!expanded));
+    if (menu) menu.hidden = expanded;
+    return;
+  }
+  if (!target.closest("[data-glossary-study-menu]")) closeGlossaryStudyMenu();
+
+  const source = target.closest("[data-glossary-source]");
+  if (source) {
+    const href = source.getAttribute("href");
+    if (!href) return;
+    event.preventDefault();
+    history.pushState({}, "", href);
+    void renderRoute();
+    return;
+  }
+  const star = target.closest("[data-glossary-star]");
+  if (star?.dataset.glossaryStar) {
+    toggleGlossaryStar(textbookId, star.dataset.glossaryStar, entries);
+    return;
+  }
+  const launch = target.closest("[data-glossary-study-launch]");
+  if (launch) {
+    navigateTextbookGlossaryStudy(textbookId, launch.dataset.glossaryStudyLaunch === "starred" ? "starred" : "all");
+    return;
+  }
+  if (target.closest("[data-glossary-card-toggle]")) {
+    toggleCurrentGlossaryCardReveal(textbookId, entries);
+    return;
+  }
+  const rating = target.closest("[data-glossary-rate]")?.dataset.glossaryRate;
+  if (rating) {
+    markCurrentGlossaryCardRating(textbookId, entries, rating === "again" ? "again" : "knew-it");
+    return;
+  }
+  const deck = target.closest("[data-glossary-deck-option]")?.dataset.glossaryDeckOption;
+  if (deck) {
+    const state = getGlossaryStudyState(textbookId);
+    const studySet = deck === "starred" ? "starred" : "all";
+    if (studySet !== state.session?.studySet) {
+      startGlossaryStudySession(textbookId, entries, studySet, undefined, glossarySessionOptions(state.session));
+    }
+    return;
+  }
+  const prompt = target.closest("[data-glossary-prompt-option]")?.dataset.glossaryPromptOption;
+  if (prompt) {
+    const state = getGlossaryStudyState(textbookId);
+    if (!state.session) return;
+    state.session.promptMode = prompt === "definition-first" ? "definition-first" : "term-first";
+    renderGlossaryStudyPageContent(textbookId, entries);
+    return;
+  }
+  if (target.closest("[data-glossary-prev]")) {
+    moveGlossaryStudyCard(textbookId, entries, -1);
+    return;
+  }
+  if (target.closest("[data-glossary-next]")) {
+    moveGlossaryStudyCard(textbookId, entries, 1);
+    return;
+  }
+  if (target.closest("[data-glossary-restart]")) {
+    restartGlossaryStudy(textbookId, entries);
+    return;
+  }
+  if (target.closest("[data-glossary-review-again]")) {
+    const state = getGlossaryStudyState(textbookId);
+    startGlossaryStudySession(textbookId, entries, "all", glossarySessionStillLearningIds(state), {
+      ...glossarySessionOptions(state.session),
+      trackingEnabled: true
+    });
+    return;
+  }
+  if (target.closest("[data-glossary-back]")) navigateTextbookGlossary(textbookId);
 }
 
-function bindGlossaryStudyLauncher(textbookId) {
+function closeGlossaryStudyMenu() {
   const toggle = document.querySelector("[data-glossary-study-menu-toggle]");
   const menu = document.querySelector("[data-glossary-study-menu]");
-  if (toggle && menu) {
-    const handleOutsideClick = () => closeMenu();
-    const closeMenu = () => {
-      toggle.setAttribute("aria-expanded", "false");
-      menu.hidden = true;
-      document.removeEventListener("click", handleOutsideClick);
-    };
-    toggle.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const expanded = toggle.getAttribute("aria-expanded") === "true";
-      if (expanded) {
-        closeMenu();
-        return;
-      }
-      toggle.setAttribute("aria-expanded", "true");
-      menu.hidden = false;
-      document.addEventListener("click", handleOutsideClick);
-    });
-    menu.addEventListener("click", (event) => {
-      event.stopPropagation();
-    });
-  }
-  document.querySelectorAll("[data-glossary-study-launch]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const studySet = button.dataset.glossaryStudyLaunch === "starred" ? "starred" : "all";
-      navigateTextbookGlossaryStudy(textbookId, studySet);
-    });
-  });
+  if (toggle) toggle.setAttribute("aria-expanded", "false");
+  if (menu) menu.hidden = true;
 }
 
-function bindGlossaryStudyPageControls(textbookId, entries) {
-  const card = document.querySelector("[data-glossary-card-toggle]");
-  if (card) {
-    card.addEventListener("click", () => {
-      toggleCurrentGlossaryCardReveal(textbookId, entries);
-    });
+function handleGlossaryChange(event) {
+  const control = event.target;
+  if (!(control instanceof HTMLInputElement) || !activeGlossaryContext) return;
+  const { textbookId, entries } = activeGlossaryContext;
+  const state = getGlossaryStudyState(textbookId);
+  if (!state.session) return;
+  if (control.matches("[data-glossary-show-both]")) {
+    state.session.showBoth = control.checked;
+    state.session.revealed = false;
+  } else if (control.matches("[data-glossary-track-toggle]")) {
+    state.session.trackingEnabled = control.checked;
+  } else {
+    return;
   }
-  document.querySelectorAll("[data-glossary-rate]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const rating = button.dataset.glossaryRate === "again" ? "again" : "knew-it";
-      markCurrentGlossaryCardRating(textbookId, entries, rating);
-    });
-  });
-  document.querySelectorAll("[data-glossary-deck-option]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const studySet = button.dataset.glossaryDeckOption === "starred" ? "starred" : "all";
-      const state = getGlossaryStudyState(textbookId);
-      if (studySet === state.session?.studySet) return;
-      startGlossaryStudySession(textbookId, entries, studySet, undefined, glossarySessionOptions(state.session));
-    });
-  });
-  document.querySelectorAll("[data-glossary-prompt-option]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const state = getGlossaryStudyState(textbookId);
-      if (!state.session) return;
-      state.session.promptMode = button.dataset.glossaryPromptOption === "definition-first" ? "definition-first" : "term-first";
-      renderGlossaryStudyPageContent(textbookId, entries);
-    });
-  });
-  document.querySelectorAll("[data-glossary-show-both]").forEach((control) => {
-    control.addEventListener("change", () => {
-      const state = getGlossaryStudyState(textbookId);
-      if (!state.session) return;
-      state.session.showBoth = control instanceof HTMLInputElement
-        ? control.checked
-        : control.dataset.glossaryShowBoth === "true";
-      state.session.revealed = false;
-      renderGlossaryStudyPageContent(textbookId, entries);
-    });
-  });
-  document.querySelectorAll("[data-glossary-track-toggle]").forEach((control) => {
-    control.addEventListener("change", () => {
-      const state = getGlossaryStudyState(textbookId);
-      if (!state.session) return;
-      state.session.trackingEnabled = control instanceof HTMLInputElement
-        ? control.checked
-        : control.dataset.glossaryTrackToggle === "track";
-      renderGlossaryStudyPageContent(textbookId, entries);
-    });
-  });
-  const previous = document.querySelector("[data-glossary-prev]");
-  if (previous) {
-    previous.addEventListener("click", () => {
-      moveGlossaryStudyCard(textbookId, entries, -1);
-    });
-  }
-  const next = document.querySelector("[data-glossary-next]");
-  if (next) {
-    next.addEventListener("click", () => {
-      moveGlossaryStudyCard(textbookId, entries, 1);
-    });
-  }
-  document.querySelectorAll("[data-glossary-restart]").forEach((restart) => {
-    restart.addEventListener("click", () => {
-      const state = getGlossaryStudyState(textbookId);
-      const completedReview = state.session?.label === "again terms";
-      const reviewFinishedClean = completedReview
-        && state.session?.trackingEnabled === true
-        && glossarySessionStillLearningIds(state).length === 0;
-      const forcedTermIds = completedReview && !reviewFinishedClean ? state.session.cardIds : undefined;
-      const studySet = reviewFinishedClean ? "all" : state.studySet === "starred" ? "starred" : "all";
-      startGlossaryStudySession(textbookId, entries, studySet, forcedTermIds, glossarySessionOptions(state.session));
-    });
-  });
-  const reviewAgain = document.querySelector("[data-glossary-review-again]");
-  if (reviewAgain) {
-    reviewAgain.addEventListener("click", () => {
-      const state = getGlossaryStudyState(textbookId);
-      const reviewIds = glossarySessionStillLearningIds(state);
-      startGlossaryStudySession(textbookId, entries, "all", reviewIds, { ...glossarySessionOptions(state.session), trackingEnabled: true });
-    });
-  }
-  document.querySelectorAll("[data-glossary-back]").forEach((button) => {
-    if (button.dataset.glossaryBackBound === "true") return;
-    button.dataset.glossaryBackBound = "true";
-    button.addEventListener("click", () => navigateTextbookGlossary(textbookId));
-  });
-  bindGlossaryStarControls(textbookId, entries);
+  renderGlossaryStudyPageContent(textbookId, entries);
+}
+
+function handleGlossarySearch(event) {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement) || !input.matches("[data-glossary-search]") || !activeGlossaryContext) return;
+  const { textbookId, entries } = activeGlossaryContext;
+  const results = document.querySelector("[data-glossary-results]");
+  if (!results) return;
+  const query = normalizeGlossarySearch(input.value);
+  results.innerHTML = renderTextbookGlossaryResults(
+    query ? entries.filter((entry) => entry.searchText.includes(query)) : entries,
+    getGlossaryStudyState(textbookId)
+  );
+}
+
+function restartGlossaryStudy(textbookId, entries) {
+  const state = getGlossaryStudyState(textbookId);
+  const completedReview = state.session?.label === "again terms";
+  const reviewFinishedClean = completedReview
+    && state.session?.trackingEnabled === true
+    && glossarySessionStillLearningIds(state).length === 0;
+  const forcedTermIds = completedReview && !reviewFinishedClean ? state.session.cardIds : undefined;
+  const studySet = reviewFinishedClean ? "all" : state.studySet === "starred" ? "starred" : "all";
+  startGlossaryStudySession(textbookId, entries, studySet, forcedTermIds, glossarySessionOptions(state.session));
 }
 
 function toggleCurrentGlossaryCardReveal(textbookId, entries) {
@@ -620,22 +581,11 @@ function toggleCurrentGlossaryCardReveal(textbookId, entries) {
   renderGlossaryStudyPageContent(textbookId, entries);
 }
 
-function bindGlossaryStarControls(textbookId, entries) {
-  document.querySelectorAll("[data-glossary-star]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const termId = button.dataset.glossaryStar;
-      if (!termId) return;
-      toggleGlossaryStar(textbookId, termId, entries);
-    });
-  });
-}
-
 function renderGlossaryInteractiveView(textbookId, entries) {
   const container = document.querySelector("[data-glossary-view]");
   if (!container) return;
   const state = getGlossaryStudyState(textbookId);
   container.innerHTML = renderGlossaryBrowseView(entries, state);
-  bindGlossaryDynamicControls(textbookId, entries);
   updateGlossaryStudyLauncher(textbookId, entries);
 }
 
@@ -644,30 +594,27 @@ function renderGlossaryStudyPageContent(textbookId, entries) {
   reconcileGlossaryStarredSession(entries, state);
   const container = document.querySelector("[data-glossary-study-view]");
   if (container) {
-    container.innerHTML = renderGlossaryStudySession(textbookId, entries, state);
+    container.innerHTML = renderGlossaryStudySession(entries, state);
   }
   const progress = document.querySelector("[data-glossary-study-top-progress]");
   if (progress) {
     progress.textContent = renderGlossaryStudyProgressLabel(entries, state);
   }
   document.querySelectorAll("[data-glossary-study-options]").forEach((container) => {
-    const includeTitle = !container.classList.contains("mobile");
     if (container instanceof HTMLDetailsElement) {
       const wasOpen = container.open;
-      container.innerHTML = \`<summary class="glossary-study-options-title">Options</summary>\${renderGlossaryStudyOptions(entries, state, { includeTitle: false })}\`;
+      container.innerHTML = \`<summary class="glossary-study-options-title">Options</summary>\${renderGlossaryStudyOptions(entries, state)}\`;
       container.open = wasOpen;
     } else {
-      container.innerHTML = renderGlossaryStudyOptions(entries, state, { includeTitle });
+      container.innerHTML = renderGlossaryStudyOptions(entries, state);
     }
   });
-  bindGlossaryStudyPageControls(textbookId, entries);
 }
 
 function updateGlossaryStudyLauncher(textbookId, entries = []) {
   const container = document.querySelector("[data-glossary-page-actions]");
   if (!container) return;
   container.innerHTML = renderGlossaryStudyLauncher(getGlossaryStudyState(textbookId), entries.length);
-  bindGlossaryStudyLauncher(textbookId);
 }
 
 async function loadGlossaryStudyState(textbookId) {
@@ -1013,16 +960,5 @@ function isGlossaryTermStarred(studyState, termId) {
   return studyState.starredTermIds.includes(termId);
 }
 
-function bindGlossarySourceLinks() {
-  document.querySelectorAll("[data-glossary-source]").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      const href = link.getAttribute("href");
-      if (!href) return;
-      event.preventDefault();
-      history.pushState({}, "", href);
-      void renderRoute();
-    });
-  });
-}
 `;
 }
