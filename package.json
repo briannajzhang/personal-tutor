@@ -13,7 +13,7 @@
   },
   "type": "module",
   "bin": {
-    "personal-tutor": "./bin/personal-tutor.js"
+    "personal-tutor": "bin/personal-tutor.js"
   },
   "files": [
     "bin",
