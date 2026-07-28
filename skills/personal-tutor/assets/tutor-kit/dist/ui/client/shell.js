@@ -134,43 +134,92 @@ function renderMarkdown(value) {
 }
 
 function renderInlineMarkdown(value) {
-  const source = String(value ?? "");
-  let html = "";
-  let cursor = 0;
-  const pattern = /(\\\\\\$|\`[^\`]*\`|\\$[^$\\n]+\\$)/g;
-  for (const match of source.matchAll(pattern)) {
-    html += renderInlineEmphasis(source.slice(cursor, match.index));
-    const token = match[0];
-    if (token.startsWith("\\\\")) {
-      html += escapeHtml(token.slice(1));
-    } else if (token.startsWith("\`")) {
-      html += \`<code>\${escapeHtml(token.slice(1, -1))}</code>\`;
-    } else {
-      html += \`<span class="math">\${renderMath(token.slice(1, -1), false)}</span>\`;
-    }
-    cursor = match.index + token.length;
-  }
-  html += renderInlineEmphasis(source.slice(cursor));
-  return html;
+  return renderInlineEmphasis(String(value ?? ""));
 }
 
 function renderInlineEmphasis(value) {
   const source = String(value ?? "");
   let html = "";
   let cursor = 0;
-  const pattern = /(\\*\\*[^*\\n]+\\*\\*|\\*[^*\\n]+\\*)/g;
-  for (const match of source.matchAll(pattern)) {
-    html += escapeHtml(source.slice(cursor, match.index));
-    const token = match[0];
-    if (token.startsWith("**")) {
-      html += \`<strong>\${escapeHtml(token.slice(2, -2))}</strong>\`;
-    } else {
-      html += \`<em>\${escapeHtml(token.slice(1, -1))}</em>\`;
+
+  while (cursor < source.length) {
+    if (source[cursor] === "\\\\" && /[\\\\\`*$]/.test(source[cursor + 1] ?? "")) {
+      html += escapeHtml(source[cursor + 1]);
+      cursor += 2;
+      continue;
     }
-    cursor = match.index + token.length;
+
+    if (source[cursor] === "\`") {
+      const end = source.indexOf("\`", cursor + 1);
+      if (end !== -1) {
+        html += \`<code>\${escapeHtml(source.slice(cursor + 1, end))}</code>\`;
+        cursor = end + 1;
+        continue;
+      }
+    }
+
+    if (source[cursor] === "$") {
+      const end = source.indexOf("$", cursor + 1);
+      const newline = source.indexOf("\\n", cursor + 1);
+      if (end > cursor + 1 && (newline === -1 || end < newline)) {
+        html += \`<span class="math">\${renderMath(source.slice(cursor + 1, end), false)}</span>\`;
+        cursor = end + 1;
+        continue;
+      }
+    }
+
+    const marker = source.startsWith("**", cursor) ? "**" : source[cursor] === "*" ? "*" : "";
+    if (marker) {
+      const end = findClosingMarker(marker, cursor + marker.length);
+      if (end > cursor + marker.length) {
+        const tag = marker === "**" ? "strong" : "em";
+        html += \`<\${tag}>\${renderInlineEmphasis(source.slice(cursor + marker.length, end))}</\${tag}>\`;
+        cursor = end + marker.length;
+        continue;
+      }
+    }
+
+    let end = cursor + 1;
+    while (end < source.length && !/[\\\\\`*$]/.test(source[end])) end += 1;
+    html += escapeHtml(source.slice(cursor, end));
+    cursor = end;
   }
-  html += escapeHtml(source.slice(cursor));
+
   return html;
+
+  function findClosingMarker(marker, start) {
+    let index = start;
+    while (index < source.length) {
+      if (source[index] === "\\\\") {
+        index += 2;
+        continue;
+      }
+      if (source[index] === "\`") {
+        const codeEnd = source.indexOf("\`", index + 1);
+        if (codeEnd !== -1) {
+          index = codeEnd + 1;
+          continue;
+        }
+      }
+      if (source[index] === "$") {
+        const mathEnd = source.indexOf("$", index + 1);
+        const newline = source.indexOf("\\n", index + 1);
+        if (mathEnd !== -1 && (newline === -1 || mathEnd < newline)) {
+          index = mathEnd + 1;
+          continue;
+        }
+      }
+      if (source.startsWith(marker, index)) {
+        if (marker === "*" && (source[index - 1] === "*" || source[index + 1] === "*")) {
+          index += 1;
+          continue;
+        }
+        return index;
+      }
+      index += 1;
+    }
+    return -1;
+  }
 }
 
 function renderMath(value, displayMode) {

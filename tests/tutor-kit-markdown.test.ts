@@ -78,3 +78,23 @@ test("renderMarkdown carries the escape through paragraph rendering", () => {
   const html = renderMarkdown("Budget line: \\$5 per unit.");
   assert.equal(html, "<p>Budget line: $5 per unit.</p>");
 });
+
+test("bold text tolerates whitespace before the closing marker", () => {
+  const html = renderInlineMarkdown("This is **the concept  ** to remember.");
+  assert.equal(html, "This is <strong>the concept  </strong> to remember.");
+});
+
+test("bold text can contain inline code without leaking markers", () => {
+  const html = renderInlineMarkdown("Remember **the `userId` concept** here.");
+  assert.equal(html, "Remember <strong>the <code>userId</code> concept</strong> here.");
+});
+
+test("bold text can span a soft line break within one paragraph", () => {
+  const html = renderMarkdown("This is **one important\nconcept** to remember.");
+  assert.equal(html, "<p>This is <strong>one important<br>concept</strong> to remember.</p>");
+});
+
+test("bold text can contain italic text", () => {
+  const html = renderInlineMarkdown("This is **very *important* context**.");
+  assert.equal(html, "This is <strong>very <em>important</em> context</strong>.");
+});
