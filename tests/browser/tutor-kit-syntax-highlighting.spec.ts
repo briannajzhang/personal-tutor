@@ -142,11 +142,10 @@ test("syntax highlighting preserves plain code block line spacing", async ({ pag
     const blockStyle = getComputedStyle(block);
     const plainStyle = getComputedStyle(plain);
     const result = {
-      heightDelta: Math.abs(block.getBoundingClientRect().height - plain.getBoundingClientRect().height),
+      heightDelta: block.getBoundingClientRect().height - plain.getBoundingClientRect().height,
+      paddingTopDelta: parseFloat(blockStyle.paddingTop) - parseFloat(plainStyle.paddingTop),
       lineHeight: blockStyle.lineHeight,
       plainLineHeight: plainStyle.lineHeight,
-      paddingTop: blockStyle.paddingTop,
-      plainPaddingTop: plainStyle.paddingTop,
       paddingBottom: blockStyle.paddingBottom,
       plainPaddingBottom: plainStyle.paddingBottom,
       paddingLeft: blockStyle.paddingLeft,
@@ -159,32 +158,75 @@ test("syntax highlighting preserves plain code block line spacing", async ({ pag
 
   expect(comparisons.length).toBeGreaterThan(0);
   for (const comparison of comparisons) {
-    expect(comparison.heightDelta).toBeLessThan(0.5);
+    expect(Math.abs(comparison.heightDelta - comparison.paddingTopDelta)).toBeLessThan(0.5);
     expect(comparison.lineHeight).toBe(comparison.plainLineHeight);
-    expect(comparison.paddingTop).toBe(comparison.plainPaddingTop);
     expect(comparison.paddingBottom).toBe(comparison.plainPaddingBottom);
     expect(comparison.paddingLeft).toBe(comparison.plainPaddingLeft);
   }
 });
 
-test("syntax language labels are inset inside code blocks", async ({ page }) => {
+test("syntax language labels always occupy a row above code", async ({ page }) => {
   await page.goto(`${server.url}/textbooks/concert-ticketing-onsale/chapters/on-sale-control-plane`);
   const sqlBlock = page.locator('.code-block[data-language="sql"][data-syntax-highlighted="true"]').first();
   await expect(sqlBlock).toBeVisible({ timeout: 20_000 });
 
-  const labelStyle = await sqlBlock.evaluate((block) => {
-    const style = getComputedStyle(block, "::before");
+  const layout = await sqlBlock.evaluate((block) => {
+    const code = block.querySelector("code");
+    if (!code) throw new Error("code element missing");
+    const blockRect = block.getBoundingClientRect();
     const blockStyle = getComputedStyle(block);
+    const labelStyle = getComputedStyle(block, "::before");
+    const labelTop = blockRect.top + parseFloat(blockStyle.borderTopWidth) + parseFloat(labelStyle.top);
+    const labelBottom = labelTop + parseFloat(labelStyle.lineHeight);
     return {
-      content: style.content,
-      position: style.position,
-      right: style.right,
+      content: labelStyle.content,
+      position: labelStyle.position,
+      right: labelStyle.right,
+      labelBottom,
+      codeTop: code.getBoundingClientRect().top,
+      labelToCodeGap: code.getBoundingClientRect().top - labelBottom,
+      paddingTop: blockStyle.paddingTop,
       paddingRight: blockStyle.paddingRight
     };
   });
 
-  expect(labelStyle.content).toBe('"sql"');
-  expect(labelStyle.position).toBe("absolute");
-  expect(labelStyle.right).toBe("16px");
-  expect(labelStyle.paddingRight).toBe("64px");
+  expect(layout.content).toBe('"sql"');
+  expect(layout.position).toBe("absolute");
+  expect(layout.right).toBe("16px");
+  expect(layout.paddingTop).toBe("26px");
+  expect(layout.paddingRight).toBe("16px");
+  expect(layout.labelBottom).toBeLessThanOrEqual(layout.codeTop);
+  expect(layout.labelToCodeGap).toBeGreaterThan(0);
+  expect(layout.labelToCodeGap).toBeLessThanOrEqual(5);
+});
+
+test("syntax language labels remain above code at narrow viewport widths", async ({ page }) => {
+  await page.setViewportSize({ width: 700, height: 900 });
+  await page.goto(`${server.url}/textbooks/concert-ticketing-onsale/chapters/on-sale-control-plane`);
+  const sqlBlock = page.locator('.code-block[data-language="sql"][data-syntax-highlighted="true"]').first();
+  await expect(sqlBlock).toBeVisible({ timeout: 20_000 });
+
+  const layout = await sqlBlock.evaluate((block) => {
+    const code = block.querySelector("code");
+    if (!code) throw new Error("code element missing");
+    const blockRect = block.getBoundingClientRect();
+    const codeRect = code.getBoundingClientRect();
+    const blockStyle = getComputedStyle(block);
+    const labelStyle = getComputedStyle(block, "::before");
+    const labelTop = blockRect.top + parseFloat(blockStyle.borderTopWidth) + parseFloat(labelStyle.top);
+    const labelBottom = labelTop + parseFloat(labelStyle.lineHeight);
+    return {
+      labelBottom,
+      codeTop: codeRect.top,
+      labelToCodeGap: codeRect.top - labelBottom,
+      paddingTop: blockStyle.paddingTop,
+      paddingRight: blockStyle.paddingRight
+    };
+  });
+
+  expect(layout.paddingTop).toBe("26px");
+  expect(layout.paddingRight).toBe("16px");
+  expect(layout.labelBottom).toBeLessThanOrEqual(layout.codeTop);
+  expect(layout.labelToCodeGap).toBeGreaterThan(0);
+  expect(layout.labelToCodeGap).toBeLessThanOrEqual(5);
 });

@@ -790,6 +790,10 @@ h1 {
 .code-block.syntax-highlighted {
   color: var(--ink-soft);
 }
+.code-block.syntax-highlighted[data-language] {
+  padding-top: 26px;
+  padding-right: 16px;
+}
 .code-block.syntax-highlighted code {
   display: block;
   min-width: max-content;
@@ -797,7 +801,7 @@ h1 {
 .code-block.syntax-highlighted::before {
   content: attr(data-syntax-language);
   position: absolute;
-  top: 13px;
+  top: 10px;
   right: 16px;
   padding: 0;
   color: var(--muted-2);
