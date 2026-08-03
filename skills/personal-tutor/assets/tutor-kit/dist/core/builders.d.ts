@@ -164,6 +164,7 @@ type QuizQuestionInput = MultipleChoiceQuizQuestionInput | MatchingQuizQuestionI
 interface QuizInput extends BlockInput {
     title: string;
     mode?: QuizMode;
+    preserveChoiceOrder?: boolean;
     questions: QuizQuestionInput[];
 }
 export declare function subsection(input: SubsectionInput): Subsection;

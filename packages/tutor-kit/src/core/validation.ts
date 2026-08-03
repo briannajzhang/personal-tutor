@@ -77,17 +77,18 @@ function validateTextbookHeuristics(textbook: Record<string, unknown>, file?: st
   if (!Array.isArray(textbook.chapters)) return issues;
 
   const quizBlocks = collectTextbookBlocks(textbook).filter(isQuizBlock);
-  const answerPositions = collectFourChoiceAnswerPositions(quizBlocks);
+  for (const mode of quizModes) {
+    const answerPositions = collectFourChoiceAnswerPositions(quizBlocks, mode);
+    if (answerPositions.total < 8) continue;
 
-  if (
-    answerPositions.total >= 24 &&
-    [0, 1, 2, 3].some((position) => (answerPositions.counts.get(position) ?? 0) / answerPositions.total < 0.1)
-  ) {
-    issues.push(issue(
-      "Textbook quiz correct answers should use all four choice positions, with each position containing at least 10% of four-choice answers.",
-      "chapters",
-      file
-    ));
+    const highestPositionCount = Math.max(0, ...answerPositions.counts.values());
+    if (answerPositions.counts.size < 3 || highestPositionCount / answerPositions.total > 0.5) {
+      issues.push(issue(
+        `Textbook ${mode} cohort has concentrated correct-answer positions (${formatAnswerPositionCounts(answerPositions.counts)}).`,
+        "chapters",
+        file
+      ));
+    }
   }
 
   return issues;
@@ -125,8 +126,27 @@ export function validateChapter(value: unknown, file?: string): ValidationIssue[
   }
 
   issues.push(...validateChapterRoleConsistency(value as unknown as Chapter, file));
+  issues.push(...validateChapterCheckAnswerDistribution(value as unknown as Chapter, file));
 
   return issues;
+}
+
+function validateChapterCheckAnswerDistribution(chapter: Chapter, file?: string): ValidationIssue[] {
+  const quizBlocks = collectChapterBlocks(chapter).filter(isQuizBlock);
+  const answerPositions = collectFourChoiceAnswerPositions(quizBlocks, "check");
+  if (answerPositions.total < 3) return [];
+
+  const highestPositionCount = Math.max(0, ...answerPositions.counts.values());
+  const isConcentrated = answerPositions.total === 3
+    ? highestPositionCount === 3
+    : answerPositions.counts.size < 3 || highestPositionCount / answerPositions.total > 0.5;
+  if (!isConcentrated) return [];
+
+  return [issue(
+    `Chapter check cohort has concentrated correct-answer positions (${formatAnswerPositionCounts(answerPositions.counts)}).`,
+    "sections",
+    file
+  )];
 }
 
 function validateChapterRoleConsistency(chapter: Chapter, file?: string): ValidationIssue[] {
@@ -767,6 +787,9 @@ function validateQuiz(
   if (!quizModes.has(props.mode as string)) {
     issues.push(issue("Quiz mode must be check, review, or practice-test.", `${path}.mode`, file));
   }
+  if (props.preserveChoiceOrder !== undefined && typeof props.preserveChoiceOrder !== "boolean") {
+    issues.push(issue("Quiz preserveChoiceOrder must be a boolean.", `${path}.preserveChoiceOrder`, file));
+  }
 
   if (!Array.isArray(props.questions) || props.questions.length === 0) {
     issues.push(issue("Quiz questions must be a non-empty array.", `${path}.questions`, file));
@@ -786,9 +809,7 @@ function validateQuiz(
   const questionIds = new Set<string>();
   const tags = new Set<string>();
   const difficulties = new Set<string>();
-  const answerPositions = new Map<number, number>();
   const fourChoiceAnswerPositions = new Map<number, number>();
-  let choiceQuestionCount = 0;
   let fourChoiceQuestionCount = 0;
   props.questions.forEach((question, index) => {
     const questionPath = `${path}.questions[${index}]`;
@@ -848,7 +869,6 @@ function validateQuiz(
       return;
     }
 
-    choiceQuestionCount += 1;
     const choiceIds = new Set<string>();
     question.choices.forEach((choice, choiceIndex) => {
       const choicePath = `${questionPath}.choices[${choiceIndex}]`;
@@ -874,7 +894,6 @@ function validateQuiz(
       issues.push(issue("Quiz question answer must match a choice id.", `${questionPath}.answer`, file));
     } else {
       const answerPosition = question.choices.findIndex((choice) => isRecord(choice) && choice.id === question.answer);
-      answerPositions.set(answerPosition, (answerPositions.get(answerPosition) ?? 0) + 1);
       if (question.choices.length === 4) {
         fourChoiceQuestionCount += 1;
         fourChoiceAnswerPositions.set(
@@ -895,19 +914,19 @@ function validateQuiz(
   if (props.mode === "practice-test" && difficulties.size < 2) {
     issues.push(issue("Practice-test quiz should include at least 2 difficulty levels.", `${path}.questions`, file));
   }
-  if (choiceQuestionCount >= 4) {
-    const highestPositionCount = Math.max(0, ...answerPositions.values());
-    if (highestPositionCount / choiceQuestionCount > 0.7) {
+  if (props.preserveChoiceOrder !== true && fourChoiceQuestionCount >= 4) {
+    const highestPositionCount = Math.max(0, ...fourChoiceAnswerPositions.values());
+    if (highestPositionCount / fourChoiceQuestionCount > 0.7) {
       issues.push(issue(
-        "Quiz correct answers are overly concentrated in one choice position. Shuffle choices to reduce answer-position bias.",
+        `${String(props.mode)} quiz cohort has concentrated correct-answer positions (${formatAnswerPositionCounts(fourChoiceAnswerPositions)}).`,
         `${path}.questions`,
         file
       ));
     }
   }
-  if (fourChoiceQuestionCount >= 8 && fourChoiceAnswerPositions.size < 3) {
+  if (props.preserveChoiceOrder !== true && fourChoiceQuestionCount >= 8 && fourChoiceAnswerPositions.size < 3) {
     issues.push(issue(
-      "Quiz correct answers should use at least 3 different choice positions across 8 or more four-choice questions.",
+      `${String(props.mode)} quiz cohort uses fewer than three correct-answer positions (${formatAnswerPositionCounts(fourChoiceAnswerPositions)}).`,
       `${path}.questions`,
       file
     ));
@@ -1039,12 +1058,14 @@ function collectTextbookBlocks(textbook: Record<string, unknown>): TutorBlock[] 
 }
 
 function collectFourChoiceAnswerPositions(
-  quizBlocks: Array<TutorBlock & { props: { mode?: string; questions?: unknown[] } }>
+  quizBlocks: Array<TutorBlock & { props: { mode?: string; preserveChoiceOrder?: boolean; questions?: unknown[] } }>,
+  mode?: string
 ): { total: number; counts: Map<number, number> } {
   const counts = new Map<number, number>();
   let total = 0;
 
   for (const block of quizBlocks) {
+    if (block.props.preserveChoiceOrder === true || (mode !== undefined && block.props.mode !== mode)) continue;
     if (!Array.isArray(block.props.questions)) continue;
     for (const question of block.props.questions) {
       if (!isRecord(question) || !Array.isArray(question.choices) || question.choices.length !== 4 || !hasText(question.answer)) {
@@ -1062,7 +1083,15 @@ function collectFourChoiceAnswerPositions(
   return { total, counts };
 }
 
-function isQuizBlock(block: TutorBlock): block is TutorBlock & { props: { mode?: string; questions?: unknown[] } } {
+function formatAnswerPositionCounts(counts: Map<number, number>): string {
+  return ["A", "B", "C", "D"]
+    .map((label, position) => `${label}=${counts.get(position) ?? 0}`)
+    .join(", ");
+}
+
+function isQuizBlock(block: TutorBlock): block is TutorBlock & {
+  props: { mode?: string; preserveChoiceOrder?: boolean; questions?: unknown[] };
+} {
   return block.kind === "quiz" && isRecord(block.props);
 }
 
