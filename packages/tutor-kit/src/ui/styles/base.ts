@@ -951,7 +951,7 @@ h1 {
   min-height: 0;
   overflow: auto;
   display: grid;
-  place-items: center;
+  place-items: safe center;
   padding: 24px;
 }
 .diagram-overlay-body svg {
