@@ -187,10 +187,10 @@ Use blocks by teaching purpose:
 - `callout`: misconception, warning, boundary case, or key idea.
 - `transformation`: inspectable input -> operation -> output worked example; use for worked relationships, not broad comparisons or reference coverage.
 - `glossary`: optional compact reference for durable terms the learner has already met and will benefit from retrieving later.
-- `quiz` or `balancedQuiz`: local checks, chapter review, and practice tests.
+- `quiz`: local checks, chapter review, and practice tests.
 - `codingProblem`: runnable or checkable learner practice.
 
-Prefer `balancedQuiz(...)` for generated 4-choice multiple-choice quizzes unless answer order is meaningful. Use `quiz(...)` for matching questions or preserved answer structure.
+`quiz(...)` balances ordinary four-choice multiple-choice questions by default. Set `preserveChoiceOrder: true` on the quiz to retain the authored choice order. Matching questions and multiple-choice questions with a choice count other than four are not reordered. `balancedQuiz(...)` remains a compatibility alias that forces `preserveChoiceOrder: false`.
 
 Quiz questions should set `kind: "multiple-choice"` when they use `choices` and `answer`, or `kind: "matching"` when they use one-to-one `pairs`. Multiple-choice choices contain `id`, `body`, and an optional `explanation` that provides feedback when that choice is selected. Matching pairs contain `id`, `left`, `right`, and optional `explanation`; matching questions can set `leftLabel` and `rightLabel` when the defaults are too generic.
 

@@ -121,7 +121,7 @@ Use semantic blocks as teaching moves:
 - `callout`: protect the learner from a misconception, warning, boundary, or key idea.
 - `transformation`: model an inspectable input-to-result relationship.
 - `glossary`: give compact retrieval support for important terms already introduced in prose.
-- `quiz` and `balancedQuiz`: create local checks, review, and cumulative assessment.
+- `quiz`: create local checks, review, and cumulative assessment.
 - `codingProblem`: create runnable or checkable practice.
 
 Prefer several semantic blocks over one giant Markdown string.
