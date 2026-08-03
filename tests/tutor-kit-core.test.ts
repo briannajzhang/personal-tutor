@@ -89,6 +89,30 @@ function issueMessages(value: unknown): string {
   return validateTextbook(value).map((entry) => entry.message).join("\n");
 }
 
+function rawQuizBlock(
+  id: string,
+  mode: "check" | "review" | "practice-test",
+  positions: number[],
+  preserveChoiceOrder = false
+) {
+  return {
+    kind: "quiz",
+    id,
+    props: {
+      title: id,
+      mode,
+      preserveChoiceOrder,
+      questions: positions.map((position, index) => {
+        const question = choiceQuestion(index + 1);
+        const correct = question.choices[0]!;
+        const distractors = question.choices.slice(1);
+        distractors.splice(position, 0, correct);
+        return { ...question, id: `${id}-question-${index + 1}`, choices: distractors };
+      })
+    }
+  };
+}
+
 test("builders create a valid textbook across the built-in block types", () => {
   const review = balancedQuiz({
     id: "review",
@@ -183,10 +207,10 @@ test("validation reports structural errors and unsafe content", () => {
   assert.match(messages, /row width must match its column count/);
 });
 
-test("balancedQuiz preserves answers while spreading their positions", () => {
+test("quiz balances ordinary four-choice questions by default", () => {
   const source = Array.from({ length: 8 }, (_, index) => choiceQuestion(index + 1));
-  const first = balancedQuiz({ id: "balanced", title: "Balanced", mode: "review", questions: source });
-  const second = balancedQuiz({ id: "balanced", title: "Balanced", mode: "review", questions: source });
+  const first = quiz({ id: "balanced", title: "Balanced", mode: "review", questions: source });
+  const second = quiz({ id: "balanced", title: "Balanced", mode: "review", questions: source });
   const positions = first.props.questions.map((question) => {
     assert.equal(question.kind, "multiple-choice");
     return question.choices.findIndex((choice) => choice.id === question.answer);
@@ -197,9 +221,166 @@ test("balancedQuiz preserves answers while spreading their positions", () => {
     source.map(() => ["a", "b", "c", "d"]));
   assert.deepEqual(new Set(positions), new Set([0, 1, 2, 3]));
   assert.deepEqual(validateTextbook(textbookWithBlocks([first])), []);
+});
 
-  const biased = quiz({ id: "biased", title: "Biased", mode: "review", questions: source });
-  assert.match(issueMessages(textbookWithBlocks([biased])), /overly concentrated in one choice position/);
+test("balancedQuiz remains an alias for default quiz balancing", () => {
+  const source = Array.from({ length: 8 }, (_, index) => choiceQuestion(index + 1));
+  const input = { id: "balanced", title: "Balanced", mode: "review" as const, questions: source };
+
+  assert.deepEqual(balancedQuiz(input), quiz(input));
+  assert.equal(balancedQuiz({ ...input, preserveChoiceOrder: true }).props.preserveChoiceOrder, false);
+});
+
+test("quiz preserves authored order only when requested and leaves ineligible questions unchanged", () => {
+  const fourChoice = choiceQuestion(1);
+  const threeChoice = { ...choiceQuestion(2), choices: choiceQuestion(2).choices.slice(0, 3) };
+  const matching = matchingQuestion();
+  const sourceOrder = fourChoice.choices.map((choice) => choice.id);
+  const preserved = quiz({
+    id: "preserved",
+    title: "Preserved",
+    preserveChoiceOrder: true,
+    questions: [fourChoice]
+  });
+  const mixed = quiz({ id: "mixed", title: "Mixed", questions: [threeChoice, matching] });
+  const built = textbook({
+    id: "preserved-course",
+    title: "Preserved course",
+    chapters: [chapter({
+      id: "preserved-chapter",
+      title: "Preserved chapter",
+      sections: [section({ id: "preserved-section", title: "Preserved section", blocks: [preserved, mixed] })]
+    })]
+  });
+  const builtBlocks = built.chapters[0]!.sections[0]!.blocks as Array<ReturnType<typeof quiz>>;
+
+  assert.equal(preserved.props.preserveChoiceOrder, true);
+  assert.deepEqual(preserved.props.questions[0]?.kind === "multiple-choice"
+    ? preserved.props.questions[0].choices.map((choice) => choice.id)
+    : [], sourceOrder);
+  assert.deepEqual(mixed.props.questions[0]?.kind === "multiple-choice"
+    ? mixed.props.questions[0].choices.map((choice) => choice.id)
+    : [], ["a", "b", "c"]);
+  assert.deepEqual(mixed.props.questions[1]?.kind === "matching"
+    ? mixed.props.questions[1].pairs.map((pair) => pair.id)
+    : [], ["one", "two"]);
+  assert.deepEqual(matching.pairs.map((pair) => pair.id), ["one", "two"]);
+  assert.deepEqual(builtBlocks[0]!.props.questions[0]?.kind === "multiple-choice"
+    ? builtBlocks[0]!.props.questions[0].choices.map((choice) => choice.id)
+    : [], sourceOrder);
+  assert.deepEqual(builtBlocks[1]!.props.questions[0]?.kind === "multiple-choice"
+    ? builtBlocks[1]!.props.questions[0].choices.map((choice) => choice.id)
+    : [], ["a", "b", "c"]);
+});
+
+test("textbook balances repeated one-question quiz identities across chapter context without mutation", () => {
+  const chapters = Array.from({ length: 4 }, (_, index) => chapter({
+    id: `chapter-${index + 1}`,
+    title: `Chapter ${index + 1}`,
+    sections: [section({
+      id: "lesson",
+      title: "Lesson",
+      blocks: [quiz({
+        id: "lesson-check",
+        title: "Check",
+        questions: [{ ...choiceQuestion(1), id: "same-question" }]
+      })]
+    })]
+  }));
+  const before = chapters.map((chapterValue) => structuredClone(chapterValue));
+  const localPositions = chapters.map((chapterValue) => {
+    const block = chapterValue.sections[0]!.blocks[0]!;
+    assert.equal(block.kind, "quiz");
+    const question = (block as ReturnType<typeof quiz>).props.questions[0]!;
+    assert.equal(question.kind, "multiple-choice");
+    return question.choices.findIndex((choice) => choice.id === question.answer);
+  });
+
+  const built = textbook({ id: "contextual-course", title: "Course", chapters });
+  const contextualPositions = built.chapters.map((chapterValue) => {
+    const block = chapterValue.sections[0]!.blocks[0] as ReturnType<typeof quiz>;
+    const question = block.props.questions[0]!;
+    assert.equal(question.kind, "multiple-choice");
+    return question.choices.findIndex((choice) => choice.id === question.answer);
+  });
+
+  assert.equal(new Set(localPositions).size, 1);
+  assert.deepEqual(new Set(contextualPositions), new Set([0, 1, 2, 3]));
+  assert.deepEqual(chapters, before);
+  assert.deepEqual(validateTextbook(built), []);
+});
+
+test("textbook balances check, review, and practice-test cohorts independently", () => {
+  const modes = ["check", "review", "practice-test"] as const;
+  const blocks = Array.from({ length: 4 }, (_, index) => modes.map((mode) => quiz({
+    id: `${mode}-${index + 1}`,
+    title: `${mode} ${index + 1}`,
+    mode,
+    questions: [{ ...choiceQuestion(index + 1), id: `${mode}-question-${index + 1}` }]
+  }))).flat();
+  const built = textbook({
+    id: "mode-course",
+    title: "Mode course",
+    chapters: [chapter({
+      id: "mode-chapter",
+      title: "Mode chapter",
+      sections: [section({ id: "mode-section", title: "Mode section", blocks })]
+    })]
+  });
+
+  for (const mode of modes) {
+    const positions = built.chapters[0]!.sections[0]!.blocks
+      .filter((block): block is ReturnType<typeof quiz> => block.kind === "quiz" && (block as ReturnType<typeof quiz>).props.mode === mode)
+      .map((block) => {
+        const question = block.props.questions[0]!;
+        assert.equal(question.kind, "multiple-choice");
+        return question.choices.findIndex((choice) => choice.id === question.answer);
+      });
+    assert.deepEqual(new Set(positions), new Set([0, 1, 2, 3]));
+  }
+});
+
+test("validation aggregates local checks by chapter and reports cohort counts", () => {
+  const checks = Array.from({ length: 4 }, (_, index) => rawQuizBlock(`check-${index + 1}`, "check", [0]));
+  const messages = issueMessages(textbookWithBlocks(checks));
+
+  assert.match(messages, /Chapter check cohort/);
+  assert.match(messages, /A=4, B=0, C=0, D=0/);
+
+  const threeQuestionMessages = issueMessages(textbookWithBlocks([
+    rawQuizBlock("check-1", "check", [0]),
+    rawQuizBlock("check-2", "check", [0]),
+    rawQuizBlock("check-3", "check", [0])
+  ]));
+  assert.match(threeQuestionMessages, /Chapter check cohort/);
+});
+
+test("validation keeps review questions from masking biased checks and excludes preserved order", () => {
+  const checks = Array.from({ length: 4 }, (_, index) => rawQuizBlock(`check-${index + 1}`, "check", [0]));
+  const review = rawQuizBlock("review", "review", [0, 1, 2, 3, 0, 1, 2, 3]);
+  const biasedMessages = issueMessages(textbookWithBlocks([...checks, review]));
+  const preservedChecks = Array.from({ length: 4 }, (_, index) => rawQuizBlock(`preserved-${index + 1}`, "check", [0], true));
+  const preservedMessages = issueMessages(textbookWithBlocks([...preservedChecks, review]));
+
+  assert.match(biasedMessages, /Chapter check cohort/);
+  assert.doesNotMatch(preservedMessages, /correct-answer positions/);
+});
+
+test("validation applies its textbook backstop to each mode at eight questions", () => {
+  const chapters = Array.from({ length: 8 }, (_, index) => ({
+    id: `chapter-${index + 1}`,
+    title: `Chapter ${index + 1}`,
+    sections: [{
+      id: "lesson",
+      title: "Lesson",
+      blocks: [rawQuizBlock("same-check", "check", [0])],
+      subsections: []
+    }]
+  }));
+  const messages = issueMessages({ id: "course", title: "Course", chapters });
+
+  assert.match(messages, /Textbook check cohort/);
+  assert.match(messages, /A=8, B=0, C=0, D=0/);
 });
 
 test("coding problem validation protects project paths and reference mappings", () => {

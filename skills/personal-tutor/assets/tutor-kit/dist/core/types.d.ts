@@ -187,6 +187,7 @@ export type QuizQuestion = MultipleChoiceQuizQuestion | MatchingQuizQuestion;
 export interface QuizProps {
     title: string;
     mode: QuizMode;
+    preserveChoiceOrder: boolean;
     questions: QuizQuestion[];
 }
 export interface GlossaryEntry {

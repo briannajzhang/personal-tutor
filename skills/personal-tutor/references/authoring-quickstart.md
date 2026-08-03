@@ -58,7 +58,7 @@ export default textbook({
 ```
 
 ```ts
-import { balancedQuiz, chapter, codeBlock, list, p, section } from "tutor-kit";
+import { chapter, codeBlock, list, p, quiz, section } from "tutor-kit";
 
 export default chapter({
   id: "foundations",
@@ -90,7 +90,7 @@ export default chapter({
       title: "Review",
       role: "review",
       blocks: [
-        balancedQuiz({
+        quiz({
           id: "review-quiz",
           title: "Review",
           mode: "review",

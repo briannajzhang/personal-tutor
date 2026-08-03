@@ -209,7 +209,7 @@ For each independent task, list the required concepts and where each was taught 
 - `p`:
 - worked examples and artifacts: choose prose, table, code block, diagram, image scaffold, transformation, quiz, or practice based on the learner move; prefer ordinary blocks for comparison or classification coverage, and use transformation only when the combined start/action/result view improves inspectability for one visible reasoning thread
 - `image` / `diagram` / `chart`: visual grounding or inspection purpose, if a visual block is useful; note whether the visual is for appearance/context/evidence, structure/flow, or numeric comparison, and note any scaffold needed to make image details readable
-- `quiz` / `balancedQuiz`: learner move, question format, and review target
+- `quiz`: learner move, question format, and review target
 - `codingProblem`:
 - `glossary`: omit unless there is a later-retrieval reason; if included, name the term cluster and retrieval purpose
 
@@ -253,7 +253,7 @@ For a request to add practice questions, quizzes, exercises, or coding practice:
 1. Inspect the target chapter or nearest relevant chapter.
 2. Identify the learner outcome and concepts already taught.
 3. Add material where it fits the teaching sequence.
-4. Choose the question format by the learner move before choosing the builder. Use `balancedQuiz(...)` for generated multiple-choice checks when one-decision questions fit and answer order does not matter; use `quiz(...)` for matching relationship checks or preserved answer structure.
+4. Choose the question format by the learner move. Consult `practice-and-assessment.md` for the relevant quiz-design guidance.
 5. Add concrete tasks or coding problems when the learner must produce, debug, design, transform, or implement.
 6. Verify that practice does not require untaught moves.
 7. Run `doctor --textbook <id> --record`.

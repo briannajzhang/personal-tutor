@@ -48,12 +48,13 @@ export function chapter(input) {
     };
 }
 export function textbook(input) {
+    const id = requireText(input.id, "textbook.id");
     return {
-        id: requireText(input.id, "textbook.id"),
+        id,
         title: requireText(input.title, "textbook.title"),
         description: input.description,
         tags: input.tags ?? [],
-        chapters: input.chapters ?? []
+        chapters: balanceTextbookQuizChoices(id, input.chapters ?? [])
     };
 }
 export function p(input) {
@@ -176,16 +177,20 @@ export function codingProblem(input) {
     });
 }
 export function quiz(input) {
+    const preserveChoiceOrder = input.preserveChoiceOrder ?? false;
     return defineBlock("quiz", input, {
         title: requireText(input.title, "quiz.title"),
         mode: input.mode ?? "check",
-        questions: input.questions.map(normalizeQuizQuestion)
+        preserveChoiceOrder,
+        questions: (preserveChoiceOrder
+            ? input.questions.map(cloneQuizQuestion)
+            : balanceQuizQuestions(input.id, input.questions)).map(normalizeQuizQuestion)
     });
 }
 export function balancedQuiz(input) {
     return quiz({
         ...input,
-        questions: balanceQuizQuestions(input.id, input.questions)
+        preserveChoiceOrder: false
     });
 }
 export function projectFiles(baseUrl, dir) {
@@ -303,6 +308,120 @@ function balanceQuizQuestions(quizId, questions) {
             choices: reorderChoicesForAnswerPosition(question, quizId, targetPosition)
         };
     });
+}
+function balanceTextbookQuizChoices(textbookId, chapters) {
+    const counters = {
+        check: 0,
+        review: 0,
+        "practice-test": 0
+    };
+    const offsets = {
+        check: stableHash(`${textbookId}:check`) % 4,
+        review: stableHash(`${textbookId}:review`) % 4,
+        "practice-test": stableHash(`${textbookId}:practice-test`) % 4
+    };
+    let chaptersChanged = false;
+    const balancedChapters = chapters.map((chapterValue) => {
+        let chapterChanged = false;
+        const sections = chapterValue.sections.map((sectionValue) => {
+            const sectionBlocks = balanceContextualQuizBlocks(sectionValue.blocks, {
+                textbookId,
+                chapterId: chapterValue.id,
+                sectionId: sectionValue.id,
+                subsectionId: "section",
+                counters,
+                offsets
+            });
+            let sectionChanged = sectionBlocks !== sectionValue.blocks;
+            const subsections = sectionValue.subsections.map((subsectionValue) => {
+                const blocks = balanceContextualQuizBlocks(subsectionValue.blocks, {
+                    textbookId,
+                    chapterId: chapterValue.id,
+                    sectionId: sectionValue.id,
+                    subsectionId: subsectionValue.id,
+                    counters,
+                    offsets
+                });
+                if (blocks === subsectionValue.blocks)
+                    return subsectionValue;
+                sectionChanged = true;
+                return { ...subsectionValue, blocks };
+            });
+            if (!sectionChanged)
+                return sectionValue;
+            chapterChanged = true;
+            return { ...sectionValue, blocks: sectionBlocks, subsections };
+        });
+        if (!chapterChanged)
+            return chapterValue;
+        chaptersChanged = true;
+        return { ...chapterValue, sections };
+    });
+    return chaptersChanged ? balancedChapters : chapters;
+}
+function balanceContextualQuizBlocks(blocks, context) {
+    let blocksChanged = false;
+    const balancedBlocks = blocks.map((block) => {
+        if (block.kind !== "quiz")
+            return block;
+        const quizBlock = block;
+        if (quizBlock.props.preserveChoiceOrder)
+            return block;
+        const mode = quizBlock.props.mode;
+        if (mode !== "check" && mode !== "review" && mode !== "practice-test")
+            return block;
+        let quizChanged = false;
+        const questions = quizBlock.props.questions.map((question) => {
+            if (question.kind !== "multiple-choice" || question.choices.length !== 4)
+                return question;
+            if (!question.choices.some((choice) => choice.id === question.answer))
+                return question;
+            const targetPosition = (context.counters[mode] + context.offsets[mode]) % 4;
+            context.counters[mode] += 1;
+            const seed = JSON.stringify([
+                context.textbookId,
+                context.chapterId,
+                context.sectionId,
+                context.subsectionId,
+                quizBlock.id,
+                question.id
+            ]);
+            const choices = reorderNormalizedChoicesForAnswerPosition(question, seed, targetPosition);
+            if (sameChoiceOrder(choices, question.choices))
+                return question;
+            quizChanged = true;
+            return { ...question, choices };
+        });
+        if (!quizChanged)
+            return block;
+        blocksChanged = true;
+        return { ...quizBlock, props: { ...quizBlock.props, questions } };
+    });
+    return blocksChanged ? balancedBlocks : blocks;
+}
+function reorderNormalizedChoicesForAnswerPosition(question, seed, targetPosition) {
+    const correctChoice = question.choices.find((choice) => choice.id === question.answer);
+    if (correctChoice === undefined)
+        return question.choices;
+    const distractors = question.choices
+        .filter((choice) => choice.id !== question.answer)
+        .map((choice) => ({ ...choice }))
+        .sort((left, right) => stableHash(`${seed}:${left.id}`) - stableHash(`${seed}:${right.id}`));
+    const reordered = [];
+    for (let index = 0; index < question.choices.length; index += 1) {
+        if (index === targetPosition) {
+            reordered.push({ ...correctChoice });
+        }
+        else {
+            const next = distractors.shift();
+            if (next !== undefined)
+                reordered.push(next);
+        }
+    }
+    return reordered;
+}
+function sameChoiceOrder(left, right) {
+    return left.every((choice, index) => choice.id === right[index]?.id);
 }
 function cloneQuizQuestion(question) {
     if (question.kind === "matching") {

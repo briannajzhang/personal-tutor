@@ -73,7 +73,7 @@ Do not add matching for variety alone. Use it when it improves the learner move:
 
 After drafting a quiz, scan for clusters of questions that test the same relationship pattern across a related set. If several one-decision questions are mainly checking that map item by item, consider whether one matching question would check the relationship more directly and leave room for scenario-based application.
 
-Use `balancedQuiz(...)` for generated multiple-choice quizzes when answer order does not matter. Use `quiz(...)` when the quiz includes matching or when answer order or question structure should be preserved.
+Choice position should not become a clue. Tutor Kit balances ordinary four-choice multiple-choice questions by default. Preserve an authored order when that order itself supports the learner's interpretation; see `tutor-kit-api.md` for the opt-out syntax.
 
 Quiz modes:
 
@@ -124,7 +124,7 @@ Review should usually include:
 
 - a short retrieval frame
 - a concrete written or task-based mastery check
-- a `balancedQuiz(...)` or `quiz(...)` block with `mode: "review"` when a quiz fits the mastery check
+- a `quiz(...)` block with `mode: "review"` when a quiz fits the mastery check
 
 Review questions should assess the chapter outcome with new scenarios where possible. Direct repetition is appropriate only for deliberate retrieval of a fundamental concept.
 

@@ -15,30 +15,36 @@ test.beforeAll(async () => {
   linkTutorKit(cwd);
   writeFileSync(join(cwd, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), `import { chapter, quiz, section } from "tutor-kit";
 
+function feedbackCheck(index: number) {
+  return quiz({
+    id: \`feedback-check-\${index}\`,
+    title: \`Feedback check \${index}\`,
+    mode: "check",
+    questions: [{
+      kind: "multiple-choice",
+      id: \`result-\${index}\`,
+      prompt: "Which result is correct?",
+      choices: [
+        { id: "a", body: "The correct result" },
+        { id: "b", body: "The wrong result", explanation: "This choice ignores the final operation." },
+        { id: "c", body: "A nearby but incorrect result" },
+        { id: "d", body: "An unrelated result" }
+      ],
+      answer: "a",
+      explanation: "The final operation produces the first result.",
+      tags: ["feedback"],
+      difficulty: "easy"
+    }]
+  });
+}
+
 export default chapter({
   id: "welcome",
   title: "Quiz feedback",
   sections: [section({
     id: "practice",
     title: "Practice",
-    blocks: [quiz({
-      id: "feedback-check",
-      title: "Feedback check",
-      mode: "check",
-      questions: [{
-        kind: "multiple-choice",
-        id: "result",
-        prompt: "Which result is correct?",
-        choices: [
-          { id: "a", body: "The correct result" },
-          { id: "b", body: "The wrong result", explanation: "This choice ignores the final operation." }
-        ],
-        answer: "a",
-        explanation: "The final operation produces the first result.",
-        tags: ["feedback"],
-        difficulty: "easy"
-      }]
-    })]
+    blocks: [1, 2, 3, 4].map(feedbackCheck)
   })]
 });
 `);
@@ -50,16 +56,36 @@ test.afterAll(async () => {
   clearWorkspaceCaches();
 });
 
-test("wrong quiz choices show useful feedback and restore after reload", async ({ page }) => {
+test("rendered quiz choices use the contextual distribution", async ({ page }) => {
   await page.goto(`${server.url}/textbooks/getting-started/chapters/welcome`);
-  const question = page.locator('[data-quiz-question="result"]');
+  await expect(page.locator("[data-quiz-question]")).toHaveCount(4);
+  await expect(page.locator("[data-quiz-choice]")).toHaveCount(16);
+  const positions: number[] = [];
+  for (let index = 1; index <= 4; index += 1) {
+    const question = page.locator(`[data-quiz-question="result-${index}"]`);
+    const choiceIds = await question.locator("[data-quiz-choice]").evaluateAll((choices) => (
+      choices.map((choice) => choice.getAttribute("data-quiz-choice"))
+    ));
+    positions.push(choiceIds.indexOf("a"));
+  }
+
+  expect(new Set(positions)).toEqual(new Set([0, 1, 2, 3]));
+});
+
+test("wrong quiz choices show useful feedback and restore by choice id after reload", async ({ page }) => {
+  await page.goto(`${server.url}/textbooks/getting-started/chapters/welcome`);
+  const quizBlock = page.locator('[data-quiz="feedback-check-1"]');
+  const question = quizBlock.locator('[data-quiz-question="result-1"]');
 
   await question.locator('input[value="b"]').check();
-  await page.locator("[data-quiz-check]").click();
+  await quizBlock.locator("[data-quiz-check]").click();
   await expect(question.locator("[data-quiz-choice-feedback]")).toContainText("This choice ignores the final operation.");
   await expect(question.locator('[data-quiz-choice="b"]')).toHaveClass(/incorrect/);
+  await expect(quizBlock.locator("[data-quiz-score]")).toHaveText("0 / 1 correct");
 
   await page.reload();
-  await expect(page.locator('[data-quiz-question="result"] input[value="b"]')).toBeChecked();
-  await expect(page.locator('[data-quiz-question="result"] input[value="b"]')).toBeDisabled();
+  await expect(page.locator('[data-quiz-question="result-1"] input[value="b"]')).toBeChecked();
+  await expect(page.locator('[data-quiz-question="result-1"] input[value="b"]')).toBeDisabled();
+  await expect(page.locator('[data-quiz-question="result-1"][data-quiz-answer="a"]')).toBeVisible();
+  await expect(page.locator('[data-quiz="feedback-check-1"] [data-quiz-score]')).toHaveText("0 / 1 correct");
 });
