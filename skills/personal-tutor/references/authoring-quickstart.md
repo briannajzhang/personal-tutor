@@ -91,23 +91,23 @@ export default chapter({
       role: "review",
       blocks: [
         quiz({
-          id: "review-quiz",
-          title: "Review",
-          mode: "review",
+          id: "transfer-check",
+          title: "Transfer Check",
+          mode: "check",
           questions: [
             {
               kind: "multiple-choice",
-              id: "transfer",
-              prompt: "Ask for a decision in a new case.",
+              id: "multiply-by-three",
+              prompt: "The input is `4` and the operation is `multiply by 3`. Which output follows?",
               choices: [
-                { id: "a", body: "Best answer for the stated conditions" },
-                { id: "b", body: "Plausible but incorrect answer" },
-                { id: "c", body: "Another plausible but incorrect answer" },
-                { id: "d", body: "Another plausible but incorrect answer" }
+                { id: "a", body: "`1`" },
+                { id: "b", body: "`7`" },
+                { id: "c", body: "`12`" },
+                { id: "d", body: "`16`" }
               ],
-              answer: "a",
-              explanation: "Explain the mechanism behind the answer.",
-              tags: ["central-concept"]
+              answer: "c",
+              explanation: "Multiplying `4` by `3` gives `12`.",
+              tags: ["input-operation-output"]
             }
           ]
         })

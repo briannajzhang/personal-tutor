@@ -63,9 +63,7 @@ Examples by subject:
 
 ## Quiz Authoring
 
-Choose the question format by the learner move. Use multiple choice when one prompt asks for one decision, prediction, diagnosis, misconception check, or best answer. Use matching when the useful work is organizing a related set well enough to discriminate among its members: terms to meanings, representations to interpretations, tools to use cases, symptoms to causes, examples to categories, or steps to roles.
-
-Multiple choice works best when a question supports several plausible alternatives. When additional options would become topic-adjacent filler, prefer sharpening the prompt or using a format that better fits the learner move.
+Choose the question format by the learner move. Multiple choice is useful when the learner should make one decision, prediction, diagnosis, misconception check, or best-answer judgment among several credible alternatives. When the subject supports only one credible response and additional choices would become filler, prefer sharpening the prompt or using a format that better fits the move. Use matching when the useful work is organizing a related set well enough to discriminate among its members: terms to meanings, representations to interpretations, tools to use cases, symptoms to causes, examples to categories, or steps to roles.
 
 Matching is most valuable when neighboring ideas are easy to confuse and later tasks depend on choosing among them. A compact table, ladder, glossary, taxonomy, label set, or comparison is a useful signal to consider matching, especially when several multiple-choice questions would otherwise check the same relationship one item at a time. In that case, one matching question can compress retrieval and discrimination before the quiz returns to scenario-based application.
 
@@ -104,11 +102,9 @@ Each question should include:
 - tags
 - difficulty when useful: `easy`, `medium`, or `hard`
 
-Multiple-choice distractors should represent realistic learner mistakes. If no plausible learner reasoning leads to a choice, replace it.
+Strong multiple-choice options represent competing interpretations, predictions, diagnoses, or actions that could follow from different learner models. Several may look credible at first, while the taught idea still leaves one defensible answer. The options tend to answer the same question at a comparable level of specificity, so the learner must use the idea—not differences in length, detail, tone, or plausibility—to reject them. Useful alternatives often arise from partial understanding, missed conditions, nearby confusions, or overextensions of a true idea.
 
-Good distractors often grow from coherent learner models, such as partial understanding, missed conditions, nearby confusions, or overextensions of a true idea. They stay close to the concept being tested, answer the same question, and leave one answer clearly best. Avoid choices that can be eliminated without understanding because they are unrelated, exaggerated, implausible, or answering a different question.
-
-Use choice-level `explanation` selectively to repair recognizable misconceptions; feedback does not make an implausible distractor useful. Keep the question-level `explanation` focused on why the correct answer works.
+Keep the full reasoning in feedback rather than making one choice carry the explanation. Use choice-level `explanation` selectively to repair a recognizable misconception, and keep the question-level `explanation` focused on why the correct answer works.
 
 For matching questions, keep both sides short and one-to-one. Use them after the lesson has taught or framed the items; do not make matching the first exposure to the concepts.
 
