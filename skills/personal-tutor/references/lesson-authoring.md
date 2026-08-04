@@ -214,7 +214,7 @@ Labels, focus text, and surrounding prose should clarify the domain roles and in
 
 Use quizzes for fast conceptual diagnosis, retrieval, misconception checks, prediction, classification, chapter review, and cumulative mixed review.
 
-Choose quiz format and builder from the assessment purpose. Keep each quiz close to the concept, example, trap, or review target it checks.
+Choose quiz format and builder from the assessment purpose; see `practice-and-assessment.md` for detailed question and choice design. Keep each quiz close to the concept, example, trap, or review target it checks.
 
 Use:
 
@@ -223,8 +223,6 @@ Use:
 - `mode: "practice-test"` only in dedicated cumulative checkpoint chapters. Use at least 10 questions.
 
 Quiz explanations should teach the mechanism. Do not merely restate the answer.
-
-Use plausible distractors that require understanding to reject and leave one answer clearly best; see `practice-and-assessment.md` for quiz design guidance.
 
 ## Titles And Descriptions
 
