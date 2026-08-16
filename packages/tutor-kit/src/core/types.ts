@@ -201,6 +201,7 @@ export interface CodingProblemProps {
 export type QuizMode = "check" | "review" | "practice-test";
 export type QuizDifficulty = "easy" | "medium" | "hard";
 export type ChapterRole = "instruction" | "cumulative-checkpoint";
+export type ChapterResourcePurpose = "deepen" | "practice" | "reference" | "alternate-explanation";
 export type SectionRole = "instruction" | "practice" | "review" | "assessment";
 
 export interface QuizChoice {
@@ -308,12 +309,20 @@ export interface Section {
   subsections: Subsection[];
 }
 
+export interface ChapterResource {
+  title: string;
+  url: string;
+  description: string;
+  purpose: ChapterResourcePurpose;
+}
+
 export interface Chapter {
   id: string;
   title: string;
   description?: string;
   tags?: string[];
   role?: ChapterRole;
+  resources?: ChapterResource[];
   sections: Section[];
 }
 

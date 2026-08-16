@@ -23,6 +23,7 @@ import {
   transformation,
   validateTextbook
 } from "../packages/tutor-kit/dist/index.js";
+import type { ChapterResource } from "../packages/tutor-kit/dist/index.js";
 import {
   clearWorkspaceCaches,
   discoverTextbookFiles,
@@ -175,6 +176,28 @@ test("builders create a valid textbook across the built-in block types", () => {
     built.chapters[0]?.sections[0]?.blocks.map((block) => block.kind),
     ["p", "heading", "list", "codeBlock", "mathBlock", "diagram", "chart", "image", "callout", "glossary", "transformation", "codingProblem", "quiz"]
   );
+});
+
+test("chapter builder carries resources and defaults omitted resources to an empty array", () => {
+  const resources: ChapterResource[] = [{
+    title: "PostgreSQL: Transaction Isolation",
+    url: "https://www.postgresql.org/docs/current/transaction-iso.html",
+    description: "Compare PostgreSQL's behavior with the chapter's simplified model.",
+    purpose: "reference"
+  }];
+
+  const withResources = chapter({
+    id: "transaction-isolation",
+    title: "Transaction Isolation",
+    resources
+  });
+  const withoutResources = chapter({
+    id: "self-contained",
+    title: "Self-contained Chapter"
+  });
+
+  assert.deepEqual(withResources.resources, resources);
+  assert.deepEqual(withoutResources.resources, []);
 });
 
 test("validation reports structural errors and unsafe content", () => {
