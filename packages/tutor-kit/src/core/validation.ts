@@ -22,6 +22,7 @@ const chartTypes = new Set(["bar", "line"]);
 const quizModes = new Set(["check", "review", "practice-test"]);
 const quizDifficulties = new Set(["easy", "medium", "hard"]);
 const chapterRoles = new Set(["instruction", "cumulative-checkpoint"]);
+const chapterResourcePurposes = new Set(["deepen", "practice", "reference", "alternate-explanation"]);
 const sectionRoles = new Set(["instruction", "practice", "review", "assessment"]);
 const transformationFormats = new Set(["markdown", "code", "math", "table"]);
 const transformationLayouts = new Set(["auto", "flow", "compare"]);
@@ -106,6 +107,7 @@ export function validateChapter(value: unknown, file?: string): ValidationIssue[
   if (value.role !== undefined && !chapterRoles.has(value.role as string)) {
     issues.push(issue("Chapter role must be instruction or cumulative-checkpoint.", "role", file));
   }
+  validateChapterResources(value.resources, file, issues);
   if (!Array.isArray(value.sections)) {
     issues.push(issue("Chapter sections must be an array.", "sections", file));
     return issues;
@@ -129,6 +131,73 @@ export function validateChapter(value: unknown, file?: string): ValidationIssue[
   issues.push(...validateChapterCheckAnswerDistribution(value as unknown as Chapter, file));
 
   return issues;
+}
+
+function validateChapterResources(
+  value: unknown,
+  file: string | undefined,
+  issues: ValidationIssue[]
+): void {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) {
+    issues.push(issue("Chapter resources must be an array.", "resources", file));
+    return;
+  }
+  const urls = new Map<string, number>();
+  for (const [index, resource] of value.entries()) {
+    const resourcePath = `resources[${index}]`;
+    if (!isRecord(resource)) {
+      issues.push(issue("Chapter resource must be an object.", resourcePath, file));
+      continue;
+    }
+
+    if (!hasText(resource.title)) {
+      issues.push(issue("Chapter resource title is required.", `${resourcePath}.title`, file));
+    }
+    if (!hasText(resource.description)) {
+      issues.push(issue("Chapter resource description is required.", `${resourcePath}.description`, file));
+    }
+    if (!chapterResourcePurposes.has(resource.purpose as string)) {
+      issues.push(issue(
+        "Chapter resource purpose must be deepen, practice, reference, or alternate-explanation.",
+        `${resourcePath}.purpose`,
+        file
+      ));
+    }
+
+    const urlPath = `${resourcePath}.url`;
+    if (!hasText(resource.url)) {
+      issues.push(issue("Chapter resource URL is required.", urlPath, file));
+      continue;
+    }
+
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(resource.url);
+    } catch {
+      issues.push(issue("Chapter resource URL must be an absolute HTTPS URL.", urlPath, file));
+      continue;
+    }
+    if (parsedUrl.protocol !== "https:") {
+      issues.push(issue("Chapter resource URL must be an absolute HTTPS URL.", urlPath, file));
+      continue;
+    }
+    if (parsedUrl.username || parsedUrl.password) {
+      issues.push(issue("Chapter resource URL must not include credentials.", urlPath, file));
+      continue;
+    }
+
+    const previousIndex = urls.get(parsedUrl.href);
+    if (previousIndex !== undefined) {
+      issues.push(issue(
+        `Duplicate chapter resource URL; first used at resources[${previousIndex}].url.`,
+        urlPath,
+        file
+      ));
+      continue;
+    }
+    urls.set(parsedUrl.href, index);
+  }
 }
 
 function validateChapterCheckAnswerDistribution(chapter: Chapter, file?: string): ValidationIssue[] {

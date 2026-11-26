@@ -22,6 +22,8 @@ export type {
   ChartProps,
   ChartType,
   Chapter,
+  ChapterResource,
+  ChapterResourcePurpose,
   ChapterRole,
   CodingProblemAction,
   CodingProblemBlock,

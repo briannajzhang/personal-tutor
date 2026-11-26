@@ -44,6 +44,7 @@ export function chapter(input) {
         description: input.description,
         tags: input.tags ?? [],
         role: input.role,
+        resources: input.resources ?? [],
         sections: input.sections ?? []
     };
 }

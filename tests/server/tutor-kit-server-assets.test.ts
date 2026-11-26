@@ -15,6 +15,25 @@ test("dev server exposes workspace data and protects asset paths", async () => {
   initWorkspace(dir, { starter: true });
   linkTutorKit(dir);
 
+  writeFileSync(join(dir, "textbooks", "getting-started", "chapters", "welcome.chapter.ts"), `import { chapter, p, section } from "tutor-kit";
+
+export default chapter({
+  id: "welcome",
+  title: "Chapter 1: Welcome",
+  resources: [{
+    title: "Tutor Kit reference",
+    url: "https://example.com/tutor-kit-reference",
+    description: "Continue with a canonical reference after the lesson.",
+    purpose: "reference"
+  }],
+  sections: [section({
+    id: "lesson",
+    title: "Lesson",
+    blocks: [p({ id: "intro", body: "A server fixture with a chapter resource." })]
+  })]
+});
+`);
+
   const assetsDir = join(dir, "textbooks", "getting-started", "assets");
   mkdirSync(assetsDir, { recursive: true });
   writeFileSync(join(assetsDir, "tiny.png"), "tiny image");
@@ -31,6 +50,12 @@ test("dev server exposes workspace data and protects asset paths", async () => {
     const chapter = await fetchJson(`${server.url}/api/textbooks/getting-started/chapters/welcome`);
     assert.equal(chapter.title, "Chapter 1: Welcome");
     assert.equal(chapter.textbookId, "getting-started");
+    assert.deepEqual(chapter.resources, [{
+      title: "Tutor Kit reference",
+      url: "https://example.com/tutor-kit-reference",
+      description: "Continue with a canonical reference after the lesson.",
+      purpose: "reference"
+    }]);
 
     const page = await fetch(`${server.url}/textbooks/getting-started/chapters/welcome`);
     assert.equal(page.status, 200);

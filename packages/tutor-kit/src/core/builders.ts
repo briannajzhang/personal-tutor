@@ -34,6 +34,7 @@ import type {
   MatchingQuizPair,
   QuizMode,
   QuizQuestion,
+  ChapterResource,
   ChapterRole,
   SectionRole,
   Section,
@@ -66,6 +67,7 @@ interface ChapterInput {
   description?: string;
   tags?: string[];
   role?: ChapterRole;
+  resources?: ChapterResource[];
   sections?: Section[];
 }
 
@@ -288,6 +290,7 @@ export function chapter(input: ChapterInput): Chapter {
     description: input.description,
     tags: input.tags ?? [],
     role: input.role,
+    resources: input.resources ?? [],
     sections: input.sections ?? []
   };
 }

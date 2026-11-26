@@ -1,4 +1,4 @@
-import type { CalloutBlock, CalloutProps, ChartBlock, ChartType, CodingProblemBlock, CodingProblemFile, CodeBlock, ComponentBlock, ComponentModule, DiagramBlock, DiagramProps, GlossaryBlock, HeadingBlock, HeadingProps, ImageBlock, ImageProps, JsonValue, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, ChapterRole, SectionRole, Section, Subsection, Textbook, Chapter, TransformationArtifact, TransformationBlock, TransformationLayout, TutorBlock } from "./types.js";
+import type { CalloutBlock, CalloutProps, ChartBlock, ChartType, CodingProblemBlock, CodingProblemFile, CodeBlock, ComponentBlock, ComponentModule, DiagramBlock, DiagramProps, GlossaryBlock, HeadingBlock, HeadingProps, ImageBlock, ImageProps, JsonValue, ListBlock, ListProps, MathBlock, ParagraphBlock, ParagraphProps, QuizBlock, QuizDifficulty, QuizMode, ChapterResource, ChapterRole, SectionRole, Section, Subsection, Textbook, Chapter, TransformationArtifact, TransformationBlock, TransformationLayout, TutorBlock } from "./types.js";
 interface SubsectionInput {
     id: string;
     title: string;
@@ -16,6 +16,7 @@ interface ChapterInput {
     description?: string;
     tags?: string[];
     role?: ChapterRole;
+    resources?: ChapterResource[];
     sections?: Section[];
 }
 interface TextbookInput {
