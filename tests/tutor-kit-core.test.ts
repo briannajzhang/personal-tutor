@@ -86,6 +86,23 @@ function textbookWithBlocks(blocks: unknown[]) {
   };
 }
 
+function textbookWithResources(resources?: unknown) {
+  return {
+    id: "course",
+    title: "Course",
+    chapters: [{
+      id: "chapter",
+      title: "Chapter",
+      ...(resources === undefined ? {} : { resources }),
+      sections: []
+    }]
+  };
+}
+
+function validationIssues(value: unknown) {
+  return validateTextbook(value).map(({ path, message }) => ({ path, message }));
+}
+
 function issueMessages(value: unknown): string {
   return validateTextbook(value).map((entry) => entry.message).join("\n");
 }
@@ -198,6 +215,125 @@ test("chapter builder carries resources and defaults omitted resources to an emp
 
   assert.deepEqual(withResources.resources, resources);
   assert.deepEqual(withoutResources.resources, []);
+});
+
+test("chapter resource validation accepts omission, empty arrays, and all purposes without a count limit", () => {
+  const resource = (purpose: ChapterResource["purpose"], index: number): ChapterResource => ({
+    title: `Resource ${index}`,
+    url: `https://example.com/resources/${index}?view=full#section`,
+    description: `Use resource ${index} to continue learning.`,
+    purpose
+  });
+
+  assert.deepEqual(validationIssues(textbookWithResources()), []);
+  assert.deepEqual(validationIssues(textbookWithResources([])), []);
+  assert.deepEqual(validationIssues(textbookWithResources([
+    resource("deepen", 1),
+    resource("practice", 2),
+    resource("reference", 3),
+    resource("alternate-explanation", 4)
+  ])), []);
+  assert.deepEqual(validationIssues(textbookWithResources([
+    resource("alternate-explanation", 4)
+  ])), []);
+});
+
+test("chapter resource validation reports collection and entry shape errors precisely", () => {
+  for (const resources of [null, "not-an-array", {}, 42]) {
+    assert.deepEqual(validationIssues(textbookWithResources(resources)), [{
+      path: "chapters[0].resources",
+      message: "Chapter resources must be an array."
+    }]);
+  }
+
+  const issues = validationIssues(textbookWithResources([
+    null,
+    "not-an-object",
+    ...Array.from({ length: 2 }, (_, index) => ({
+      title: `Resource ${index}`,
+      url: `https://example.com/${index}`,
+      description: "A useful resource.",
+      purpose: "reference"
+    }))
+  ]));
+  assert.equal(issues.length, 2);
+  assert.ok(issues.some(({ path, message }) => path === "chapters[0].resources[0]" && /must be an object/.test(message)));
+  assert.ok(issues.some(({ path, message }) => path === "chapters[0].resources[1]" && /must be an object/.test(message)));
+});
+
+test("chapter resource validation requires learner-facing fields and a supported purpose", () => {
+  const missingFields = validateTextbook(textbookWithResources([{}]), "textbook.ts");
+  assert.deepEqual(missingFields.map(({ path }) => path), [
+    "chapters[0].resources[0].title",
+    "chapters[0].resources[0].description",
+    "chapters[0].resources[0].purpose",
+    "chapters[0].resources[0].url"
+  ]);
+  assert.ok(missingFields.every(({ file }) => file === "textbook.ts"));
+
+  const issues = validationIssues(textbookWithResources([{
+    title: "   ",
+    url: "",
+    description: 42,
+    purpose: "video"
+  }]));
+
+  assert.deepEqual(issues, [
+    { path: "chapters[0].resources[0].title", message: "Chapter resource title is required." },
+    { path: "chapters[0].resources[0].description", message: "Chapter resource description is required." },
+    {
+      path: "chapters[0].resources[0].purpose",
+      message: "Chapter resource purpose must be deepen, practice, reference, or alternate-explanation."
+    },
+    { path: "chapters[0].resources[0].url", message: "Chapter resource URL is required." }
+  ]);
+});
+
+test("chapter resource validation rejects unsafe, relative, credentialed, and duplicate URLs", () => {
+  const resource = (url: string): ChapterResource => ({
+    title: "Resource",
+    url,
+    description: "Continue learning with this resource.",
+    purpose: "reference"
+  });
+
+  for (const url of [
+    "http://example.com/article",
+    "example.com/article",
+    "/article",
+    "//example.com/article",
+    "https://",
+    "javascript:alert(1)",
+    "data:text/html,hello",
+    "ftp://example.com/article"
+  ]) {
+    assert.deepEqual(validationIssues(textbookWithResources([resource(url)])), [{
+      path: "chapters[0].resources[0].url",
+      message: "Chapter resource URL must be an absolute HTTPS URL."
+    }]);
+  }
+
+  assert.deepEqual(validationIssues(textbookWithResources([
+    resource("https://user:password@example.com/article")
+  ])), [{
+    path: "chapters[0].resources[0].url",
+    message: "Chapter resource URL must not include credentials."
+  }]);
+
+  assert.deepEqual(validationIssues(textbookWithResources([
+    resource("https://EXAMPLE.com:443/article"),
+    resource("https://example.com/article")
+  ])), [{
+    path: "chapters[0].resources[1].url",
+    message: "Duplicate chapter resource URL; first used at resources[0].url."
+  }]);
+
+  assert.deepEqual(validationIssues(textbookWithResources([
+    resource("https://example.com/article#first"),
+    resource("https://example.com/article#second"),
+    resource("https://example.com/article?view=full"),
+    resource("https://example.com/article?view=compact")
+  ])), []);
 });
 
 test("validation reports structural errors and unsafe content", () => {

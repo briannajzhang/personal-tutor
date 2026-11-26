@@ -124,6 +124,14 @@ export default chapter({
   title: "Chapter 1: Filtering Rows",
   description: "Use WHERE clauses to keep only rows that match a condition.",
   role: "instruction",
+  resources: [
+    {
+      title: "PostgreSQL: Comparison Functions and Operators",
+      url: "https://www.postgresql.org/docs/current/functions-comparison.html",
+      description: "Consult PostgreSQL's canonical reference when a comparison operator behaves unexpectedly.",
+      purpose: "reference"
+    }
+  ],
   sections: [
     section({
       id: "why-filter",
@@ -139,6 +147,12 @@ export default chapter({
   ]
 });
 ```
+
+Chapter resources are optional links for continuing after a self-contained lesson. Omit `resources` or use an empty array when there are none. Prefer zero to three well-chosen resources; this is authoring guidance only, with no count rejection, warning, or truncation.
+
+Each resource requires a nonblank learner-facing title and description, an absolute HTTPS URL without embedded credentials, and one primary purpose: `"deepen"` (more detail or rigor), `"practice"` (active application), `"reference"` (canonical lookup), or `"alternate-explanation"` (a different framing). Duplicate normalized URLs are rejected; different fragments and query strings remain distinct. Validation checks local structure, not website availability or recommendation quality.
+
+Nonempty resources appear in a keyboard-accessible **Continue exploring** disclosure, collapsed by default, after all lesson sections and before chapter completion and navigation. Resource links open in a new tab, with that behavior announced to assistive technology. Chapters without resources render no disclosure. Resources do not appear in the chapter contents or section/block counts. Older chapter objects may omit the field; `chapter(...)` defaults it to an empty array.
 
 Use stable lowercase kebab-case IDs. Keep textbook IDs unique across the workspace, chapter IDs unique within a textbook, section IDs unique within a chapter, and block IDs unique within their section or subsection.
 

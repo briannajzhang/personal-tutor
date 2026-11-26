@@ -480,6 +480,10 @@ body.route-loading {
     grid-column: 1;
     text-align: left;
   }
+  .chapter-resource-link {
+    grid-template-columns: minmax(96px, .34fr) minmax(0, 1.66fr) auto;
+    gap: 14px;
+  }
   .transformation-stages,
   .transformation.layout-auto.auto-hybrid .transformation-stages,
   .transformation.layout-compare.auto-hybrid .transformation-stages {
@@ -597,6 +601,21 @@ body.route-loading {
   }
 }
 @media (max-width: 560px) {
+  .chapter-resource-link {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px 12px;
+  }
+  .chapter-resource-purpose {
+    grid-column: 1 / -1;
+    padding-top: 0;
+  }
+  .chapter-resource-copy {
+    grid-column: 1;
+  }
+  .chapter-resource-external {
+    grid-column: 2;
+    grid-row: 2;
+  }
   .glossary-card-controls {
     gap: 10px;
   }

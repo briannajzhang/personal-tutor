@@ -43,6 +43,7 @@ async function renderChapter(textbookId, chapterId, token) {
       </aside>
       <div class="chapter-content">
         \${chapter.sections.map((section) => renderSection(section, renderContext)).join("")}
+        \${renderChapterResources(chapter)}
         \${renderChapterFooter(chapter)}
       </div>
     </section>
@@ -63,6 +64,37 @@ async function renderChapter(textbookId, chapterId, token) {
   finishRouteLoad(token);
   scrollToHashTarget(window.location.hash, "auto");
   void saveReadingProgress(textbookId, chapterId, "visit", headingIdForHash(chapter));
+}
+
+const chapterResourcePurposeLabels = {
+  deepen: "Go deeper",
+  practice: "Practice",
+  reference: "Reference",
+  "alternate-explanation": "Another explanation"
+};
+
+function renderChapterResources(chapter) {
+  const resources = Array.isArray(chapter.resources) ? chapter.resources : [];
+  if (resources.length === 0) return "";
+  return \`
+    <details class="chapter-resources" data-chapter-resources>
+      <summary class="chapter-resources-summary">Continue exploring</summary>
+      <ul class="chapter-resource-list">
+        \${resources.map((resource) => \`
+          <li class="chapter-resource-item">
+            <a class="chapter-resource-link" href="\${escapeAttr(resource.url)}" target="_blank" rel="noopener noreferrer">
+              <span class="chapter-resource-purpose">\${escapeHtml(chapterResourcePurposeLabels[resource.purpose] ?? "Resource")}</span>
+              <span class="chapter-resource-copy">
+                <span class="chapter-resource-name">\${escapeHtml(resource.title)}<span class="sr-only"> (opens in a new tab)</span></span>
+                <span class="chapter-resource-description">\${escapeHtml(resource.description)}</span>
+              </span>
+              <span class="chapter-resource-external" aria-hidden="true">↗</span>
+            </a>
+          </li>
+        \`).join("")}
+      </ul>
+    </details>
+  \`;
 }
 
 function syncChapterToolsDisclosure() {
