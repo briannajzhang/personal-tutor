@@ -2,6 +2,8 @@
 
 Use this reference when setting up a Tutor Kit workspace, invoking the CLI, authoring TypeScript modules, choosing semantic block builders, or starting the local UI.
 
+Before selecting or replacing optional chapter resources, or reviewing them on request, read [additional-resources.md](additional-resources.md). It defines discovery, page inspection, omission without browsing, and recommendation quality; runtime validity alone does not establish learning value.
+
 ## Contents
 
 - Command invocation

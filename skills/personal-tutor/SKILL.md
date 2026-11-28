@@ -78,6 +78,10 @@ Begin this workflow after preflight and any needed intake or intentional inferen
 
 New textbooks use one compact `course.md` for learner context that is specific to that course, the course outcome, the course map, and the active publication contract. Store only durable context that applies across courses in the workspace-level `memory.md`. Update only the parts that changed. Older workspaces may contain `prompt.md`, `curriculum-map.md`, `chapter-specs.md`, or `review-notes.md`; reuse them when useful but never create new ones. Write a longer chapter spec only for a high-risk chapter: complex simulation, source-sensitive lesson, assessment with many prerequisites.
 
+## Optional chapter resources
+
+For each chapter, consider whether an external resource offers a useful next learning step. Keep the lesson self-contained and omit resources by default; do not search merely to fill the field. When selecting or replacing resources, or when the learner requests a resource review, read `references/additional-resources.md`. Open and inspect exact destinations before recommending them. Without browsing, omit all resources from a new selection, including previously recorded links. Prefer zero to three resources and variety across websites; both are recommendations, not restrictions. Recheck existing resources only on request, including a reported link problem; ordinary chapter edits and continuation do not trigger an audit.
+
 ## Hard rules
 
 - A published chapter must be imported by `textbook.ts`, appear in its ordered chapter list, and pass `doctor`.
@@ -98,6 +102,7 @@ Read only what the task needs:
 - `references/lesson-authoring.md`: representation choices, visuals, transformations, glossaries, and interactions.
 - `references/practice-and-assessment.md`: quizzes, cumulative assessment, and runnable coding problems.
 - `references/sources.md`: user-provided or named sources.
+- `references/additional-resources.md`: discovering, verifying, selecting, or replacing optional chapter links, and rechecking them on request; distinct from lesson-source grounding.
 - `references/review-and-verification.md`: strict pedagogical audits and advanced verification.
 - `references/tutor-kit-api.md`: complete API, uncommon blocks, configuration, and troubleshooting.
 
