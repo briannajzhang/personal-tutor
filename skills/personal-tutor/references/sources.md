@@ -6,6 +6,8 @@ Use this reference when a user provides or names sources that should influence T
 
 Sources preserve reusable content for future generation. They help the tutor use user-provided or user-named sources without asking the user to repeat content.
 
+These are inputs to lesson generation. Optional links for learners to open after a lesson follow [additional-resources.md](additional-resources.md). A source does not automatically become a chapter resource, and a resource with purpose `reference` is not automatically evidence for a lesson claim.
+
 ## Source Roles
 
 Classify each source by how it should influence generation:

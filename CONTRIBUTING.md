@@ -19,3 +19,5 @@ npm run test:browser
 ```
 
 Keep changes focused. Include tests when behavior changes.
+
+For changes to optional resource selection, use the behavioral cases in [tests/evals/additional-resources.md](tests/evals/additional-resources.md), supplemented by a live-web trial. Record what was actually attempted and distinguish required verification rules from advisory count and website-variety preferences. See the [initial evaluation results](tests/evals/additional-resources-results.md) for scope and limitations. `npm test` does not execute these model evaluations or establish recommendation quality.

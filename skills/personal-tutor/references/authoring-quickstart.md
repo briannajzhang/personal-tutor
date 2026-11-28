@@ -121,6 +121,8 @@ Stable lowercase kebab case IDs preserve learner state. Keep chapter IDs unique 
 
 The example shows common syntax, not a required chapter shape. Use it as a seed rather than a ceiling. Add richer examples, guided exploration, alternate representations, projects, visuals, simulations, or other blocks when they improve the lesson. Remove any example block that does not fit. No block is required.
 
+Optional follow-up links belong in chapter `resources`, not lesson sections. Before selecting or replacing them, or reviewing them on request, read [additional-resources.md](additional-resources.md). Search only for a clear next learning step; omit new selections entirely without browsing. Prefer zero to three resources and different websites, with reasoned exceptions allowed. These are authoring recommendations, not runtime limits. Preserve existing links during unrelated edits; recheck them only on request. See [tutor-kit-api.md](tutor-kit-api.md) for the resource shape and display behavior.
+
 ## Full expressive surface
 
 Tutor Kit also provides `heading`, `mathBlock`, `diagram`, `chart`, `image`, `component`, `callout`, `transformation`, `glossary`, `quiz`, `codingProblem`, `subsection`, and `projectFiles`.
